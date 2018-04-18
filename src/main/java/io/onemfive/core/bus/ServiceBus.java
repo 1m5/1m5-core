@@ -74,21 +74,35 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
-        BaseService service = (BaseService)serviceClass.newInstance();
+        final String serviceName = serviceClass.getName();
+        final BaseService service = (BaseService)serviceClass.newInstance();
         service.setProducer(this);
+        // register service
         registeredServices.put(serviceClass.getName(), service);
-        if(service.start(properties)) {
-            runningServices.put(serviceClass.getName(), service);
-        }
+        // start registered service
+        new AppThread(new Runnable() {
+            @Override
+            public void run() {
+                if(service.start(properties)) {
+                    runningServices.put(serviceName, service);
+                }
+            }
+        }, serviceName+"-StartupThread").start();
     }
 
     public void unregister(Class serviceClass) {
         if(runningServices.containsKey(serviceClass.getName())) {
-            BaseService service = runningServices.get(serviceClass.getName());
-            if(service.shutdown()) {
-                runningServices.remove(serviceClass.getName());
-                registeredServices.remove(serviceClass.getName());
-            }
+            final String serviceName = serviceClass.getName();
+            final BaseService service = runningServices.get(serviceName);
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    if(service.shutdown()) {
+                        runningServices.remove(serviceName);
+                        registeredServices.remove(serviceName);
+                    }
+                }
+            }, serviceName+"-StartupThread").start();
         }
     }
 
@@ -104,9 +118,7 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         registeredServices = new HashMap<>(13);
         runningServices = new HashMap<>(13);
 
-        // Start Services
-        // TODO: Start services using AppThreads to reduce startup time
-
+        // Register Base Services
         PranaService pranaService = new PranaService(this);
         registeredServices.put(PranaService.class.getName(), pranaService);
 
@@ -140,6 +152,7 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         AtenService atenService = new AtenService(this);
         registeredServices.put(AtenService.class.getName(), atenService);
 
+        // Start Registered Services
         final Properties props = this.properties;
         for(final String serviceName : registeredServices.keySet()) {
             new AppThread(new Runnable() {
