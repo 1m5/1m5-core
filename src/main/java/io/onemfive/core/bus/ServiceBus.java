@@ -44,7 +44,8 @@ public class ServiceBus implements MessageProducer, LifeCycle {
     private MessageChannel channel;
 
     private ClientAppManager clientAppManager;
-    protected Map<String, BaseService> services;
+    protected Map<String, BaseService> registeredServices;
+    protected Map<String, BaseService> runningServices;
 
     // TODO: Set maxThreads by end-user max processing configuration
     private int maxThreads = Runtime.getRuntime().availableProcessors() * 2;
@@ -69,15 +70,26 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         }
     }
 
-    public void register(Class serviceClass, BaseService service) throws ServiceRegisteredException {
-        if(services.containsKey(serviceClass.getName())) {
+    public void register(Class serviceClass) throws InstantiationException, IllegalAccessException, ServiceRegisteredException {
+        if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
-        services.put(serviceClass.getName(), service);
+        BaseService service = (BaseService)serviceClass.newInstance();
+        service.setProducer(this);
+        registeredServices.put(serviceClass.getName(), service);
+        if(service.start(properties)) {
+            runningServices.put(serviceClass.getName(), service);
+        }
     }
 
     public void unregister(Class serviceClass) {
-        services.remove(serviceClass.getName());
+        if(runningServices.containsKey(serviceClass.getName())) {
+            BaseService service = runningServices.get(serviceClass.getName());
+            if(service.shutdown()) {
+                runningServices.remove(serviceClass.getName());
+                registeredServices.remove(serviceClass.getName());
+            }
+        }
     }
 
     @Override
@@ -89,46 +101,59 @@ public class ServiceBus implements MessageProducer, LifeCycle {
 
         channel = new MessageChannel( maxMessagesCached);
 
-        services = new HashMap<>(13);
+        registeredServices = new HashMap<>(13);
+        runningServices = new HashMap<>(13);
 
         // Start Services
-        // TODO: Decide which services to start based on implementing solution (e.g. Social/Dgramz)
-        // TODO: Start services using SCAppThreads to reduce startup time
+        // TODO: Start services using AppThreads to reduce startup time
 
         PranaService pranaService = new PranaService(this);
-        if(pranaService.start(properties)) {services.put(PranaService.class.getName(), pranaService);}
+        registeredServices.put(PranaService.class.getName(), pranaService);
 
         ConsensusService consensusService = new ConsensusService(this);
-        if(consensusService.start(properties)) {services.put(ConsensusService.class.getName(),consensusService);}
+        registeredServices.put(ConsensusService.class.getName(), consensusService);
 
         ContentService contentService = new ContentService(this);
-        if(contentService.start(properties)) {services.put(ContentService.class.getName(),contentService);}
+        registeredServices.put(ContentService.class.getName(), contentService);
 
         DEXService dexService = new DEXService(this);
-        if(dexService.start(properties)) {services.put(DEXService.class.getName(),dexService);}
+        registeredServices.put(DEXService.class.getName(), dexService);
 
         RepositoryService repositoryService = new RepositoryService(this);
-        if(repositoryService.start(properties)) {services.put(RepositoryService.class.getName(), repositoryService);}
+        registeredServices.put(RepositoryService.class.getName(), repositoryService);
 
         InfoVaultService infoVaultService = new InfoVaultService(this);
-        if(infoVaultService.start(properties)) {services.put(InfoVaultService.class.getName(),infoVaultService);}
+        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
 
         KeyRingService keyRingService = new KeyRingService(this);
-        if(keyRingService.start(properties)) {services.put(KeyRingService.class.getName(),keyRingService);}
+        registeredServices.put(KeyRingService.class.getName(), keyRingService);
 
         LIDService lidService = new LIDService(this);
-        if(lidService.start(properties)) {services.put(LIDService.class.getName(),lidService);}
+        registeredServices.put(LIDService.class.getName(), lidService);
 
         OrchestrationService orchestrationService = new OrchestrationService(this);
-        if(orchestrationService.start(properties)) {services.put(OrchestrationService.class.getName(),orchestrationService);}
+        registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
         SensorsService sensorsService = new SensorsService(this);
-        if(sensorsService.start(properties)) {services.put(SensorsService.class.getName(),sensorsService);}
+        registeredServices.put(SensorsService.class.getName(), sensorsService);
 
         AtenService atenService = new AtenService(this);
-        if(atenService.start(properties)) {services.put(AtenService.class.getName(), atenService);}
+        registeredServices.put(AtenService.class.getName(), atenService);
 
-        pool = new WorkerThreadPool(clientAppManager, services, channel, maxThreads, maxThreads, properties);
+        final Properties props = this.properties;
+        for(final String serviceName : registeredServices.keySet()) {
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    BaseService service = registeredServices.get(serviceName);
+                    if(service.start(props)) {
+                        runningServices.put(serviceName, service);
+                    }
+                }
+            }, serviceName+"-StartupThread").start();
+        }
+
+        pool = new WorkerThreadPool(clientAppManager, runningServices, channel, maxThreads, maxThreads, properties);
         pool.start();
 
         status = Status.Running;
