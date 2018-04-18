@@ -4,6 +4,8 @@ import io.onemfive.core.bus.BaseService;
 import io.onemfive.core.bus.MessageProducer;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.LID;
+import io.onemfive.data.health.HealthRecord;
 
 import java.util.Map;
 import java.util.Properties;
@@ -32,15 +34,40 @@ public class InfoVaultService extends BaseService {
     private void load(Envelope envelope) {
         System.out.println(InfoVaultService.class.getSimpleName()+": Received load request.");
         DocumentMessage m = (DocumentMessage)envelope.getMessage();
-        Set<Map.Entry<String,Object>> entries = m.data.entrySet();
-        for(Map.Entry entry : entries) {
+        if(m != null) {
+            Set<Map.Entry<String, Object>> entries = m.data.entrySet();
+            for (Map.Entry entry : entries) {
+                Object obj = entry.getValue();
+                if (obj instanceof HealthRecord) {
+                    load((HealthRecord) obj);
+                }
+            }
+        }
+    }
 
+    private void load(HealthRecord healthRecord) {
+        LID lid = healthRecord.getLid();
+        if(lid != null) {
+            if ("Alice".equals(lid.getAlias()))
+                healthRecord.setOverallHealth(HealthRecord.HealthStatus.Good);
+            else
+                healthRecord.setOverallHealth(HealthRecord.HealthStatus.Unknown);
         }
     }
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("InfoVaultService not implemented yet.");
+        System.out.println("InfoVaultService starting up...");
+
+        System.out.println("InfoVaultService started.");
+        return true;
+    }
+
+    @Override
+    public boolean shutdown() {
+        System.out.println("InfoVaultService shutting down...");
+
+        System.out.println("InfoVaultService shutdown.");
         return true;
     }
 }
