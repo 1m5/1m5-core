@@ -71,7 +71,7 @@ public final class ClientAppManager {
     }
 
     /**
-     * Shuts down the client app manager instance and the sc service.
+     * Shuts down the client app manager instance and the 1M5 service.
      */
     public boolean stop() {
         System.out.println(ClientAppManager.class.getSimpleName()+": shutting down...");

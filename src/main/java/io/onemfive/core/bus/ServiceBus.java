@@ -217,6 +217,17 @@ public final class ServiceBus implements MessageProducer, LifeCycle {
         spin.set(false);
         pool.shutdown();
         channel.shutdown();
+        for(final String serviceName : runningServices.keySet()) {
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    BaseService service = runningServices.get(serviceName);
+                    if(service.shutdown()) {
+                        runningServices.remove(serviceName);
+                    }
+                }
+            }, serviceName+"-ShutdownThread").start();
+        }
         status = Status.Stopped;
         return true;
     }

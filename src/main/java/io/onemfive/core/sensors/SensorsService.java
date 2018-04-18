@@ -85,6 +85,15 @@ public class SensorsService extends BaseService {
                 }
             }).start();
         }
+        if(registeredSensors.containsKey(MeshSensor.class.getName())) {
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    MeshSensor meshSensor = (MeshSensor)activeSensors.get(MeshSensor.class.getName());
+                    meshSensor.shutdown();
+                }
+            }).start();
+        }
         return true;
     }
 }
