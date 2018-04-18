@@ -67,6 +67,7 @@
 			<groupId>io.onemfive</groupId>
 			<artifactId>data</artifactId>
 			<version>${project.version}</version>
+			<!--<license>AGPLv3</license>-->
 		</dependency>
 		<!-- I2P -->
 		<dependency>
