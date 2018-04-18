@@ -1,6 +1,5 @@
 package io.onemfive.core.sensors.i2p.bote;
 
-import io.onemfive.core.bus.LifeCycle;
 import io.onemfive.core.sensors.Sensor;
 
 import java.util.Properties;
@@ -14,7 +13,7 @@ import java.util.Properties;
  *
  * @author objectorange
  */
-public class I2PBoteSensor implements LifeCycle, Sensor {
+public class I2PBoteSensor implements Sensor {
 
     @Override
     public boolean start(Properties properties) {

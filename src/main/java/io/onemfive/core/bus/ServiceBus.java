@@ -29,10 +29,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * All bus threads come from one pool to help manage resource usage.
  *
  * TODO: Handles high priority commands to manage the services synchronously.
+ * TODO: Replace System.out with Log
  *
  * @author objectorange
  */
-public class ServiceBus implements MessageProducer, LifeCycle {
+public final class ServiceBus implements MessageProducer, LifeCycle {
 
     public enum Status {Starting, Running, Stopping, Stopped}
 
@@ -44,8 +45,8 @@ public class ServiceBus implements MessageProducer, LifeCycle {
     private MessageChannel channel;
 
     private ClientAppManager clientAppManager;
-    protected Map<String, BaseService> registeredServices;
-    protected Map<String, BaseService> runningServices;
+    private Map<String, BaseService> registeredServices;
+    private Map<String, BaseService> runningServices;
 
     // TODO: Set maxThreads by end-user max processing configuration
     private int maxThreads = Runtime.getRuntime().availableProcessors() * 2;
@@ -112,6 +113,15 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         }
     }
 
+    /**
+     * Starts up Service Bus registering internal services, starting all services registered, and starting message channel
+     * and worker thread pool.
+     *
+     * TODO: Provide a method for externalizing service registration record for startup.
+     *
+     * @param properties
+     * @return
+     */
     @Override
     public boolean start(Properties properties) {
         if(properties == null)
@@ -128,14 +138,14 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         PranaService pranaService = new PranaService(this);
         registeredServices.put(PranaService.class.getName(), pranaService);
 
-        ConsensusService consensusService = new ConsensusService(this);
-        registeredServices.put(ConsensusService.class.getName(), consensusService);
+//        ConsensusService consensusService = new ConsensusService(this);
+//        registeredServices.put(ConsensusService.class.getName(), consensusService);
 
-        ContentService contentService = new ContentService(this);
-        registeredServices.put(ContentService.class.getName(), contentService);
+//        ContentService contentService = new ContentService(this);
+//        registeredServices.put(ContentService.class.getName(), contentService);
 
-        DEXService dexService = new DEXService(this);
-        registeredServices.put(DEXService.class.getName(), dexService);
+//        DEXService dexService = new DEXService(this);
+//        registeredServices.put(DEXService.class.getName(), dexService);
 
         RepositoryService repositoryService = new RepositoryService(this);
         registeredServices.put(RepositoryService.class.getName(), repositoryService);
@@ -143,8 +153,8 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         InfoVaultService infoVaultService = new InfoVaultService(this);
         registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
 
-        KeyRingService keyRingService = new KeyRingService(this);
-        registeredServices.put(KeyRingService.class.getName(), keyRingService);
+//        KeyRingService keyRingService = new KeyRingService(this);
+//        registeredServices.put(KeyRingService.class.getName(), keyRingService);
 
         LIDService lidService = new LIDService(this);
         registeredServices.put(LIDService.class.getName(), lidService);
@@ -155,8 +165,8 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         SensorsService sensorsService = new SensorsService(this);
         registeredServices.put(SensorsService.class.getName(), sensorsService);
 
-        AtenService atenService = new AtenService(this);
-        registeredServices.put(AtenService.class.getName(), atenService);
+//        AtenService atenService = new AtenService(this);
+//        registeredServices.put(AtenService.class.getName(), atenService);
 
         // Start Registered Services
         final Properties props = this.properties;
@@ -194,6 +204,13 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         return false;
     }
 
+    /**
+     * Shutdown the Service Bus
+     *
+     * TODO: Run in separate AppThread
+     *
+     * @return
+     */
     @Override
     public boolean shutdown() {
         status = Status.Stopping;
@@ -204,6 +221,13 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         return true;
     }
 
+    /**
+     * Ensure shutdown is graceful
+     *
+     * TODO: Implement
+     *
+     * @return
+     */
     @Override
     public boolean gracefulShutdown() {
         return false;

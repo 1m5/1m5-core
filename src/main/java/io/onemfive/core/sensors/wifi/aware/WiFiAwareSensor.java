@@ -2,6 +2,8 @@ package io.onemfive.core.sensors.wifi.aware;
 
 import io.onemfive.core.sensors.Sensor;
 
+import java.util.Properties;
+
 /**
  * Manages WiFi Aware for establishing available peers.
  * Not implemented until version 26 / 8.0.
@@ -10,4 +12,34 @@ import io.onemfive.core.sensors.Sensor;
  * @author objectorange
  */
 public class WiFiAwareSensor implements Sensor {
+
+    @Override
+    public boolean start(Properties properties) {
+        return false;
+    }
+
+    @Override
+    public boolean pause() {
+        return false;
+    }
+
+    @Override
+    public boolean unpause() {
+        return false;
+    }
+
+    @Override
+    public boolean restart() {
+        return false;
+    }
+
+    @Override
+    public boolean shutdown() {
+        return false;
+    }
+
+    @Override
+    public boolean gracefulShutdown() {
+        return false;
+    }
 }

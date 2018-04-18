@@ -14,7 +14,7 @@ import java.util.Properties;
  *
  * @author objectorange
  */
-public class I2PSensor implements LifeCycle, Sensor {
+public class I2PSensor implements Sensor {
 
     public enum Status {
         // These states persist even if it died.

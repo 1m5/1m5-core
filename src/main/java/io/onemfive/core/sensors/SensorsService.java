@@ -5,10 +5,9 @@ import io.onemfive.core.bus.BaseService;
 import io.onemfive.core.bus.Config;
 import io.onemfive.core.bus.MessageProducer;
 import io.onemfive.core.sensors.i2p.I2PSensor;
+import io.onemfive.core.sensors.mesh.MeshSensor;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * This is the main entry point into the application by supported networks.
@@ -16,13 +15,14 @@ import java.util.Properties;
  * Each supported Sensor provides a Message Queue each for:
  *  inbound (from Sensor)
  *  outbound (to Sensor)
+ *
+ *  @author ObjectOrange
  */
 public class SensorsService extends BaseService {
 
     private Properties config;
-    private List<String> activeSensors;
-
-    private I2PSensor i2PSensor;
+    private Map<String, Sensor> registeredSensors;
+    private Map<String, Sensor> activeSensors;
 
     public SensorsService(MessageProducer producer) {
         super(producer);
@@ -34,17 +34,34 @@ public class SensorsService extends BaseService {
         try {
             config = Config.load("sensors.config", properties);
 
-            String activeSensorsString = config.getProperty("sc.sensors.active");
-            activeSensors = Arrays.asList(activeSensorsString.split(","));
+            String registeredSensorsString = config.getProperty("1m5.sensors.registered");
+            List<String> registered = Arrays.asList(registeredSensorsString.split(","));
 
-            if(activeSensors.contains("i2p")) {
-                i2PSensor = new I2PSensor();
+            registeredSensors = new HashMap<>(registered.size());
+            activeSensors = new HashMap<>(registered.size());
+
+            if(registered.contains("i2p")) {
+                registeredSensors.put(I2PSensor.class.getName(),new I2PSensor());
                 new AppThread(new Runnable() {
                     @Override
                     public void run() {
+                        I2PSensor i2PSensor = (I2PSensor)registeredSensors.get(I2PSensor.class.getName());
                         i2PSensor.start(config);
+                        activeSensors.put(I2PSensor.class.getName(), i2PSensor);
                     }
                 }, "SensorsService:I2PSensorStartThread").start();
+            }
+
+            if(registered.contains("mesh")) {
+                registeredSensors.put(MeshSensor.class.getName(),new MeshSensor());
+                new AppThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        MeshSensor meshSensor = (MeshSensor) registeredSensors.get(MeshSensor.class.getName());
+                        meshSensor.start(config);
+                        activeSensors.put(MeshSensor.class.getName(), meshSensor);
+                    }
+                }, "SensorsService:MeshSensorStartThread").start();
             }
 
             System.out.println("SensorsService started.");
@@ -59,10 +76,11 @@ public class SensorsService extends BaseService {
 
     @Override
     public boolean gracefulShutdown() {
-        if(activeSensors.contains("i2p")) {
+        if(registeredSensors.containsKey(I2PSensor.class.getName())) {
             new AppThread(new Runnable() {
                 @Override
                 public void run() {
+                    I2PSensor i2PSensor = (I2PSensor)activeSensors.get(I2PSensor.class.getName());
                     i2PSensor.gracefulShutdown();
                 }
             }).start();

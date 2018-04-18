@@ -10,6 +10,7 @@ import java.util.Properties;
 
 /**
  * Life IDentifier Service
+ *
  * @author objectorange
  */
 public class LIDService extends BaseService {
@@ -22,10 +23,21 @@ public class LIDService extends BaseService {
     public void handleDocument(Envelope envelope) {
         String operation = (String) envelope.getHeader(Envelope.OPERATION);
         switch(operation) {
+            case "Verify": verify(envelope);break;
             case "Authenticate": authenticate(envelope);break;
             case "Create": create(envelope);break;
             default: deadLetter(envelope); // Operation not supported
         }
+    }
+
+    private void verify(Envelope envelope) {
+        System.out.println(LIDService.class.getSimpleName()+": Received verify LID request.");
+        DocumentMessage m = (DocumentMessage)envelope.getMessage();
+        LID lid = (LID)m.data.get(LID.class.getName());
+        if("Alice".equals(lid.getAlias()))
+            lid.setStatus(LID.Status.ACTIVE);
+        else
+            lid.setStatus(LID.Status.UNREGISTERED);
     }
 
     /**
@@ -35,7 +47,7 @@ public class LIDService extends BaseService {
      * @param envelope
      */
     private void create(Envelope envelope) {
-        System.out.println(LIDService.class.getSimpleName()+": Received create request.");
+        System.out.println(LIDService.class.getSimpleName()+": Received create LID request.");
         DocumentMessage m = (DocumentMessage)envelope.getMessage();
         LID lid = (LID)m.data.get(LID.class.getName());
         boolean created = false;
@@ -112,7 +124,7 @@ public class LIDService extends BaseService {
      * @param envelope
      */
     private void authenticate(Envelope envelope) {
-        System.out.println(LIDService.class.getSimpleName()+": Received authn request.");
+        System.out.println(LIDService.class.getSimpleName()+": Received authn LID request.");
         DocumentMessage m = (DocumentMessage)envelope.getMessage();
         LID lid = (LID)m.data.get(LID.class.getName());
 //        boolean authn = false;

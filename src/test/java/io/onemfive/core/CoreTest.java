@@ -1,6 +1,5 @@
 package io.onemfive.core;
 
-import io.onemfive.core.bus.ServiceBus;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.lid.LIDService;
@@ -30,6 +29,7 @@ public class CoreTest {
         oneMFiveAppContext = OneMFiveAppContext.getInstance();
         clientAppManager = oneMFiveAppContext.getClientAppManager();
         client = clientAppManager.getClient(true);
+        // NOTE: Don't forget to increase latch number for each asynchronous assertion
         lock = new CountDownLatch(2);
     }
 
@@ -153,9 +153,9 @@ public class CoreTest {
     @AfterClass
     public static void tearDown() {
         try {
-            lock.await(60, TimeUnit.SECONDS);
+            lock.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {}
-        clientAppManager.stop();
+        clientAppManager.unregister(client);
     }
 
 }
