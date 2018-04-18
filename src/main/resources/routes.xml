@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<routes xmlns:sc-routes="https://schemas.synapticcelerity.io/routes">
+<routes xmlns:onemfive-routes="https://schemas.1m5.io/routes">
     <route id="route-name-here">
         <!-- Route Description Here -->
 
