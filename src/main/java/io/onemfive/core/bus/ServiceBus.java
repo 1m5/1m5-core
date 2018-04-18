@@ -70,24 +70,30 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         }
     }
 
-    public void register(Class serviceClass) throws InstantiationException, IllegalAccessException, ServiceRegisteredException {
+    public void register(Class serviceClass) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
         if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
         final String serviceName = serviceClass.getName();
-        final BaseService service = (BaseService)serviceClass.newInstance();
-        service.setProducer(this);
-        // register service
-        registeredServices.put(serviceClass.getName(), service);
-        // start registered service
-        new AppThread(new Runnable() {
-            @Override
-            public void run() {
-                if(service.start(properties)) {
-                    runningServices.put(serviceName, service);
+        try {
+            final BaseService service = (BaseService)serviceClass.newInstance();
+            service.setProducer(this);
+            // register service
+            registeredServices.put(serviceClass.getName(), service);
+            // start registered service
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    if(service.start(properties)) {
+                        runningServices.put(serviceName, service);
+                    }
                 }
-            }
-        }, serviceName+"-StartupThread").start();
+            }, serviceName+"-StartupThread").start();
+        } catch (InstantiationException e) {
+            throw new ServiceNotSupportedException(e);
+        } catch (IllegalAccessException e) {
+            throw new ServiceNotAccessibleException(e);
+        }
     }
 
     public void unregister(Class serviceClass) {
