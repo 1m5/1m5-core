@@ -5,7 +5,7 @@ import io.onemfive.core.bus.MessageProducer;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.LID;
-import io.onemfive.data.health.HealthRecord;
+import io.onemfive.data.HealthRecord;
 
 import java.util.Map;
 import java.util.Properties;
