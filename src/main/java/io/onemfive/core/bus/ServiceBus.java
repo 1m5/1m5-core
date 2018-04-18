@@ -69,6 +69,17 @@ public class ServiceBus implements MessageProducer, LifeCycle {
         }
     }
 
+    public void register(Class serviceClass, BaseService service) throws ServiceRegisteredException {
+        if(services.containsKey(serviceClass.getName())) {
+            throw new ServiceRegisteredException();
+        }
+        services.put(serviceClass.getName(), service);
+    }
+
+    public void unregister(Class serviceClass) {
+        services.remove(serviceClass.getName());
+    }
+
     @Override
     public boolean start(Properties properties) {
         if(properties == null)
