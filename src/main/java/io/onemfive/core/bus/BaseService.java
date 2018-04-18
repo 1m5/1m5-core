@@ -16,7 +16,18 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     private MessageProducer producer;
 
+    public BaseService() {
+    }
+
     public BaseService(MessageProducer producer) {
+        this.producer = producer;
+    }
+
+    public MessageProducer getProducer() {
+        return producer;
+    }
+
+    public void setProducer(MessageProducer producer) {
         this.producer = producer;
     }
 
