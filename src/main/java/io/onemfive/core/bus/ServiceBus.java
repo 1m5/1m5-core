@@ -1,8 +1,10 @@
 package io.onemfive.core.bus;
 
 import io.onemfive.core.BaseService;
+import io.onemfive.core.Config;
 import io.onemfive.core.LifeCycle;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.repository.RepositoryService;
@@ -29,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * TODO: Handles high priority commands to manage the services synchronously.
  * TODO: Replace System.out with Log
+ * TODO: Add configurations
  *
  * @author objectorange
  */
@@ -47,9 +50,9 @@ public final class ServiceBus implements MessageProducer, LifeCycle {
     private Map<String, BaseService> registeredServices;
     private Map<String, BaseService> runningServices;
 
-    // TODO: Set maxThreads by end-user max processing configuration
+    // TODO: Set maxThreads by end-user max processing allocation (Prana limitations)
     private int maxThreads = Runtime.getRuntime().availableProcessors() * 2;
-    // TODO: Set maxMessagesCached by end-user max memory configuration
+    // TODO: Set maxMessagesCached by end-user max memory allocation (Prana limitations)
     private int maxMessagesCached = 10 * maxThreads;
 
     private final AtomicBoolean spin = new AtomicBoolean(true);
@@ -133,6 +136,16 @@ public final class ServiceBus implements MessageProducer, LifeCycle {
                 this.properties.putAll(properties);
         }
 
+        try {
+            this.properties = Config.load("bus.config", this.properties);
+            String maxMessagesCachedMultiplierStr = this.properties.getProperty("1m5.bus.maxMessagesCachedMultiplier");
+            if(maxMessagesCachedMultiplierStr != null){
+                maxMessagesCached = Integer.parseInt(maxMessagesCachedMultiplierStr) * maxThreads;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Failed to load bus.config in ServiceBus.");
+        }
 
         channel = new MessageChannel(maxMessagesCached);
 
@@ -158,8 +171,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle {
         InfoVaultService infoVaultService = new InfoVaultService(this);
         registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
 
-//        KeyRingService keyRingService = new KeyRingService(this);
-//        registeredServices.put(KeyRingService.class.getName(), keyRingService);
+        KeyRingService keyRingService = new KeyRingService(this);
+        registeredServices.put(KeyRingService.class.getName(), keyRingService);
 
         LIDService lidService = new LIDService(this);
         registeredServices.put(LIDService.class.getName(), lidService);

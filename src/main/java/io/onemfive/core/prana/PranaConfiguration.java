@@ -51,7 +51,7 @@ public class PranaConfiguration implements Serializable {
     /**
      * Amino Price per Mb
      */
-    private double aminoPerMb = 0;
+    private double aminoPerNetworkMb = 0.0;
     /**
      *
      */
@@ -79,7 +79,7 @@ public class PranaConfiguration implements Serializable {
     /**
      * Amino Price per MB
      */
-    private double aminoPerMB = 0;
+    private double aminoPerStorageMB = 0;
     /**
      * Max Storage of Device in MBs
      */
@@ -161,12 +161,12 @@ public class PranaConfiguration implements Serializable {
         this.maxNetworkShareableMbps = maxNetworkShareableMbps;
     }
 
-    public double getAminoPerMb() {
-        return aminoPerMb;
+    public double getAminoPerNetworkMb() {
+        return aminoPerNetworkMb;
     }
 
-    public void setAminoPerMb(double aminoPerMb) {
-        this.aminoPerMb = aminoPerMb;
+    public void setAminoPerNetworkMb(double aminoPerNetworkMb) {
+        this.aminoPerNetworkMb = aminoPerNetworkMb;
     }
 
     public int getMaxNetworkBandwidthMbps() {
@@ -209,12 +209,12 @@ public class PranaConfiguration implements Serializable {
         this.currentStoreShareableMBs = currentStoreShareableMBs;
     }
 
-    public double getAminoPerMB() {
-        return aminoPerMB;
+    public double getAminoPerStorageMB() {
+        return aminoPerStorageMB;
     }
 
-    public void setAminoPerMB(double aminoPerMB) {
-        this.aminoPerMB = aminoPerMB;
+    public void setAminoPerStorageMB(double aminoPerStorageMB) {
+        this.aminoPerStorageMB = aminoPerStorageMB;
     }
 
     public long getMaxStorageDeviceMBs() {

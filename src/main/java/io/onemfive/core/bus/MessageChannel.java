@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author objectorange
  */
-class MessageChannel implements MessageProducer {
+final class MessageChannel implements MessageProducer {
 
     private boolean accepting = false;
     private BlockingQueue<Envelope> queue;
@@ -27,11 +27,11 @@ class MessageChannel implements MessageProducer {
         accepting = true;
     }
 
-    public BlockingQueue<Envelope> getQueue() {
+    BlockingQueue<Envelope> getQueue() {
         return queue;
     }
 
-    public void ack(Envelope envelope) {
+    void ack(Envelope envelope) {
         queue.remove(envelope);
     }
 

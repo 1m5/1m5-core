@@ -10,11 +10,14 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * TODO: Add Description
+ * Thread pool for WorkerThreads.
+ *
+ * TODO: Improve shutdown
+ * TODO: Improve configuration options
  *
  * @author objectorange
  */
-class WorkerThreadPool extends AppThread {
+final class WorkerThreadPool extends AppThread {
 
     public enum Status {Starting, Running, Stopping, Stopped}
 
@@ -53,17 +56,15 @@ class WorkerThreadPool extends AppThread {
         while(spin.get()) {
             synchronized (this){
                 try {
-                    System.out.println("*");
+                    System.out.print("*");
                     if(channel.getQueue().size() > 0) {
                         String threadName = "FactoryThread-"+(++index);
                         System.out.println("Pool: Queue > 0 : Launching "+threadName);
                         pool.execute(new WorkerThread(threadName,channel, clientAppManager, services));
                     } else {
-                        this.wait(1000); // wait
+                        this.wait(500); // wait 500ms
                     }
-                } catch (InterruptedException e) {
-
-                }
+                } catch (InterruptedException e) {}
             }
         }
         return true;

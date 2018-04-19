@@ -6,7 +6,9 @@ import io.onemfive.core.MessageProducer;
 import java.util.Properties;
 
 /**
- * Created by Brian on 3/27/18.
+ * Manages and secures keys.
+ *
+ * @author ObjectOrange
  */
 public class KeyRingService extends BaseService {
 
@@ -16,7 +18,9 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("KeyRingService not implemented yet.");
+        System.out.println("KeyRingService starting...");
+
+        System.out.println("KeyRingService started.");
         return true;
     }
 

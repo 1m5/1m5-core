@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * @author objectorange
  */
-class WorkerThread extends AppThread {
+final class WorkerThread extends AppThread {
 
     private MessageChannel channel;
     private ClientAppManager clientAppManager;

@@ -6,7 +6,9 @@ import io.onemfive.core.MessageProducer;
 import java.util.Properties;
 
 /**
- * Created by Brian on 3/27/18.
+ * User Utility Token for measuring and managing resource usage.
+ *
+ * @author ObjectOrange
  */
 public class PranaService extends BaseService {
 
@@ -16,7 +18,9 @@ public class PranaService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("PranaService not implemented yet.");
+        System.out.println("PranaService starting...");
+
+        System.out.println("PranaService started.");
         return true;
     }
 }
