@@ -12,9 +12,6 @@ import java.util.*;
 /**
  * This is the main entry point into the application by supported networks.
  * It registers all supported/configured Sensors and manages their lifecycle.
- * Each supported Sensor provides a Message Queue each for:
- *  inbound (from Sensor)
- *  outbound (to Sensor)
  *
  *  @author ObjectOrange
  */
