@@ -4,6 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.LifeCycle;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.consensus.ConsensusService;
 import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
@@ -64,7 +65,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle {
 
     @Override
     public boolean send(Envelope envelope) {
-        System.out.println(ServiceBus.class.getSimpleName()+": Received reply. Sending to channel...");
+        System.out.println(ServiceBus.class.getSimpleName()+": Received envelope. Sending to channel...");
         if(pool != null && pool.getStatus() == WorkerThreadPool.Status.Running) {
             return channel.send(envelope);
         } else {

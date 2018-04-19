@@ -46,8 +46,10 @@ public class InfoVaultService extends BaseService {
     }
 
     private void load(HealthRecord healthRecord) {
+        System.out.println(InfoVaultService.class.getSimpleName()+": Received load HealthRecord request.");
         LID lid = healthRecord.getLid();
         if(lid != null) {
+            System.out.println(InfoVaultService.class.getSimpleName()+": LID provided (alias="+lid.getAlias()+"), looking up HealthRecord...");
             if ("Alice".equals(lid.getAlias()))
                 healthRecord.setOverallHealth(HealthRecord.HealthStatus.Good);
             else

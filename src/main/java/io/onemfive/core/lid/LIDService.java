@@ -38,6 +38,7 @@ public class LIDService extends BaseService {
             lid.setStatus(LID.Status.ACTIVE);
         else
             lid.setStatus(LID.Status.UNREGISTERED);
+        reply(envelope);
     }
 
     /**

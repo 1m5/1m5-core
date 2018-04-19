@@ -56,7 +56,7 @@ final class WorkerThreadPool extends AppThread {
         while(spin.get()) {
             synchronized (this){
                 try {
-                    System.out.print("*");
+                    System.out.println("*");
                     if(channel.getQueue().size() > 0) {
                         String threadName = "FactoryThread-"+(++index);
                         System.out.println("Pool: Queue > 0 : Launching "+threadName);

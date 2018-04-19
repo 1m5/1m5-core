@@ -32,33 +32,35 @@ public class SensorsService extends BaseService {
             config = Config.load("sensors.config", properties);
 
             String registeredSensorsString = config.getProperty("1m5.sensors.registered");
-            List<String> registered = Arrays.asList(registeredSensorsString.split(","));
+            if(registeredSensorsString != null) {
+                List<String> registered = Arrays.asList(registeredSensorsString.split(","));
 
-            registeredSensors = new HashMap<>(registered.size());
-            activeSensors = new HashMap<>(registered.size());
+                registeredSensors = new HashMap<>(registered.size());
+                activeSensors = new HashMap<>(registered.size());
 
-            if(registered.contains("i2p")) {
-                registeredSensors.put(I2PSensor.class.getName(),new I2PSensor());
-                new AppThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        I2PSensor i2PSensor = (I2PSensor)registeredSensors.get(I2PSensor.class.getName());
-                        i2PSensor.start(config);
-                        activeSensors.put(I2PSensor.class.getName(), i2PSensor);
-                    }
-                }, "SensorsService:I2PSensorStartThread").start();
-            }
+                if (registered.contains("i2p")) {
+                    registeredSensors.put(I2PSensor.class.getName(), new I2PSensor());
+                    new AppThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            I2PSensor i2PSensor = (I2PSensor) registeredSensors.get(I2PSensor.class.getName());
+                            i2PSensor.start(config);
+                            activeSensors.put(I2PSensor.class.getName(), i2PSensor);
+                        }
+                    }, "SensorsService:I2PSensorStartThread").start();
+                }
 
-            if(registered.contains("mesh")) {
-                registeredSensors.put(MeshSensor.class.getName(),new MeshSensor());
-                new AppThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        MeshSensor meshSensor = (MeshSensor) registeredSensors.get(MeshSensor.class.getName());
-                        meshSensor.start(config);
-                        activeSensors.put(MeshSensor.class.getName(), meshSensor);
-                    }
-                }, "SensorsService:MeshSensorStartThread").start();
+                if (registered.contains("mesh")) {
+                    registeredSensors.put(MeshSensor.class.getName(), new MeshSensor());
+                    new AppThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            MeshSensor meshSensor = (MeshSensor) registeredSensors.get(MeshSensor.class.getName());
+                            meshSensor.start(config);
+                            activeSensors.put(MeshSensor.class.getName(), meshSensor);
+                        }
+                    }, "SensorsService:MeshSensorStartThread").start();
+                }
             }
 
             System.out.println("SensorsService started.");

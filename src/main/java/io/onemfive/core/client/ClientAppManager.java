@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Manages Client Application interaction with the SC service.
+ * Manages Client Application interaction with the 1M5 service.
  *
  * @author objectorange
  */

@@ -146,16 +146,16 @@ public class OneMFiveAppContext {
     *
     *  Name	Property 	Method		Files
     *  -----	-------- 	-----		-----
-    *  Base	sc.dir.base	getBaseDir()	lib/, webapps/, docs/, geoip/, licenses/, ...
-    *  Temp	sc.dir.temp	getTempDir()	Temporary files
-    *  Config sc.dir.config	getConfigDir()	*.config, hosts.txt, addressbook/, ...
+    *  Base	1m5.dir.base	getBaseDir()	lib/, webapps/, docs/, geoip/, licenses/, ...
+    *  Temp	1m5.dir.temp	getTempDir()	Temporary files
+    *  Config 1m5.dir.config	getConfigDir()	*.config, hosts.txt, addressbook/, ...
     *
     *  (the following all default to the same as Config)
     *
-    *  PID	sc.dir.pid	getPIDDir()	router.ping
-    *  Router	sc.dir.router	getRouterDir()	netDb/, peerProfiles/, router.*, keyBackup/, ...
-    *  Log	sc.dir.log	getLogDir()	logs/
-    *  App	sc.dir.app	getAppDir()	eepsite/, ...
+    *  PID	1m5.dir.pid	getPIDDir()	router.ping
+    *  Router	1m5.dir.router	getRouterDir()	netDb/, peerProfiles/, router.*, keyBackup/, ...
+    *  Log	1m5.dir.log	getLogDir()	logs/
+    *  App	1m5.dir.app	getAppDir()	eepsite/, ...
     *
     *  Note that we can't control where the wrapper puts its files.
     *
@@ -184,12 +184,12 @@ public class OneMFiveAppContext {
     *  All dirs except the base are created if they don't exist, but the creation will fail silently.
     */
 
-        String s = getProperty("sc.dir.base", System.getProperty("user.dir"));
+        String s = getProperty("1m5.dir.base", System.getProperty("user.dir"));
         System.out.println("Base Directory: "+s);
         baseDir = new File(s);
 
         // config defaults to base
-        s = getProperty("sc.dir.config");
+        s = getProperty("1m5.dir.config");
         if (s != null) {
             configDir = new SecureFile(s);
             if (!configDir.exists())
@@ -199,7 +199,7 @@ public class OneMFiveAppContext {
         }
 
         // conscious defaults to config
-        s = getProperty("sc.dir.conscious");
+        s = getProperty("1m5.dir.conscious");
         if (s != null) {
             consciousDir = new SecureFile(s);
             if (!consciousDir.exists())
@@ -209,7 +209,7 @@ public class OneMFiveAppContext {
         }
 
         // pid defaults to router directory (as of 0.8.12, was system temp dir previously)
-        s = getProperty("sc.dir.pid");
+        s = getProperty("1m5.dir.pid");
         if (s != null) {
             pidDir = new SecureFile(s);
             if (!pidDir.exists())
@@ -219,7 +219,7 @@ public class OneMFiveAppContext {
         }
 
         // these all default to router
-        s = getProperty("sc.dir.log");
+        s = getProperty("1m5.dir.log");
         if (s != null) {
             logDir = new SecureFile(s);
             if (!logDir.exists())
@@ -228,7 +228,7 @@ public class OneMFiveAppContext {
             logDir = consciousDir;
         }
 
-        s = getProperty("sc.dir.app");
+        s = getProperty("1m5.dir.app");
         if (s != null) {
             appDir = new SecureFile(s);
             if (!appDir.exists())
@@ -273,7 +273,7 @@ public class OneMFiveAppContext {
     }
 
     /**
-     *  This is the installation dir, often referred to as $SC.
+     *  This is the installation dir, often referred to as $1m5.
      *  Applications should consider this directory read-only and never
      *  attempt to write to it.
      *  It may actually be read-only on a multi-user installation.
@@ -343,7 +343,7 @@ public class OneMFiveAppContext {
         // fixme don't synchronize every time
         synchronized (lock1) {
             if (tmpDir == null) {
-                String d = getProperty("sc.dir.temp", System.getProperty("java.io.tmpdir"));
+                String d = getProperty("1m5.dir.temp", System.getProperty("java.io.tmpdir"));
                 // our random() probably isn't warmed up yet
                 byte[] rand = new byte[6];
                 tmpDirRand.nextBytes(rand);
