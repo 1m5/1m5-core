@@ -1,4 +1,4 @@
-package io.onemfive.core.bus;
+package io.onemfive.core.util;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;

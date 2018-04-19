@@ -1,7 +1,7 @@
 package io.onemfive.core.repository;
 
-import io.onemfive.core.bus.BaseService;
-import io.onemfive.core.bus.MessageProducer;
+import io.onemfive.core.BaseService;
+import io.onemfive.core.MessageProducer;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;

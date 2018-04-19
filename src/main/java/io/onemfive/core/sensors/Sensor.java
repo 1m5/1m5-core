@@ -1,6 +1,6 @@
 package io.onemfive.core.sensors;
 
-import io.onemfive.core.bus.LifeCycle;
+import io.onemfive.core.LifeCycle;
 
 /**
  * TODO: Add Description

@@ -1,7 +1,5 @@
 package io.onemfive.core.util;
 
-import io.onemfive.core.bus.AppThread;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package io.onemfive.core.client;
 
-import io.onemfive.core.bus.MessageProducer;
+import io.onemfive.core.MessageProducer;
 import io.onemfive.data.ServiceCallback;
 import io.onemfive.data.Envelope;
 

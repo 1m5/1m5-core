@@ -1,9 +1,9 @@
 package io.onemfive.core.sensors;
 
-import io.onemfive.core.bus.AppThread;
-import io.onemfive.core.bus.BaseService;
-import io.onemfive.core.bus.Config;
-import io.onemfive.core.bus.MessageProducer;
+import io.onemfive.core.util.AppThread;
+import io.onemfive.core.BaseService;
+import io.onemfive.core.Config;
+import io.onemfive.core.MessageProducer;
 import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.mesh.MeshSensor;
 

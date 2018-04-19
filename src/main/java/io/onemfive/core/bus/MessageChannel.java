@@ -1,5 +1,6 @@
 package io.onemfive.core.bus;
 
+import io.onemfive.core.MessageProducer;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;

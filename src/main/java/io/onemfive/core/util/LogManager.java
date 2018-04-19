@@ -24,8 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import io.onemfive.core.OneMFiveAppContext;
-import io.onemfive.core.bus.AppThread;
-import io.onemfive.core.bus.OOMHandledThread;
 import io.onemfive.core.util.data.DataHelper;
 
 /**

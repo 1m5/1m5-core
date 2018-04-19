@@ -1,17 +1,16 @@
 package io.onemfive.core.bus;
 
-import io.onemfive.core.aten.AtenService;
+import io.onemfive.core.BaseService;
+import io.onemfive.core.LifeCycle;
+import io.onemfive.core.MessageProducer;
 import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
-import io.onemfive.core.consensus.ConsensusService;
-import io.onemfive.core.content.ContentService;
-import io.onemfive.core.dex.DEXService;
 import io.onemfive.core.repository.RepositoryService;
 import io.onemfive.core.orchestration.OrchestrationService;
 import io.onemfive.core.infovault.InfoVaultService;
-import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.lid.LIDService;
 import io.onemfive.core.sensors.SensorsService;
+import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
 
 import java.util.HashMap;
@@ -124,12 +123,18 @@ public final class ServiceBus implements MessageProducer, LifeCycle {
      */
     @Override
     public boolean start(Properties properties) {
-        if(properties == null)
-            properties = this.properties;
         status = Status.Starting;
         boolean startupSuccessful = true;
 
-        channel = new MessageChannel( maxMessagesCached);
+        if(properties != null) {
+            if(this.properties == null)
+                this.properties = properties;
+            else
+                this.properties.putAll(properties);
+        }
+
+
+        channel = new MessageChannel(maxMessagesCached);
 
         registeredServices = new HashMap<>(13);
         runningServices = new HashMap<>(13);

@@ -1,7 +1,7 @@
 package io.onemfive.core.infovault;
 
-import io.onemfive.core.bus.BaseService;
-import io.onemfive.core.bus.MessageProducer;
+import io.onemfive.core.BaseService;
+import io.onemfive.core.MessageProducer;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.LID;

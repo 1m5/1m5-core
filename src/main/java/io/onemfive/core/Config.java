@@ -1,4 +1,4 @@
-package io.onemfive.core.bus;
+package io.onemfive.core;
 
 import java.io.IOException;
 import java.io.InputStream;

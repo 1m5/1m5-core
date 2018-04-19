@@ -1,8 +1,7 @@
 package io.onemfive.core.sensors.i2p;
 
 import io.onemfive.core.OneMFiveAppContext;
-import io.onemfive.core.bus.AppThread;
-import io.onemfive.core.bus.LifeCycle;
+import io.onemfive.core.util.AppThread;
 import io.onemfive.core.sensors.Sensor;
 import net.i2p.router.Router;
 

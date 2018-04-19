@@ -1,7 +1,7 @@
 package io.onemfive.core.util.stat;
 
 import io.onemfive.core.OneMFiveAppContext;
-import io.onemfive.core.bus.OOMHandledThread;
+import io.onemfive.core.util.OOMHandledThread;
 import io.onemfive.core.util.Log;
 
 import java.io.BufferedWriter;

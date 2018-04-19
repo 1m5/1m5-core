@@ -1,7 +1,7 @@
 package io.onemfive.core.client;
 
 import io.onemfive.core.OneMFiveAppContext;
-import io.onemfive.core.bus.MessageProducer;
+import io.onemfive.core.MessageProducer;
 import io.onemfive.core.bus.ServiceBus;
 import io.onemfive.data.Envelope;
 

@@ -10,7 +10,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  *
  * @author objectorange
  */
-public class PersistentMessageQueue<E> extends ArrayBlockingQueue<E> {
+class PersistentMessageQueue<E> extends ArrayBlockingQueue<E> {
 
     public PersistentMessageQueue(int capacity) {
         super(capacity);
