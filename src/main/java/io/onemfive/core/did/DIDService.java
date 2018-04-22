@@ -1,10 +1,10 @@
-package io.onemfive.core.lid;
+package io.onemfive.core.did;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.data.DID;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
-import io.onemfive.data.LID;
 
 import java.util.Properties;
 
@@ -13,9 +13,9 @@ import java.util.Properties;
  *
  * @author objectorange
  */
-public class LIDService extends BaseService {
+public class DIDService extends BaseService {
 
-    public LIDService(MessageProducer producer) {
+    public DIDService(MessageProducer producer) {
         super(producer);
     }
 
@@ -31,13 +31,12 @@ public class LIDService extends BaseService {
     }
 
     private void verify(Envelope envelope) {
-        System.out.println(LIDService.class.getSimpleName()+": Received verify LID request.");
-        DocumentMessage m = (DocumentMessage)envelope.getMessage();
-        LID lid = (LID)m.data.get(LID.class.getName());
-        if("Alice".equals(lid.getAlias()))
-            lid.setStatus(LID.Status.ACTIVE);
+        System.out.println(DIDService.class.getSimpleName()+": Received verify DID request.");
+        DID did = (DID)envelope.getHeader(Envelope.DID);
+        if("Alice".equals(did.getAlias()))
+            did.setStatus(DID.Status.ACTIVE);
         else
-            lid.setStatus(LID.Status.UNREGISTERED);
+            did.setStatus(DID.Status.UNREGISTERED);
         reply(envelope);
     }
 
@@ -48,9 +47,8 @@ public class LIDService extends BaseService {
      * @param envelope
      */
     private void create(Envelope envelope) {
-        System.out.println(LIDService.class.getSimpleName()+": Received create LID request.");
-        DocumentMessage m = (DocumentMessage)envelope.getMessage();
-        LID lid = (LID)m.data.get(LID.class.getName());
+        System.out.println(DIDService.class.getSimpleName()+": Received create LID request.");
+        DID lid = (DID)envelope.getHeader(Envelope.DID);
         boolean created = false;
         // Use passphrase to encrypt and cache it
 //        try {
@@ -113,7 +111,7 @@ public class LIDService extends BaseService {
 //        } catch (IllegalDestinationParametersException e) {
 //            e.printStackTrace();
 //        }
-        lid.setStatus(LID.Status.ACTIVE);
+        lid.setStatus(DID.Status.ACTIVE);
         envelope.setHeader(Envelope.REPLY,true);
         reply(envelope);
     }
@@ -125,9 +123,8 @@ public class LIDService extends BaseService {
      * @param envelope
      */
     private void authenticate(Envelope envelope) {
-        System.out.println(LIDService.class.getSimpleName()+": Received authn LID request.");
-        DocumentMessage m = (DocumentMessage)envelope.getMessage();
-        LID lid = (LID)m.data.get(LID.class.getName());
+        System.out.println(DIDService.class.getSimpleName()+": Received authn LID request.");
+        DID did = (DID)envelope.getHeader(Envelope.DID);
 //        boolean authn = false;
 //        try {
 //            I2PBote.getInstance().tryPassword(passphrase.getBytes());
@@ -139,16 +136,16 @@ public class LIDService extends BaseService {
 //        } catch (PasswordException e) {
 //            e.printStackTrace();
 //        }
-        lid.setAuthenticated("1234".equals(lid.getPassphrase()));
-        lid.setStatus(LID.Status.ACTIVE);
+        did.setAuthenticated("1234".equals(did.getPassphrase()));
+        did.setStatus(DID.Status.ACTIVE);
         envelope.setHeader(Envelope.REPLY,true);
         reply(envelope);
     }
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("LIDService starting up....");
-        System.out.println("LIDService started.");
+        System.out.println("DIDService starting up....");
+        System.out.println("DIDService started.");
         return true;
     }
 

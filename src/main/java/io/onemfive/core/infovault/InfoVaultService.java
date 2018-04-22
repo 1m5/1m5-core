@@ -4,8 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
-import io.onemfive.data.LID;
-import io.onemfive.data.HealthRecord;
+import io.onemfive.data.DID;
 
 import java.util.Map;
 import java.util.Properties;
@@ -34,26 +33,29 @@ public class InfoVaultService extends BaseService {
     private void load(Envelope envelope) {
         System.out.println(InfoVaultService.class.getSimpleName()+": Received load request.");
         DocumentMessage m = (DocumentMessage)envelope.getMessage();
-        if(m != null) {
-            Set<Map.Entry<String, Object>> entries = m.data.entrySet();
-            for (Map.Entry entry : entries) {
-                Object obj = entry.getValue();
-                if (obj instanceof HealthRecord) {
-                    load((HealthRecord) obj);
+        if(m != null && m.data.containsKey("type")) {
+            final String objType = (String)m.data.get("type");
+            switch (objType) {
+                case "HealthRecord" : {
+                    loadHealthRecord(envelope);
                 }
             }
         }
     }
 
-    private void load(HealthRecord healthRecord) {
+    private void loadHealthRecord(Envelope envelope) {
         System.out.println(InfoVaultService.class.getSimpleName()+": Received load HealthRecord request.");
-        LID lid = healthRecord.getLid();
-        if(lid != null) {
-            System.out.println(InfoVaultService.class.getSimpleName()+": LID provided (alias="+lid.getAlias()+"), looking up HealthRecord...");
-            if ("Alice".equals(lid.getAlias()))
-                healthRecord.setOverallHealth(HealthRecord.HealthStatus.Good);
-            else
-                healthRecord.setOverallHealth(HealthRecord.HealthStatus.Unknown);
+        DID did = (DID)envelope.getHeader(Envelope.DID);
+        if(did != null) {
+            DocumentMessage m = (DocumentMessage)envelope.getMessage();
+            // Canned data for now
+            // TODO: replace with encrypted persistence mechanism
+            System.out.println(InfoVaultService.class.getSimpleName()+": DID provided (alias="+did.getAlias()+"), looking up HealthRecord...");
+            if ("Alice".equals(did.getAlias())) {
+                m.data.put("healthStatus","Good");
+            } else {
+                m.data.put("healthStatus","Unknown");
+            }
         }
     }
 

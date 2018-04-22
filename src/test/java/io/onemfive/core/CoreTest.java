@@ -2,12 +2,14 @@ package io.onemfive.core;
 
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
-import io.onemfive.core.lid.LIDService;
+import io.onemfive.core.did.DIDService;
+import io.onemfive.core.infovault.InfoVaultService;
 import io.onemfive.data.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -44,25 +46,25 @@ public class CoreTest {
     }
 
     @Test
-    public void testLIDCreate() {
-        LID lid = new LID();
-        lid.setAlias("Alice");
-        lid.setPassphrase("1234");
+    public void testDIDCreate() {
+        DID did = new DID();
+        did.setAlias("Alice");
+        did.setPassphrase("1234");
         Envelope e;
         try {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
                     DocumentMessage message = (DocumentMessage)envelope.getMessage();
-                    LID lid = (LID)message.data.get(LID.class.getName());
-                    assert(lid.getStatus() == LID.Status.ACTIVE);
+                    DID did = (DID)message.data.get(DID.class.getName());
+                    assert(did.getStatus() == DID.Status.ACTIVE);
                     lock.countDown();
                 }
             };
-            e = Envelope.documentFactory(1L);
-            e.setHeader(Envelope.SERVICE, LIDService.class.getName());
+            e = Envelope.messageFactory(1L, Envelope.MessageType.NONE);
+            e.setHeader(Envelope.SERVICE, DIDService.class.getName());
             e.setHeader(Envelope.OPERATION, "Create");
-            ((DocumentMessage)e.getMessage()).data.put(LID.class.getName(),lid);
+            e.setHeader(Envelope.DID, did);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -70,25 +72,25 @@ public class CoreTest {
     }
 
     @Test
-    public void testLIDAuthN() {
-        LID lid = new LID();
-        lid.setAlias("Alice");
-        lid.setPassphrase("1234");
+    public void testDIDAuthN() {
+        DID did = new DID();
+        did.setAlias("Alice");
+        did.setPassphrase("1234");
         Envelope e;
         try {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
                     DocumentMessage message = (DocumentMessage)envelope.getMessage();
-                    LID lid = (LID)message.data.get(LID.class.getName());
-                    assert(lid.getAuthenticated());
+                    DID did = (DID)message.data.get(DID.class.getName());
+                    assert(did.getAuthenticated());
                     lock.countDown();
                 }
             };
-            e = Envelope.documentFactory(1L);
-            e.setHeader(Envelope.SERVICE, LIDService.class.getName());
+            e = Envelope.messageFactory(1L, Envelope.MessageType.NONE);
+            e.setHeader(Envelope.SERVICE, DIDService.class.getName());
             e.setHeader(Envelope.OPERATION, "Authenticate");
-            ((DocumentMessage)e.getMessage()).data.put(LID.class.getName(),lid);
+            e.setHeader(Envelope.DID, did);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -122,7 +124,29 @@ public class CoreTest {
 
     @Test
     public void testInfoVault() {
-
+        DID did = new DID();
+        did.setAlias("Alice");
+        did.setPassphrase("1234");
+        Envelope e;
+        try {
+            ServiceCallback cb = new ServiceCallback() {
+                @Override
+                public void reply(Envelope envelope) {
+                    DocumentMessage m = (DocumentMessage)envelope.getMessage();
+                    assert("Good".equals(m.data.get("healthStatus")));
+                    lock.countDown();
+                }
+            };
+            e = Envelope.documentFactory(1L);
+            e.setHeader(Envelope.SERVICE, InfoVaultService.class.getName());
+            e.setHeader(Envelope.OPERATION, "Load");
+            e.setHeader(Envelope.DID, did);
+            DocumentMessage m = (DocumentMessage)e.getMessage();
+            m.data.put("type","HealthRecord");
+            client.request(e, cb);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Test

@@ -6,6 +6,7 @@ import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.mesh.MeshSensor;
+import io.onemfive.data.Envelope;
 
 import java.util.*;
 
@@ -23,6 +24,18 @@ public class SensorsService extends BaseService {
 
     public SensorsService(MessageProducer producer) {
         super(producer);
+    }
+
+    @Override
+    public void handleDocument(Envelope envelope) {
+        super.handleDocument(envelope);
+
+    }
+
+    @Override
+    public void handleEvent(Envelope envelope) {
+        super.handleEvent(envelope);
+
     }
 
     @Override

@@ -1,17 +1,13 @@
 package io.onemfive.core.bus;
 
-import io.onemfive.core.BaseService;
-import io.onemfive.core.Config;
-import io.onemfive.core.LifeCycle;
-import io.onemfive.core.MessageProducer;
-import io.onemfive.core.consensus.ConsensusService;
+import io.onemfive.core.*;
+import io.onemfive.core.did.DIDService;
 import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.repository.RepositoryService;
 import io.onemfive.core.orchestration.OrchestrationService;
 import io.onemfive.core.infovault.InfoVaultService;
-import io.onemfive.core.lid.LIDService;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
@@ -36,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author objectorange
  */
-public final class ServiceBus implements MessageProducer, LifeCycle {
+public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegistrar {
 
     public enum Status {Starting, Running, Stopping, Stopped}
 
@@ -175,8 +171,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle {
         KeyRingService keyRingService = new KeyRingService(this);
         registeredServices.put(KeyRingService.class.getName(), keyRingService);
 
-        LIDService lidService = new LIDService(this);
-        registeredServices.put(LIDService.class.getName(), lidService);
+        DIDService DIDService = new DIDService(this);
+        registeredServices.put(DIDService.class.getName(), DIDService);
 
         OrchestrationService orchestrationService = new OrchestrationService(this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
