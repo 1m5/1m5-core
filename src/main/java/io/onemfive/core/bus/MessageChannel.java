@@ -19,7 +19,6 @@ final class MessageChannel implements MessageProducer {
     private BlockingQueue<Envelope> queue;
     // Capacity until blocking occurs
     private int capacity;
-    private int messageCount = 1;
 
     MessageChannel(int capacity) {
         this.capacity = capacity;
@@ -44,7 +43,7 @@ final class MessageChannel implements MessageProducer {
             try {
                 boolean success = queue.add(envelope);
                 if(success)
-                    System.out.println(MessageChannel.class.getSimpleName()+": Envelope-"+(messageCount++)+" added to message queue.");
+                    System.out.println(MessageChannel.class.getSimpleName()+": Envelope-"+envelope.getId()+" added to message queue.");
                 return success;
             } catch (IllegalStateException e) {
                 System.out.println(MessageChannel.class.getSimpleName()+": Channel at capacity; rejected envelope.");

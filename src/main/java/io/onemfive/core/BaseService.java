@@ -40,6 +40,8 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
             handleEvent(envelope);
         else if(envelope.getMessage() instanceof CommandMessage)
             runCommand(envelope);
+        else
+            handleHeaders(envelope);
         return true;
     }
 
@@ -52,6 +54,12 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public void handleEvent(Envelope envelope) {System.out.println(this.getClass().getName()+" has not implemented handleEvent().");}
+
+    @Override
+    public void handleCommand(Envelope envelope) {System.out.println(this.getClass().getName()+" has not implemented handleCommand().");}
+
+    @Override
+    public void handleHeaders(Envelope envelope) {System.out.println(this.getClass().getName()+" has not implemented handleHeaders().");}
 
     /**
      * Supports synchronous high-priority calls from ServiceBus and asynchronous low-priority calls from receive()

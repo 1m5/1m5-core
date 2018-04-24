@@ -57,10 +57,10 @@ final class WorkerThreadPool extends AppThread {
             synchronized (this){
                 try {
                     System.out.println("*");
-                    if(channel.getQueue().size() > 0) {
-                        String threadName = "FactoryThread-"+(++index);
-                        System.out.println("Pool: Queue > 0 : Launching "+threadName);
-                        pool.execute(new WorkerThread(threadName,channel, clientAppManager, services));
+                    int queueSize = channel.getQueue().size();
+                    if(queueSize > 0) {
+                        System.out.println("Pool: Queue Size = "+queueSize+" : Launching thread...");
+                        pool.execute(new WorkerThread(channel, clientAppManager, services));
                     } else {
                         this.wait(500); // wait 500ms
                     }

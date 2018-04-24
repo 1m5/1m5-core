@@ -22,19 +22,18 @@ final class WorkerThread extends AppThread {
     private ClientAppManager clientAppManager;
     private Map<String, BaseService> services;
 
-    public WorkerThread(String name, MessageChannel channel, ClientAppManager clientAppManager, Map<String, BaseService> services) {
-        super(name);
+    public WorkerThread(MessageChannel channel, ClientAppManager clientAppManager, Map<String, BaseService> services) {
+        super();
         this.channel = channel;
         this.clientAppManager = clientAppManager;
         this.services = services;
-        System.out.println("New WorkerThread: " + name);
     }
 
     @Override
     public void run() {
-        System.out.println(WorkerThread.class.getSimpleName() + ": " + getName() + ": Waiting for channel to return message...");
+        System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Waiting for channel to return message...");
         Envelope envelope = channel.receive();
-        System.out.println(WorkerThread.class.getSimpleName() + ": " + getName() + ": Envelope received from channel");
+        System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Envelope received from channel");
         if (envelope.getHeader(Envelope.REPLY) != null) {
             // Service Reply to client
             System.out.println(WorkerThread.class.getSimpleName() + ": Requesting client notify...");

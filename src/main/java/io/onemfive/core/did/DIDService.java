@@ -3,13 +3,12 @@ package io.onemfive.core.did;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.data.DID;
-import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
 
 /**
- * Life IDentifier Service
+ * Decentralized IDentifier Service
  *
  * @author objectorange
  */
@@ -20,7 +19,7 @@ public class DIDService extends BaseService {
     }
 
     @Override
-    public void handleDocument(Envelope envelope) {
+    public void handleHeaders(Envelope envelope) {
         String operation = (String) envelope.getHeader(Envelope.OPERATION);
         switch(operation) {
             case "Verify": verify(envelope);break;
@@ -33,21 +32,24 @@ public class DIDService extends BaseService {
     private void verify(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received verify DID request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
-        if("Alice".equals(did.getAlias()))
-            did.setStatus(DID.Status.ACTIVE);
-        else
-            did.setStatus(DID.Status.UNREGISTERED);
-        reply(envelope);
+        if(did != null) {
+            if ("Alice".equals(did.getAlias())) {
+                did.setStatus(DID.Status.ACTIVE);
+            } else {
+                did.setStatus(DID.Status.UNREGISTERED);
+            }
+            reply(envelope);
+        }
     }
 
     /**
-     * Creates and returns LID
+     * Creates and returns DID
      * TODO: Option 1: connect to local Bote instance to create public/private keys
      * TODO: Option 2: role your own crypto for generating keys that can be used in I2P
      * @param envelope
      */
     private void create(Envelope envelope) {
-        System.out.println(DIDService.class.getSimpleName()+": Received create LID request.");
+        System.out.println(DIDService.class.getSimpleName()+": Received create DID request.");
         DID lid = (DID)envelope.getHeader(Envelope.DID);
         boolean created = false;
         // Use passphrase to encrypt and cache it
@@ -112,7 +114,6 @@ public class DIDService extends BaseService {
 //            e.printStackTrace();
 //        }
         lid.setStatus(DID.Status.ACTIVE);
-        envelope.setHeader(Envelope.REPLY,true);
         reply(envelope);
     }
 
@@ -123,7 +124,7 @@ public class DIDService extends BaseService {
      * @param envelope
      */
     private void authenticate(Envelope envelope) {
-        System.out.println(DIDService.class.getSimpleName()+": Received authn LID request.");
+        System.out.println(DIDService.class.getSimpleName()+": Received authn DID request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
 //        boolean authn = false;
 //        try {
@@ -138,7 +139,6 @@ public class DIDService extends BaseService {
 //        }
         did.setAuthenticated("1234".equals(did.getPassphrase()));
         did.setStatus(DID.Status.ACTIVE);
-        envelope.setHeader(Envelope.REPLY,true);
         reply(envelope);
     }
 

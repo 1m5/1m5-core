@@ -6,9 +6,7 @@ import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.DID;
 
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * InfoVault Service - Stores personal information securely while allowing access to 3rd parties with personal approval.
@@ -25,7 +23,11 @@ public class InfoVaultService extends BaseService {
     public void handleDocument(Envelope envelope) {
         String operation = (String) envelope.getHeader(Envelope.OPERATION);
         switch(operation) {
-            case "Load": load(envelope);break;
+            case "Load": {
+                load(envelope);
+                reply(envelope);
+                break;
+            }
             default: deadLetter(envelope); // Operation not supported
         }
     }

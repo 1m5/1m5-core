@@ -32,20 +32,17 @@ public class CoreTest {
         clientAppManager = oneMFiveAppContext.getClientAppManager();
         client = clientAppManager.getClient(true);
         // NOTE: Don't forget to increase latch number for each asynchronous assertion
-        lock = new CountDownLatch(2);
+        lock = new CountDownLatch(1);
     }
 
-    @Test
     public void testBus() {
 
     }
 
-    @Test
     public void testOrchestration() {
 
     }
 
-    @Test
     public void testDIDCreate() {
         DID did = new DID();
         did.setAlias("Alice");
@@ -55,13 +52,12 @@ public class CoreTest {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
-                    DocumentMessage message = (DocumentMessage)envelope.getMessage();
-                    DID did = (DID)message.data.get(DID.class.getName());
+                    DID did = (DID)envelope.getHeader(Envelope.DID);
                     assert(did.getStatus() == DID.Status.ACTIVE);
                     lock.countDown();
                 }
             };
-            e = Envelope.messageFactory(1L, Envelope.MessageType.NONE);
+            e = Envelope.messageFactory(Envelope.MessageType.NONE);
             e.setHeader(Envelope.SERVICE, DIDService.class.getName());
             e.setHeader(Envelope.OPERATION, "Create");
             e.setHeader(Envelope.DID, did);
@@ -81,13 +77,12 @@ public class CoreTest {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
-                    DocumentMessage message = (DocumentMessage)envelope.getMessage();
-                    DID did = (DID)message.data.get(DID.class.getName());
-                    assert(did.getAuthenticated());
+                    DID did = (DID)envelope.getHeader(Envelope.DID);
+                    assert(did != null && did.getAuthenticated());
                     lock.countDown();
                 }
             };
-            e = Envelope.messageFactory(1L, Envelope.MessageType.NONE);
+            e = Envelope.messageFactory(Envelope.MessageType.NONE);
             e.setHeader(Envelope.SERVICE, DIDService.class.getName());
             e.setHeader(Envelope.OPERATION, "Authenticate");
             e.setHeader(Envelope.DID, did);
@@ -97,32 +92,26 @@ public class CoreTest {
         }
     }
 
-    @Test
     public void testAten() {
 
     }
 
-    @Test
     public void testConsensus() {
 
     }
 
-    @Test
     public void testContent() {
 
     }
 
-    @Test
     public void testContract() {
 
     }
 
-    @Test
     public void testDEX() {
 
     }
 
-    @Test
     public void testInfoVault() {
         DID did = new DID();
         did.setAlias("Alice");
@@ -137,7 +126,7 @@ public class CoreTest {
                     lock.countDown();
                 }
             };
-            e = Envelope.documentFactory(1L);
+            e = Envelope.documentFactory();
             e.setHeader(Envelope.SERVICE, InfoVaultService.class.getName());
             e.setHeader(Envelope.OPERATION, "Load");
             e.setHeader(Envelope.DID, did);
@@ -149,27 +138,22 @@ public class CoreTest {
         }
     }
 
-    @Test
     public void testKeyRing() {
 
     }
 
-    @Test
     public void testPrana() {
 
     }
 
-    @Test
     public void testRepository() {
 
     }
 
-    @Test
     public void testSensors() {
 
     }
 
-    @Test
     public void testUtil() {
 
     }
