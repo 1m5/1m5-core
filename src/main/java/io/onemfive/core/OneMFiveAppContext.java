@@ -82,9 +82,11 @@ public class OneMFiveAppContext {
         if(globalAppContext == null) {
             synchronized (lockA) {
                 globalAppContext = new OneMFiveAppContext(false, null);
+                System.out.println(OneMFiveAppContext.class.getSimpleName()+": created and returning new instance: "+globalAppContext);
             }
+        } else {
+            System.out.println(OneMFiveAppContext.class.getSimpleName() + ": returning cached instance: " + globalAppContext);
         }
-        System.out.println(OneMFiveAppContext.class.getSimpleName()+": returning instance: "+globalAppContext);
         return globalAppContext;
     }
 
@@ -92,9 +94,11 @@ public class OneMFiveAppContext {
         if(globalAppContext == null) {
             synchronized (lockA) {
                 globalAppContext = new OneMFiveAppContext(false, properties);
+                System.out.println(OneMFiveAppContext.class.getSimpleName()+": created and returning new instance: "+globalAppContext);
             }
+        } else {
+            System.out.println(OneMFiveAppContext.class.getSimpleName() + ": returning cached instance: " + globalAppContext);
         }
-        System.out.println(OneMFiveAppContext.class.getSimpleName()+": returning instance: "+globalAppContext);
         return globalAppContext;
     }
 

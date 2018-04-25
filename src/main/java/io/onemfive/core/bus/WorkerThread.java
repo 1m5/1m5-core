@@ -48,7 +48,7 @@ final class WorkerThread extends AppThread {
             String serviceName = (String) envelope.getHeader(Envelope.SERVICE);
             if (serviceName == null) {
                 // When no service name is provided, forward onto Orchestration service.
-                System.out.println(WorkerThread.class.getSimpleName() + ": " + getName() + ": ServiceName not found in header. Forward to OrchestrationService.");
+                System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": ServiceName not found in header. Forward to OrchestrationService.");
                 serviceName = OrchestrationService.class.getName();
                 envelope.setHeader(Envelope.SERVICE, serviceName);
                 envelope.setHeader(Envelope.OPERATION, Envelope.NONE);
@@ -77,9 +77,9 @@ final class WorkerThread extends AppThread {
             int waitBetweenMillis = 1000;
             while (!received && sendAttempts < maxSendAttempts) {
                 if (consumer.receive(envelope)) {
-                    System.out.println(WorkerThread.class.getSimpleName() + ": " + getName() + ": Envelope received by service, acknowledging with channel...");
+                    System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Envelope received by service, acknowledging with channel...");
                     channel.ack(envelope);
-                    System.out.println(WorkerThread.class.getSimpleName() + ": " + getName() + ": Channel Acknowledged.");
+                    System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Channel Acknowledged.");
                     received = true;
                 } else {
                     synchronized (this) {
