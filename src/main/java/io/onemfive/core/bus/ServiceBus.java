@@ -3,6 +3,7 @@ package io.onemfive.core.bus;
 import io.onemfive.core.*;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.keyring.KeyRingService;
+import io.onemfive.core.payment.PaymentService;
 import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.repository.RepositoryService;
@@ -134,7 +135,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         }
 
         try {
-            this.properties = Config.load("bus.config", this.properties);
+            this.properties = Config.loadFromClasspath("bus.config", this.properties);
             String maxMessagesCachedMultiplierStr = this.properties.getProperty("1m5.bus.maxMessagesCachedMultiplier");
             if(maxMessagesCachedMultiplierStr != null){
                 maxMessagesCached = Integer.parseInt(maxMessagesCachedMultiplierStr) * maxThreads;
@@ -173,6 +174,9 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
         DIDService DIDService = new DIDService(this);
         registeredServices.put(DIDService.class.getName(), DIDService);
+
+//        PaymentService paymentService = new PaymentService(this);
+//        registeredServices.put(PaymentService.class.getName(), paymentService);
 
         OrchestrationService orchestrationService = new OrchestrationService(this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);

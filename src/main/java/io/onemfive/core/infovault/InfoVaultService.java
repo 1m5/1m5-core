@@ -2,6 +2,7 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.OneMFiveAppContext;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.DID;
@@ -15,6 +16,8 @@ import java.util.Properties;
  */
 public class InfoVaultService extends BaseService {
 
+    private String dbConnUrl = "";
+
     public InfoVaultService(MessageProducer producer) {
         super(producer);
     }
@@ -26,6 +29,10 @@ public class InfoVaultService extends BaseService {
             case "Load": {
                 load(envelope);
                 reply(envelope);
+                break;
+            }
+            case "Save": {
+                save(envelope);
                 break;
             }
             default: deadLetter(envelope); // Operation not supported
@@ -45,6 +52,19 @@ public class InfoVaultService extends BaseService {
         }
     }
 
+    private void save(Envelope envelope) {
+        System.out.println(InfoVaultService.class.getSimpleName()+": Received save request.");
+        DocumentMessage m = (DocumentMessage)envelope.getMessage();
+        if(m != null && m.data.containsKey("type")) {
+            final String objType = (String)m.data.get("type");
+            switch (objType) {
+                case "HealthRecord" : {
+                    saveHealthRecord(envelope);
+                }
+            }
+        }
+    }
+
     private void loadHealthRecord(Envelope envelope) {
         System.out.println(InfoVaultService.class.getSimpleName()+": Received load HealthRecord request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
@@ -53,6 +73,24 @@ public class InfoVaultService extends BaseService {
             // Canned data for now
             // TODO: replace with encrypted persistence mechanism
             System.out.println(InfoVaultService.class.getSimpleName()+": DID provided (alias="+did.getAlias()+"), looking up HealthRecord...");
+
+            if ("Alice".equals(did.getAlias())) {
+                m.data.put("healthStatus","Good");
+            } else {
+                m.data.put("healthStatus","Unknown");
+            }
+        }
+    }
+
+    private void saveHealthRecord(Envelope envelope) {
+        System.out.println(InfoVaultService.class.getSimpleName()+": Received save HealthRecord request.");
+        DID did = (DID)envelope.getHeader(Envelope.DID);
+        if(did != null) {
+            DocumentMessage m = (DocumentMessage)envelope.getMessage();
+            // Canned data for now
+            // TODO: replace with encrypted persistence mechanism
+            System.out.println(InfoVaultService.class.getSimpleName()+": DID provided (alias="+did.getAlias()+"), saving HealthRecord...");
+
             if ("Alice".equals(did.getAlias())) {
                 m.data.put("healthStatus","Good");
             } else {
@@ -64,7 +102,7 @@ public class InfoVaultService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         System.out.println("InfoVaultService starting up...");
-
+        dbConnUrl = "jdbc:h2:file:"+ OneMFiveAppContext.getInstance().getBaseDir()+"/data/info;CIPHER=AES;USER=1M5;PASSWORD=h!zeUB2k8jgbMdPas";
         System.out.println("InfoVaultService started.");
         return true;
     }

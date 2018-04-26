@@ -42,7 +42,7 @@ public class SensorsService extends BaseService {
     public boolean start(Properties properties) {
         System.out.println("SensorsService starting...");
         try {
-            config = Config.load("sensors.config", properties);
+            config = Config.loadFromClasspath("sensors.config", properties);
 
             String registeredSensorsString = config.getProperty("1m5.sensors.registered");
             if(registeredSensorsString != null) {

@@ -1,18 +1,25 @@
 package io.onemfive.core.did;
 
 import io.onemfive.core.BaseService;
+import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 
+import java.io.IOException;
 import java.util.Properties;
 
 /**
  * Decentralized IDentifier Service
  *
+ * Manages Identities
+ *
  * @author objectorange
  */
 public class DIDService extends BaseService {
+
+    private static String dbFileName = ".did";
+    private static Properties db;
 
     public DIDService(MessageProducer producer) {
         super(producer);
@@ -33,8 +40,8 @@ public class DIDService extends BaseService {
         System.out.println(DIDService.class.getSimpleName()+": Received verify DID request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
         if(did != null) {
-            if ("Alice".equals(did.getAlias())) {
-                did.setStatus(DID.Status.ACTIVE);
+            if(db.containsKey(did.getAlias())) {
+                did.setStatus(DID.Status.valueOf(db.getProperty(did.getAlias()+".status")));
             } else {
                 did.setStatus(DID.Status.UNREGISTERED);
             }
@@ -50,7 +57,7 @@ public class DIDService extends BaseService {
      */
     private void create(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received create DID request.");
-        DID lid = (DID)envelope.getHeader(Envelope.DID);
+        DID did = (DID)envelope.getHeader(Envelope.DID);
         boolean created = false;
         // Use passphrase to encrypt and cache it
 //        try {
@@ -113,7 +120,14 @@ public class DIDService extends BaseService {
 //        } catch (IllegalDestinationParametersException e) {
 //            e.printStackTrace();
 //        }
-        lid.setStatus(DID.Status.ACTIVE);
+        did.setStatus(DID.Status.ACTIVE);
+        db.setProperty(did.getAlias()+".passphrase",did.getPassphrase());
+        db.setProperty(did.getAlias()+".status",DID.Status.ACTIVE.name());
+        try {
+            Config.saveToBase(dbFileName, db);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         reply(envelope);
     }
 
@@ -137,14 +151,25 @@ public class DIDService extends BaseService {
 //        } catch (PasswordException e) {
 //            e.printStackTrace();
 //        }
-        did.setAuthenticated("1234".equals(did.getPassphrase()));
-        did.setStatus(DID.Status.ACTIVE);
+        did.setAuthenticated(did.getPassphrase().equals(db.getProperty(did.getAlias()+".passphrase")));
+        if(db.getProperty(did.getAlias()+".status") == null) {
+            did.setStatus(DID.Status.UNREGISTERED);
+        } else {
+            did.setStatus(DID.Status.valueOf(db.getProperty(did.getAlias()+".status")));
+        }
         reply(envelope);
     }
 
     @Override
     public boolean start(Properties properties) {
         System.out.println("DIDService starting up....");
+        try {
+            db = Config.loadFromBase(dbFileName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("DIDService startup failed.");
+            return false;
+        }
         System.out.println("DIDService started.");
         return true;
     }

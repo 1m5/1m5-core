@@ -24,8 +24,8 @@
 	</organization>
 	<licenses>
 		<license>
-			<name>AGPLv3</name>
-			<url>https://www.gnu.org/licenses/agpl-3.0.en.html</url>
+			<name>Unlicense</name>
+			<url>https://unlicense.org/</url>
 		</license>
 	</licenses>
 	<developers>
@@ -68,16 +68,23 @@
 			<groupId>io.onemfive</groupId>
 			<artifactId>data</artifactId>
 			<version>${project.version}</version>
-			<!--<license>AGPLv3</license>-->
+			<!--<license>Unlicense</license>-->
 		</dependency>
-		<!-- I2P -->
+		<!-- InfoVault -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.197</version>
+			<!--<license>MPL 2.0</license>-->
+		</dependency>
+		<!-- Sensors: I2P -->
 		<dependency>
 			<groupId>net.i2p</groupId>
 			<artifactId>router</artifactId>
 			<version>0.9.33</version>
 			<!--<license>Public Domain</license>-->
 		</dependency>
-		<!-- Util -->
+		<!-- Contract -->
 		<dependency>
 			<groupId>org.web3j</groupId>
 			<artifactId>core</artifactId>

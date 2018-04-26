@@ -67,7 +67,6 @@ public class CoreTest {
         }
     }
 
-    @Test
     public void testDIDAuthN() {
         DID did = new DID();
         did.setAlias("Alice");
@@ -112,6 +111,7 @@ public class CoreTest {
 
     }
 
+    @Test
     public void testInfoVault() {
         DID did = new DID();
         did.setAlias("Alice");
