@@ -2,7 +2,7 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
-import io.onemfive.core.OneMFiveAppContext;
+import io.onemfive.core.infovault.h2.H2DB;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.DID;
@@ -16,7 +16,7 @@ import java.util.Properties;
  */
 public class InfoVaultService extends BaseService {
 
-    private String dbConnUrl = "";
+    private H2DB h2DB;
 
     public InfoVaultService(MessageProducer producer) {
         super(producer);
@@ -102,16 +102,17 @@ public class InfoVaultService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         System.out.println("InfoVaultService starting up...");
-        dbConnUrl = "jdbc:h2:file:"+ OneMFiveAppContext.getInstance().getBaseDir()+"/data/info;CIPHER=AES;USER=1M5;PASSWORD=h!zeUB2k8jgbMdPas";
+        h2DB = new H2DB();
+        boolean started = h2DB.start(properties);
         System.out.println("InfoVaultService started.");
-        return true;
+        return started;
     }
 
     @Override
     public boolean shutdown() {
         System.out.println("InfoVaultService shutting down...");
-
+        boolean shutdown = h2DB.shutdown();
         System.out.println("InfoVaultService shutdown.");
-        return true;
+        return shutdown;
     }
 }
