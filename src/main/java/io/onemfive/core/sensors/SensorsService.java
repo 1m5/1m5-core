@@ -1,6 +1,5 @@
 package io.onemfive.core.sensors;
 
-import io.onemfive.core.bus.Route;
 import io.onemfive.core.sensors.i2p.bote.I2PBoteSensor;
 import io.onemfive.core.sensors.tor.TorSensor;
 import io.onemfive.core.util.AppThread;
@@ -11,6 +10,7 @@ import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.mesh.MeshSensor;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.Route;
 
 import java.util.*;
 

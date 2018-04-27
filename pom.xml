@@ -72,15 +72,10 @@
 		</dependency>
 		<!-- InfoVault -->
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>1.4.197</version>
-			<!--<license>MPL 2.0</license>-->
-		</dependency>
-		<dependency>
 			<groupId>org.dizitart</groupId>
 			<artifactId>nitrite</artifactId>
 			<version>3.0.0</version>
+			<!--<license>Apache 2.0</license>-->
 		</dependency>
 		<!-- Sensors: I2P -->
 		<dependency>

@@ -3,9 +3,9 @@ package io.onemfive.core.did;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
-import io.onemfive.core.bus.Route;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.Route;
 
 import java.io.IOException;
 import java.util.Properties;

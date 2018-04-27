@@ -1,6 +1,5 @@
 package io.onemfive.core;
 
-import io.onemfive.core.bus.Route;
 import io.onemfive.data.CommandMessage;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;

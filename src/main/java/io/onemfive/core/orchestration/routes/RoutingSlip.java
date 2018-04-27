@@ -1,7 +1,7 @@
 package io.onemfive.core.orchestration.routes;
 
-import io.onemfive.core.bus.Route;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.Route;
 
 import java.util.ArrayList;
 import java.util.List;

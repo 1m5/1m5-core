@@ -3,10 +3,10 @@ package io.onemfive.core.infovault;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
-import io.onemfive.core.bus.Route;
 import io.onemfive.core.infovault.nitrite.NitriteDB;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.Route;
 
 import java.util.Properties;
 
