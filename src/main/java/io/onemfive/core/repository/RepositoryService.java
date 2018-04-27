@@ -2,6 +2,7 @@ package io.onemfive.core.repository;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.bus.Route;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -19,10 +20,10 @@ public class RepositoryService extends BaseService {
 
     @Override
     public void handleDocument(Envelope envelope) {
-        String operation = (String) envelope.getHeader(Envelope.OPERATION);
-        if (operation != null) {
+        Route route = (Route) envelope.getHeader(Envelope.ROUTE);
+        if (route.getOperation() != null) {
             Repository r = selectRepository(envelope);
-            switch (operation) {
+            switch (route.getOperation()) {
                 case "ProvideAccess": r.provideAccess(envelope);break;
                 case "ListRepositories": r.listRepositories(envelope);break;
                 case "GetRepository": r.getRepository(envelope);break;

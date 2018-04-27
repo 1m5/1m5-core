@@ -1,11 +1,15 @@
 package io.onemfive.core.sensors;
 
+import io.onemfive.core.bus.Route;
+import io.onemfive.core.sensors.i2p.bote.I2PBoteSensor;
+import io.onemfive.core.sensors.tor.TorSensor;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.mesh.MeshSensor;
+import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 
 import java.util.*;
@@ -28,8 +32,18 @@ public class SensorsService extends BaseService {
 
     @Override
     public void handleDocument(Envelope envelope) {
-        super.handleDocument(envelope);
-
+        Route r = (Route)envelope.getHeader(Envelope.ROUTE);
+        DocumentMessage m = (DocumentMessage)envelope.getMessage();
+        if(r.getOperation().startsWith("http") || r.getOperation().endsWith(".onion") && activeSensors.containsKey(TorSensor.class.getName())) {
+            // Use Tor
+            System.out.println(SensorsService.class.getName()+": using Tor Sensor...");
+        } else if(r.getOperation().endsWith(".i2p") && activeSensors.containsKey(I2PSensor.class.getName())) {
+            // Use I2P
+            System.out.println(SensorsService.class.getName()+": using I2P Sensor...");
+        } else if(r.getOperation().endsWith(".bote") && activeSensors.containsKey(I2PBoteSensor.class.getName())) {
+            // Use I2P Bote
+            System.out.println(SensorsService.class.getName()+": using I2P Bote Sensor...");
+        }
     }
 
     @Override

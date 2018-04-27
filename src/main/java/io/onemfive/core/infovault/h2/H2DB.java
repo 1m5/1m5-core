@@ -3,9 +3,12 @@ package io.onemfive.core.infovault.h2;
 import io.onemfive.core.LifeCycle;
 import io.onemfive.core.OneMFiveAppContext;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -28,7 +31,7 @@ public class H2DB implements LifeCycle {
     private String dbConnUrl;
     private Connection conn = null;
 
-    public Connection getConnection() {
+    private Connection buildConnection() {
         if(conn == null) {
             try {
                 conn = DriverManager.getConnection(dbConnUrl, dbUsername, dbFilePassword + " " + dbUserPassword);
@@ -41,7 +44,10 @@ public class H2DB implements LifeCycle {
 
     @Override
     public boolean start(Properties properties) {
-        dbConnUrl = "jdbc:h2:file:"+ OneMFiveAppContext.getInstance().getBaseDir()+dbFolder+dbName+";CIPHER="+dbCipher;
+        String dbFullPath = OneMFiveAppContext.getInstance().getBaseDir()+dbFolder;
+        File f = new File(dbFullPath);
+        if(!f.exists()) f.mkdir();
+        dbConnUrl = "jdbc:h2:file:"+dbFullPath+dbName+";CIPHER="+dbCipher;
         try {
             // ensure on startup we can connect
             conn = DriverManager.getConnection(dbConnUrl, dbUsername, dbFilePassword + " " + dbUserPassword);
@@ -84,6 +90,6 @@ public class H2DB implements LifeCycle {
 
     @Override
     public boolean gracefulShutdown() {
-        return false;
+        return shutdown();
     }
 }

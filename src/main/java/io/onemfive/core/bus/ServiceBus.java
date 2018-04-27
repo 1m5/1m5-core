@@ -178,14 +178,14 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 //        PaymentService paymentService = new PaymentService(this);
 //        registeredServices.put(PaymentService.class.getName(), paymentService);
 
-        OrchestrationService orchestrationService = new OrchestrationService(this);
-        registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
-
         SensorsService sensorsService = new SensorsService(this);
         registeredServices.put(SensorsService.class.getName(), sensorsService);
 
 //        AtenService atenService = new AtenService(this);
 //        registeredServices.put(AtenService.class.getName(), atenService);
+
+        OrchestrationService orchestrationService = new OrchestrationService(this);
+        registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
         // Start Registered Services
         final Properties props = this.properties;

@@ -1,8 +1,11 @@
 package io.onemfive.core.orchestration;
 
 import io.onemfive.core.BaseService;
+import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
-import io.onemfive.core.orchestration.routes.RouteBuilder;
+import io.onemfive.core.bus.Route;
+import io.onemfive.core.orchestration.routes.RoutingSlip;
+import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.*;
 
 import java.util.HashMap;
@@ -24,30 +27,50 @@ public class OrchestrationService extends BaseService {
 
     /**
      * If service is Orchestration and there is no Route, then the service needs to figure out what route to take.
-     * If service is Orchestration adn there is a Route, then the service calls the next Route
+     * If service is Orchestration and there is a Route, then the service calls the next Route
      *
      * @param envelope
      */
     public void handleDocument(Envelope envelope) {
-        String serviceName = (String)envelope.getHeader(Envelope.SERVICE);
-        String routeName = (String)envelope.getHeader(Envelope.ROUTE);
-        // Build Route and send to channel
-        if(routeName == null) {
-
-            // Likely an external call; route to SensorService
-
-        } else {
-            // execute route
-
-        }
+        route(envelope);
         System.out.println("Received document by Orchestration Service.");
     }
 
     public void handleEvent(Envelope envelope) {
-        EventMessage message = (EventMessage)envelope.getMessage();
-        // TODO: handle events
-        Route route = RouteBuilder.build(envelope);
+        route(envelope);
         System.out.println("Received event by Orchestration Service.");
+    }
+
+    private void route(Envelope envelope) {
+        Route route = (Route)envelope.getHeader(Envelope.ROUTE);
+        // Build Route and send to channel
+        if(route == null) {
+            // No route
+            System.out.println("Orchestration Service doesn't handle Envelopes with no Route for now.");
+            deadLetter(envelope);
+        } else {
+            // execute route
+            if(route instanceof RoutingSlip) {
+                Route nextRoute = ((RoutingSlip)route).nextRoute(envelope);
+                if (nextRoute == null) {
+                    envelope.setHeader(Envelope.REPLY, true);
+                } else {
+                    envelope.setHeader(Envelope.ROUTE, nextRoute);
+                }
+                reply(envelope);
+            } else if(route instanceof SimpleRoute) {
+                Route to = routes.get(route.getService()+"."+route.getOperation());
+                if(to != null) {
+                    envelope.setHeader(Envelope.ROUTE, to);
+                    reply(envelope);
+                } else {
+                    deadLetter(envelope);
+                }
+            } else {
+                System.out.println("Orchestration Service doesn't handle other routes besides Routing Slip and Simple Route.");
+                deadLetter(envelope);
+            }
+        }
     }
 
     @Override
@@ -56,16 +79,22 @@ public class OrchestrationService extends BaseService {
         boolean startupSuccessful = true;
         routes = new HashMap<>();
         // Build Routes
-        buildRoutes();
+        try {
+            Properties props = Config.loadFromClasspath("orchestration.config",properties);
+            String routesString = props.getProperty("routes");
+            if(routesString != null) {
+                String[] routeStrings = routesString.split(",");
+                Route route;
+                for(String routeString : routeStrings) {
+                    route = (Route)Class.forName(routeString).newInstance();
+                    routes.put(route.getService()+"."+route.getOperation(),route);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println("OrchestrationService started.");
         return startupSuccessful;
-    }
-
-    private void buildRoutes() {
-        // TODO: Build Routes from routes.xml
-        System.out.println("Building routes in Orchestration Service.");
-
-        System.out.println("Routes in Orchestration Service built.");
     }
 
 }

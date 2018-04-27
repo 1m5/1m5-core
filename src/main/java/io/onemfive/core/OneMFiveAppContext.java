@@ -7,6 +7,7 @@ import io.onemfive.core.util.*;
 import io.onemfive.core.util.stat.StatManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -58,7 +59,6 @@ public class OneMFiveAppContext {
     protected final Set<Runnable> shutdownTasks;
     private final File baseDir;
     private final File configDir;
-    private final File consciousDir;
     private final File pidDir;
     private final File logDir;
     private final File appDir;
@@ -189,8 +189,12 @@ public class OneMFiveAppContext {
     */
 
         String s = getProperty("1m5.dir.base", System.getProperty("user.dir"));
+        s += "/.1m5";
         System.out.println("Base Directory: "+s);
         baseDir = new File(s);
+        if(!baseDir.exists()) {
+            baseDir.mkdir();
+        }
 
         // config defaults to base
         s = getProperty("1m5.dir.config");
@@ -202,16 +206,6 @@ public class OneMFiveAppContext {
             configDir = baseDir;
         }
 
-        // conscious defaults to config
-        s = getProperty("1m5.dir.conscious");
-        if (s != null) {
-            consciousDir = new SecureFile(s);
-            if (!consciousDir.exists())
-                consciousDir.mkdir();
-        } else {
-            consciousDir = configDir;
-        }
-
         // pid defaults to router directory (as of 0.8.12, was system temp dir previously)
         s = getProperty("1m5.dir.pid");
         if (s != null) {
@@ -219,7 +213,7 @@ public class OneMFiveAppContext {
             if (!pidDir.exists())
                 pidDir.mkdir();
         } else {
-            pidDir = consciousDir;
+            pidDir = configDir;
         }
 
         // these all default to router
@@ -229,7 +223,7 @@ public class OneMFiveAppContext {
             if (!logDir.exists())
                 logDir.mkdir();
         } else {
-            logDir = consciousDir;
+            logDir = configDir;
         }
 
         s = getProperty("1m5.dir.app");
@@ -238,7 +232,7 @@ public class OneMFiveAppContext {
             if (!appDir.exists())
                 appDir.mkdir();
         } else {
-            appDir = consciousDir;
+            appDir = configDir;
         }
 
         clientAppManager = new ClientAppManager(false);
@@ -300,15 +294,6 @@ public class OneMFiveAppContext {
     public File getConfigDir() { return configDir; }
 
     /**
-     *  Where the Conscious keeps its files.
-     *  Applications should not use this.
-     *  The same as the config dir for now.
-     *
-     *  @return dir constant for the life of the context
-     */
-    public File getConsciousDir() { return consciousDir; }
-
-    /**
      *  Where conscious.ping goes.
      *  Applications should not use this.
      *
@@ -359,7 +344,7 @@ public class OneMFiveAppContext {
                     tmpDir.deleteOnExit();
                 } else {
                     System.err.println("WARNING: Could not create temp dir " + tmpDir.getAbsolutePath());
-                    tmpDir = new SecureFile(consciousDir, "tmp");
+                    tmpDir = new SecureFile(baseDir, "tmp");
                     tmpDir.mkdirs();
                     if (!tmpDir.exists())
                         System.err.println("ERROR: Could not create temp dir " + tmpDir.getAbsolutePath());

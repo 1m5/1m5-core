@@ -1,5 +1,6 @@
 package io.onemfive.core;
 
+import io.onemfive.core.bus.Route;
 import io.onemfive.data.CommandMessage;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
@@ -46,7 +47,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     }
 
     protected final void deadLetter(Envelope envelope) {
-        System.out.println("Unable to find operation ("+envelope.getHeader(Envelope.OPERATION)+") in service ("+envelope.getHeader(Envelope.SERVICE)+").");
+        System.out.println("Can't route envelope:"+envelope);
     }
 
     @Override

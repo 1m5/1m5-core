@@ -4,12 +4,12 @@ import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVaultService;
+import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -58,8 +58,7 @@ public class CoreTest {
                 }
             };
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            e.setHeader(Envelope.SERVICE, DIDService.class.getName());
-            e.setHeader(Envelope.OPERATION, "Create");
+            e.setHeader(Envelope.ROUTE, new SimpleRoute(DIDService.class.getName(),"Create"));
             e.setHeader(Envelope.DID, did);
             client.request(e, cb);
         } catch (Exception ex) {
@@ -82,8 +81,7 @@ public class CoreTest {
                 }
             };
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            e.setHeader(Envelope.SERVICE, DIDService.class.getName());
-            e.setHeader(Envelope.OPERATION, "Authenticate");
+            e.setHeader(Envelope.ROUTE, new SimpleRoute(DIDService.class.getName(),"Authenticate"));
             e.setHeader(Envelope.DID, did);
             client.request(e, cb);
         } catch (Exception ex) {
@@ -127,8 +125,7 @@ public class CoreTest {
                 }
             };
             e = Envelope.documentFactory();
-            e.setHeader(Envelope.SERVICE, InfoVaultService.class.getName());
-            e.setHeader(Envelope.OPERATION, "Load");
+            e.setHeader(Envelope.ROUTE, new SimpleRoute(InfoVaultService.class.getName(),"Load"));
             e.setHeader(Envelope.DID, did);
             DocumentMessage m = (DocumentMessage)e.getMessage();
             m.data.put("type","HealthRecord");

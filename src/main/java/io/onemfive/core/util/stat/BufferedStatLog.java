@@ -109,7 +109,7 @@ public class BufferedStatLog implements StatLog {
         String filename = _context.getProperty(StatManager.PROP_STAT_FILE, StatManager.DEFAULT_STAT_FILE);
         File foo = new File(filename);
         if (!foo.isAbsolute())
-            filename = (new File(_context.getConsciousDir(), filename)).getAbsolutePath();
+            filename = (new File(_context.getBaseDir(), filename)).getAbsolutePath();
         if ( (_outFile != null) && (_outFile.equals(filename)) ) {
             // noop
         } else {

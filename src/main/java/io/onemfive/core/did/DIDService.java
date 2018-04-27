@@ -3,6 +3,7 @@ package io.onemfive.core.did;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.bus.Route;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 
@@ -27,8 +28,8 @@ public class DIDService extends BaseService {
 
     @Override
     public void handleHeaders(Envelope envelope) {
-        String operation = (String) envelope.getHeader(Envelope.OPERATION);
-        switch(operation) {
+        Route route = (Route) envelope.getHeader(Envelope.ROUTE);
+        switch(route.getOperation()) {
             case "Verify": verify(envelope);break;
             case "Authenticate": authenticate(envelope);break;
             case "Create": create(envelope);break;

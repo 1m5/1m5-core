@@ -77,6 +77,11 @@
 			<version>1.4.197</version>
 			<!--<license>MPL 2.0</license>-->
 		</dependency>
+		<dependency>
+			<groupId>org.dizitart</groupId>
+			<artifactId>nitrite</artifactId>
+			<version>3.0.0</version>
+		</dependency>
 		<!-- Sensors: I2P -->
 		<dependency>
 			<groupId>net.i2p</groupId>

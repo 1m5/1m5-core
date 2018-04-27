@@ -1,8 +1,10 @@
 package io.onemfive.core;
 
+import io.onemfive.core.bus.Route;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
+import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.*;
 
 /**
@@ -43,14 +45,12 @@ public class OneMFiveStandaloneLauncher {
                 ServiceCallback cb = new ServiceCallback() {
                     @Override
                     public void reply(Envelope envelope) {
-                        String service = (String)envelope.getHeaders().get(Envelope.SERVICE);
-                        String operation = (String)envelope.getHeaders().get(Envelope.OPERATION);
-                        System.out.println(ServiceCallback.class.getSimpleName()+": id="+envelope.getId()+", service="+service+", operation="+operation+", message="+envelope.getMessage());
+                        Route route = (Route) envelope.getHeaders().get(Envelope.ROUTE);
+                        System.out.println(ServiceCallback.class.getSimpleName()+": id="+envelope.getId()+", service="+route.getService()+", operation="+route.getOperation()+", message="+envelope.getMessage());
                     }
                 };
                 e = Envelope.messageFactory(i+1, Envelope.MessageType.NONE);
-                e.setHeader(Envelope.SERVICE, DIDService.class.getName());
-                e.setHeader(Envelope.OPERATION, "Create");
+                e.setHeader(Envelope.ROUTE, new SimpleRoute(DIDService.class.getName(),"Create"));
                 e.setHeader(Envelope.DID, did);
                 c.request(e, cb);
             } catch (Exception ex) {

@@ -4,8 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageConsumer;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.orchestration.OrchestrationService;
-import io.onemfive.core.orchestration.Route;
-import io.onemfive.core.sensors.SensorsService;
+import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
 
@@ -39,37 +38,18 @@ final class WorkerThread extends AppThread {
             System.out.println(WorkerThread.class.getSimpleName() + ": Requesting client notify...");
             clientAppManager.notify(envelope);
         } else {
-            Route route = (Route) envelope.getHeader(Envelope.ROUTE);
-            if(route != null) {
-                Route nextRoute = route.next(envelope);
-                envelope.setHeader(Envelope.SERVICE, nextRoute.getService());
-                envelope.setHeader(Envelope.OPERATION, nextRoute.getOperation());
+            Route route = (Route)envelope.getHeader(Envelope.ROUTE);
+            if(route == null) {
+                // When no route is provided, forward to Orchestration service.
+                System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Route not found in header. Forward to OrchestrationService.");
+                route = new SimpleRoute(OrchestrationService.class.getName(), Envelope.NONE);
             }
-            String serviceName = (String) envelope.getHeader(Envelope.SERVICE);
-            if (serviceName == null) {
-                // When no service name is provided, forward onto Orchestration service.
-                System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": ServiceName not found in header. Forward to OrchestrationService.");
-                serviceName = OrchestrationService.class.getName();
-                envelope.setHeader(Envelope.SERVICE, serviceName);
-                envelope.setHeader(Envelope.OPERATION, Envelope.NONE);
-            }
-            MessageConsumer consumer = services.get(serviceName);
+            MessageConsumer consumer = services.get(route.getService());
             if(consumer == null) {
                 // Service name provided is not registered.
-                // TODO: Move startsWith and endsWith to an Orchestration Service Content-Based Router
-                if(serviceName.startsWith("http")
-                        || serviceName.endsWith(".i2p")
-                        || serviceName.endsWith(".onion")
-                        || serviceName.endsWith(".bote")) {
-                    // Forward to Sensor Service
-                    serviceName = SensorsService.class.getName();
-                } else {
-                    // Likely from a domain-specific api
-                    // Send to Orchestration Service to determine.
-                    serviceName = OrchestrationService.class.getName();
-                }
-                envelope.setHeader(Envelope.SERVICE, serviceName);
-                consumer = services.get(serviceName);
+                // Likely from a domain-specific api
+                // Send to Orchestration Service to determine.
+                consumer = services.get(OrchestrationService.class.getName());
             }
             boolean received = false;
             int maxSendAttempts = 3;

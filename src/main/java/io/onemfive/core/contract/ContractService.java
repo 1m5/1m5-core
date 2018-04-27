@@ -2,6 +2,7 @@ package io.onemfive.core.contract;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.bus.Route;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -21,10 +22,10 @@ public class ContractService extends BaseService {
 
     @Override
     public void handleDocument(Envelope envelope) {
-        String operation = (String) envelope.getHeader(Envelope.OPERATION);
-        if(operation != null) {
+        Route route = (Route) envelope.getHeader(Envelope.ROUTE);
+        if(route.getOperation() != null) {
             Contract c = selectContract(envelope);
-            switch (operation) {
+            switch (route.getOperation()) {
                 case "CreateContract": c.createContract(envelope);break;
                 case "SendCurrencyToContract": c.sendCurrencyToContract(envelope);break;
                 case "CreateBounty": c.createBounty(envelope);break;
