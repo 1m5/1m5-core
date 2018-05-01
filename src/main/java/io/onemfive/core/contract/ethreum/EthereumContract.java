@@ -1,5 +1,6 @@
-package io.onemfive.core.contract;
+package io.onemfive.core.contract.ethreum;
 
+import io.onemfive.core.contract.Contract;
 import io.onemfive.data.Envelope;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jFactory;
@@ -10,7 +11,7 @@ import org.web3j.protocol.http.HttpService;
  *
  * @author objectorange
  */
-class EthereumContract implements Contract {
+public class EthereumContract implements Contract {
 
     private Web3j web3j;
 
@@ -25,36 +26,6 @@ class EthereumContract implements Contract {
 
     @Override
     public void sendCurrencyToContract(Envelope envelope) {
-
-    }
-
-    @Override
-    public void createBounty(Envelope envelope) {
-
-    }
-
-    @Override
-    public void selectBounty(Envelope envelope) {
-
-    }
-
-    @Override
-    public void voteOnBounty(Envelope envelope) {
-
-    }
-
-    @Override
-    public void removeBounty(Envelope envelope) {
-
-    }
-
-    @Override
-    public void closeBounty(Envelope envelope) {
-
-    }
-
-    @Override
-    public void listBounties(Envelope envelope) {
 
     }
 
