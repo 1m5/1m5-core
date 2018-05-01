@@ -1,5 +1,6 @@
-package io.onemfive.core.repository;
+package io.onemfive.core.repository.github;
 
+import io.onemfive.core.repository.Repository;
 import io.onemfive.data.Envelope;
 
 /**
@@ -9,7 +10,7 @@ import io.onemfive.data.Envelope;
  *
  * @author objectorange
  */
-class GitHubRepository implements Repository {
+public class GitHubRepository implements Repository {
 
     @Override
     public void provideAccess(Envelope envelope) {

@@ -2,6 +2,7 @@ package io.onemfive.core.repository;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.repository.github.GitHubRepository;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 

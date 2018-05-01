@@ -7,7 +7,7 @@ import io.onemfive.data.Envelope;
  *
  * @author objectorange
  */
-interface Repository {
+public interface Repository {
 
     void provideAccess(Envelope envelope);
 
