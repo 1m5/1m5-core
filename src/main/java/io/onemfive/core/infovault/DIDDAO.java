@@ -1,8 +1,7 @@
 package io.onemfive.core.infovault;
 
-import io.onemfive.core.infovault.nitrite.NitriteDB;
+import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 import io.onemfive.data.DID;
-import org.dizitart.no2.filters.Filters;
 import org.dizitart.no2.objects.Cursor;
 import org.dizitart.no2.objects.ObjectRepository;
 import org.dizitart.no2.objects.filters.ObjectFilters;
@@ -14,9 +13,9 @@ import org.dizitart.no2.objects.filters.ObjectFilters;
  */
 class DIDDAO {
 
-    private NitriteDB dbMgr;
+    private NitriteDBManager dbMgr;
 
-    DIDDAO(NitriteDB dbMgr) {
+    DIDDAO(NitriteDBManager dbMgr) {
         this.dbMgr = dbMgr;
     }
 

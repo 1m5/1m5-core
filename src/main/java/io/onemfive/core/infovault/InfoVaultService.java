@@ -3,7 +3,7 @@ package io.onemfive.core.infovault;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
-import io.onemfive.core.infovault.nitrite.NitriteDB;
+import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 import io.onemfive.data.*;
 
 import java.util.Properties;
@@ -22,7 +22,7 @@ public class InfoVaultService extends BaseService {
     public static final String OPERATION_SAVE = "Save";
 
     private Properties props;
-    private NitriteDB db;
+    private NitriteDBManager db;
 
     private DIDDAO diddao;
 
@@ -93,7 +93,7 @@ public class InfoVaultService extends BaseService {
         System.out.println("InfoVaultService starting up...");
         try {
             props = Config.loadFromClasspath("infovault.config", properties);
-            db = new NitriteDB();
+            db = new NitriteDBManager();
             db.start(properties);
             diddao = new DIDDAO(db);
         } catch (Exception e) {

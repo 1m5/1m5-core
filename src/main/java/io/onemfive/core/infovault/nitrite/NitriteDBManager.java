@@ -6,7 +6,6 @@ import io.onemfive.data.Contract;
 import io.onemfive.data.DID;
 import io.onemfive.data.Persistable;
 import org.dizitart.no2.*;
-import org.dizitart.no2.filters.Filters;
 import org.dizitart.no2.objects.Cursor;
 import org.dizitart.no2.objects.ObjectRepository;
 
@@ -21,7 +20,7 @@ import java.util.Properties;
  * TODO: Add Encrypt/Decrypt at Document level
  * @author objectorange
  */
-public class NitriteDB implements LifeCycle {
+public class NitriteDBManager implements LifeCycle {
 
     private Nitrite db = null;
 
@@ -47,7 +46,7 @@ public class NitriteDB implements LifeCycle {
                 db.getRepository(Contract.class).update(c);
             }
         } else {
-            System.out.println(NitriteDB.class.getName()+": No support for saving class="+persistable.getClass().getName());
+            System.out.println(NitriteDBManager.class.getName()+": No support for saving class="+persistable.getClass().getName());
         }
         return true;
     }
@@ -58,10 +57,10 @@ public class NitriteDB implements LifeCycle {
             if(c.getId() != null) {
                 return db.getRepository(Contract.class).getById(NitriteId.createId(c.getId()));
             } else {
-                System.out.println(NitriteDB.class.getName()+": No support for finding objects during load.");
+                System.out.println(NitriteDBManager.class.getName()+": No support for finding objects during load.");
             }
         } else {
-            System.out.println(NitriteDB.class.getName()+": No support for saving class="+persistable.getClass().getName());
+            System.out.println(NitriteDBManager.class.getName()+": No support for saving class="+persistable.getClass().getName());
         }
         return null;
     }
@@ -75,7 +74,7 @@ public class NitriteDB implements LifeCycle {
                 persistables.add((Persistable)obj);
             }
         } else {
-            System.out.println(NitriteDB.class.getName()+": No support for saving class="+clazz.getName());
+            System.out.println(NitriteDBManager.class.getName()+": No support for saving class="+clazz.getName());
         }
         return persistables;
     }
@@ -126,7 +125,7 @@ public class NitriteDB implements LifeCycle {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("NitriteDB starting...");
+        System.out.println("NitriteDBManager starting...");
         dbFullPath = OneMFiveAppContext.getInstance().getBaseDir()+dbFolder;
         File f = new File(dbFullPath);
         if(!f.exists()) f.mkdir();
@@ -134,7 +133,7 @@ public class NitriteDB implements LifeCycle {
                 .compressed()
                 .filePath(dbFullPath+dbName)
                 .openOrCreate(dbUsername, dbUserPassword);
-        System.out.println("NitriteDB started.");
+        System.out.println("NitriteDBManager started.");
         return true;
     }
 
@@ -155,11 +154,11 @@ public class NitriteDB implements LifeCycle {
 
     @Override
     public boolean shutdown() {
-        System.out.println("NitriteDB shutting down...");
+        System.out.println("NitriteDBManager shutting down...");
         if(db != null && !db.isClosed()) {
             db.close();
         }
-        System.out.println("NitriteDB shutdown.");
+        System.out.println("NitriteDBManager shutdown.");
         return true;
     }
 
