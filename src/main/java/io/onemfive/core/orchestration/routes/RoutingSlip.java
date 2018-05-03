@@ -29,15 +29,27 @@ public class RoutingSlip extends SimpleRoute {
         this.routes = routes;
     }
 
-    protected void addRoute(Route route) throws Exception {
+    // TODO: Add Support for nested Routing Slips
+    protected void addRoute(SimpleRoute route) throws Exception {
+        route.setCorrelationId(this.correlationId);
         routes.add(route);
     }
 
-    public Route nextRoute(Envelope envelope) {
-        if(currentRouteIndex < routes.size()) {
-            return routes.get(currentRouteIndex++);
-        } else {
-            return null;
+    @Override
+    public Boolean routed() {
+        return routes.get(currentRouteIndex).routed();
+    }
+
+    public Route currentRoute() {
+        return routes.get(currentRouteIndex);
+    }
+
+    public Route nextRoute(Envelope e) {
+        Route r = null;
+        if(currentRouteIndex + 1 < routes.size()) {
+            r = routes.get(++currentRouteIndex);
+            r.setEnvelope(e);
         }
+        return r;
     }
 }

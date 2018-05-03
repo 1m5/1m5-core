@@ -8,7 +8,7 @@ import io.onemfive.data.Route;
  *
  * @author objectorange
  */
-public class SimpleRoute implements Route {
+public class SimpleRoute extends BaseRoute {
 
     protected Envelope envelope;
     protected String service;
@@ -39,4 +39,5 @@ public class SimpleRoute implements Route {
     public String getOperation() {
         return operation;
     }
+
 }

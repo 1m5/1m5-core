@@ -34,7 +34,7 @@ final class WorkerThread extends AppThread {
         System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Waiting for channel to return message...");
         Envelope envelope = channel.receive();
         System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Envelope received from channel");
-        if (envelope.getHeader(Envelope.REPLY) != null) {
+        if (envelope.getHeader(Envelope.CLIENT_REPLY) != null) {
             // Service Reply to client
             System.out.println(WorkerThread.class.getSimpleName() + ": Requesting client notify...");
             clientAppManager.notify(envelope);

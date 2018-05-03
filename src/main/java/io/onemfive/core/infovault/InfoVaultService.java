@@ -4,21 +4,27 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.infovault.nitrite.NitriteDB;
-import io.onemfive.data.DocumentMessage;
-import io.onemfive.data.Envelope;
-import io.onemfive.data.Route;
+import io.onemfive.data.*;
 
 import java.util.Properties;
 
 /**
- * InfoVault Service - Stores personal information securely while allowing access to 3rd parties with personal approval.
+ * InfoVault Service
+ *
+ * Stores personal information securely while allowing access
+ * by other parties with personal approval.
  *
  * @author objectorange
  */
 public class InfoVaultService extends BaseService {
 
+    public static final String OPERATION_LOAD = "Load";
+    public static final String OPERATION_SAVE = "Save";
+
     private Properties props;
     private NitriteDB db;
+
+    private DIDDAO diddao;
 
     public InfoVaultService(MessageProducer producer) {
         super(producer);
@@ -28,12 +34,12 @@ public class InfoVaultService extends BaseService {
     public void handleDocument(Envelope envelope) {
         Route route = (Route) envelope.getHeader(Envelope.ROUTE);
         switch(route.getOperation()) {
-            case "Load": {
+            case OPERATION_LOAD: {
                 load(envelope);
                 reply(envelope);
                 break;
             }
-            case "Save": {
+            case OPERATION_SAVE: {
                 save(envelope);
                 break;
             }
@@ -44,14 +50,17 @@ public class InfoVaultService extends BaseService {
     private void load(Envelope envelope) {
         System.out.println(InfoVaultService.class.getSimpleName()+": Received load request.");
         DocumentMessage m = (DocumentMessage)envelope.getMessage();
-        String type = (String)m.data.get("type");
-        if("List".equals(type)) {
-
-        } else {
-            Long id = (Long) m.data.get("_id");
-            if (type != null && id != null) {
-                m.data = db.load(type, id);
+        DID did = (DID)envelope.getHeader(Envelope.DID);
+        String type = (String)envelope.getHeader(Envelope.DATA_TYPE);
+//        Boolean isList = (Boolean)envelope.getHeader(Envelope.DATA_IS_LIST);
+        if(type != null) {
+            if(type.equals("io.onemfive.data.DID")) {
+                m.data.get(0).put(DID.class.getName(),diddao.load(did.getAlias()));
+            } else {
+                System.out.println(InfoVaultService.class.getSimpleName()+".load: Error: Loading of Type not supported yet:"+type);
             }
+        } else {
+            System.out.println(InfoVaultService.class.getSimpleName()+".load: Error: Not type in header provided.");
         }
         System.out.println(InfoVaultService.class.getSimpleName()+": Load performed.");
     }
@@ -59,14 +68,22 @@ public class InfoVaultService extends BaseService {
     private void save(Envelope envelope) {
         System.out.println(InfoVaultService.class.getSimpleName()+": Received save request.");
         DocumentMessage m = (DocumentMessage)envelope.getMessage();
-        String type = (String)m.data.get("type");
-        if("List".equals(type)) {
-
-        } else {
-            Long id = (Long) m.data.get("_id");
-            if (type != null && id != null) {
-                db.save(type, m.data);
+        DID did = (DID)envelope.getHeader(Envelope.DID);
+        String type = (String)envelope.getHeader(Envelope.DATA_TYPE);
+//        Boolean isList = (Boolean)envelope.getHeader(Envelope.DATA_IS_LIST);
+        if(type != null) {
+            if(type.equals("io.onemfive.data.DID")) {
+                if(did.getId() == null)
+                    m.data.get(0).put(DID.class.getName(),diddao.createDID(did.getAlias(), did.getPassphrase()));
+                else {
+                    diddao.updateDID(did);
+                    m.data.get(0).put(DID.class.getName(), did);
+                }
+            } else {
+                System.out.println(InfoVaultService.class.getSimpleName()+".load: Error: Loading of Type not supported yet:"+type);
             }
+        } else {
+            System.out.println(InfoVaultService.class.getSimpleName()+".save: Error: Not type in header provided.");
         }
         System.out.println(InfoVaultService.class.getSimpleName()+": Save performed.");
     }
@@ -78,6 +95,7 @@ public class InfoVaultService extends BaseService {
             props = Config.loadFromClasspath("infovault.config", properties);
             db = new NitriteDB();
             db.start(properties);
+            diddao = new DIDDAO(db);
         } catch (Exception e) {
             System.out.println("InfoVaultService failed to start: "+e.getLocalizedMessage());
             e.printStackTrace();

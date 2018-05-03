@@ -19,6 +19,10 @@ import java.util.Properties;
  */
 public class DIDService extends BaseService {
 
+    public static final String OPERATION_VERIFY = "Verify";
+    public static final String OPERATION_AUTHENTICATE = "Authenticate";
+    public static final String OPERATION_CREATE = "Create";
+
     private static String dbFileName = ".did";
     private static Properties db;
 
@@ -30,9 +34,9 @@ public class DIDService extends BaseService {
     public void handleHeaders(Envelope envelope) {
         Route route = (Route) envelope.getHeader(Envelope.ROUTE);
         switch(route.getOperation()) {
-            case "Verify": verify(envelope);break;
-            case "Authenticate": authenticate(envelope);break;
-            case "Create": create(envelope);break;
+            case OPERATION_VERIFY: verify(envelope);break;
+            case OPERATION_AUTHENTICATE: authenticate(envelope);break;
+            case OPERATION_CREATE: create(envelope);break;
             default: deadLetter(envelope); // Operation not supported
         }
     }
@@ -59,7 +63,7 @@ public class DIDService extends BaseService {
     private void create(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received create DID request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
-        boolean created = false;
+//        boolean created = false;
         // Use passphrase to encrypt and cache it
 //        try {
 //            I2PBote.getInstance().changePassword(alias.getBytes(), passphrase.getBytes(), passphrase2.getBytes());
@@ -72,16 +76,16 @@ public class DIDService extends BaseService {
 //        }
 
         // Create a default Identity
-        Boolean createNew = true;
+//        Boolean createNew = true;
         // TODO: 2 and 3 not available
-        Integer cryptoImplId = 1; // 1 = ElGamal2048_DSA1024, 2 = ECDH256_ECDSA256, 3 = ECDH521_ECDSA521, 4 = NTRUEncrypt1087_GMSS512
-        String vanityPrefix = "";
-        String key = "";
-        String publicName = "";
-        String description = "";
-        String pictureBase64 = "";
-        String emailAddress = "";
-        Boolean setDefault = true;
+//        Integer cryptoImplId = 1; // 1 = ElGamal2048_DSA1024, 2 = ECDH256_ECDSA256, 3 = ECDH521_ECDSA521, 4 = NTRUEncrypt1087_GMSS512
+//        String vanityPrefix = "";
+//        String key = "";
+//        String publicName = "";
+//        String description = "";
+//        String pictureBase64 = "";
+//        String emailAddress = "";
+//        Boolean setDefault = true;
 //        StatusListener<ChangeIdentityStatus> lsnr = new StatusListener<ChangeIdentityStatus>() {
 //            public void updateStatus(ChangeIdentityStatus status, String... args) {
 //                Log.i(LID.class.getName(),"Creating default identity; status="+status.name());
