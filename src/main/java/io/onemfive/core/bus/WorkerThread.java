@@ -31,26 +31,35 @@ final class WorkerThread extends AppThread {
 
     @Override
     public void run() {
-        System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Waiting for channel to return message...");
+        System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Waiting for channel to return message...");
         Envelope envelope = channel.receive();
-        System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Envelope received from channel");
+        System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Envelope received from channel");
         if (envelope.getHeader(Envelope.CLIENT_REPLY) != null) {
             // Service Reply to client
-            System.out.println(WorkerThread.class.getSimpleName() + ": Requesting client notify...");
+            System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Requesting client notify...");
             clientAppManager.notify(envelope);
         } else {
+            MessageConsumer consumer = null;
             Route route = (Route)envelope.getHeader(Envelope.ROUTE);
             if(route == null) {
                 // When no route is provided, forward to Orchestration service.
-                System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Route not found in header. Forward to OrchestrationService.");
-                route = new SimpleRoute(OrchestrationService.class.getName(), Envelope.NONE);
-            }
-            MessageConsumer consumer = services.get(route.getService());
-            if(consumer == null) {
-                // Service name provided is not registered.
-                // Likely from a domain-specific api
-                // Send to Orchestration Service to determine.
+                System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Route not found in header; forward to OrchestrationService to determine route.");
+                envelope.setHeader(Envelope.ROUTE, new SimpleRoute(OrchestrationService.class.getName(), Envelope.NONE));
                 consumer = services.get(OrchestrationService.class.getName());
+            } else if(envelope.getHeader(Envelope.REPLY) != null) {
+                // Reply from service -> forward to orchestration service to determine next route
+                System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Route found in header; reply from service; forward to OrchestrationService to determine next step...");
+                consumer = services.get(OrchestrationService.class.getName());
+            } else {
+                System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Route found in header; initial request; forward to Service specified in route...");
+                consumer = services.get(route.getService());
+                if (consumer == null) {
+                    // Service name provided is not registered.
+                    // Likely from a domain-specific api
+                    // Send to Orchestration Service to determine.
+                    System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Route found in header; initial request; Service not found; forward to OrchestrationService to determine service...");
+                    consumer = services.get(OrchestrationService.class.getName());
+                }
             }
             boolean received = false;
             int maxSendAttempts = 3;
@@ -58,9 +67,9 @@ final class WorkerThread extends AppThread {
             int waitBetweenMillis = 1000;
             while (!received && sendAttempts < maxSendAttempts) {
                 if (consumer.receive(envelope)) {
-                    System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Envelope received by service, acknowledging with channel...");
+                    System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Envelope received by service, acknowledging with channel...");
                     channel.ack(envelope);
-                    System.out.println(WorkerThread.class.getSimpleName() + ": " + Thread.currentThread().getName() + ": Channel Acknowledged.");
+                    System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Channel Acknowledged.");
                     received = true;
                 } else {
                     synchronized (this) {

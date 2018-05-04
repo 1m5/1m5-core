@@ -14,6 +14,7 @@ import java.util.Properties;
  */
 public abstract class BaseService implements MessageConsumer, Service, LifeCycle {
 
+    protected boolean orchestrator = false;
     private MessageProducer producer;
 
     public BaseService() {
@@ -82,8 +83,11 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
         System.out.println(BaseService.class.getSimpleName()+": Sending reply to service bus...");
         int maxAttempts = 30;
         int attempts = 0;
-        envelope.setHeader(Envelope.REPLY,true);
-        while(!producer.send(envelope) && ++attempts <= maxAttempts) {
+        // Create new Envelope instance with same ID, Headers, and Message so that Message Channel sees it as a different envelope.
+        Envelope newEnvelope = Envelope.envelopeFactory(envelope);
+        if(!orchestrator)
+            newEnvelope.setHeader(Envelope.REPLY,true);
+        while(!producer.send(newEnvelope) && ++attempts <= maxAttempts) {
             synchronized (this) {
                 try {
                     this.wait(100);

@@ -31,7 +31,7 @@ public class DIDService extends BaseService {
     }
 
     @Override
-    public void handleHeaders(Envelope envelope) {
+    public void handleDocument(Envelope envelope) {
         Route route = (Route) envelope.getHeader(Envelope.ROUTE);
         switch(route.getOperation()) {
             case OPERATION_VERIFY: verify(envelope);break;

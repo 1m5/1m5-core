@@ -58,6 +58,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     public ServiceBus(Properties properties, ClientAppManager clientAppManager) {
         this.properties = properties;
         this.clientAppManager = clientAppManager;
+        System.out.println(ServiceBus.class.getSimpleName()+": ServiceBus instantiated with maxThreads="+maxThreads+" and maxMessagesCached="+maxMessagesCached);
     }
 
     @Override

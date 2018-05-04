@@ -31,7 +31,9 @@ final class MessageChannel implements MessageProducer {
     }
 
     void ack(Envelope envelope) {
+        System.out.println(MessageChannel.class.getSimpleName()+": "+Thread.currentThread().getName()+": Removing Envelope-"+envelope.getId()+"("+envelope+") from message queue (size="+queue.size()+")");
         queue.remove(envelope);
+        System.out.println(MessageChannel.class.getSimpleName()+": "+Thread.currentThread().getName()+": Removed Envelope-"+envelope.getId()+"("+envelope+") from message queue (size="+queue.size()+")");
     }
 
     /**
@@ -43,14 +45,14 @@ final class MessageChannel implements MessageProducer {
             try {
                 boolean success = queue.add(envelope);
                 if(success)
-                    System.out.println(MessageChannel.class.getSimpleName()+": Envelope-"+envelope.getId()+" added to message queue.");
+                    System.out.println(MessageChannel.class.getSimpleName()+": "+Thread.currentThread().getName()+": Envelope-"+envelope.getId()+"("+envelope+") added to message queue (size="+queue.size()+")");
                 return success;
             } catch (IllegalStateException e) {
-                System.out.println(MessageChannel.class.getSimpleName()+": Channel at capacity; rejected envelope.");
+                System.out.println(MessageChannel.class.getSimpleName()+": "+Thread.currentThread().getName()+": Channel at capacity; rejected Envelope-"+envelope.getId()+"("+envelope+").");
                 return false;
             }
         } else {
-            System.out.println(MessageChannel.class.getSimpleName()+": Not accepting envelopes yet.");
+            System.out.println(MessageChannel.class.getSimpleName()+": "+Thread.currentThread().getName()+": Not accepting envelopes yet.");
             return false;
         }
     }
@@ -64,7 +66,7 @@ final class MessageChannel implements MessageProducer {
         try {
             System.out.println(MessageChannel.class.getSimpleName()+": "+Thread.currentThread().getName()+": Requesting envelope from message queue, blocking...");
             next = queue.take();
-            System.out.println(MessageChannel.class.getSimpleName()+": "+Thread.currentThread().getName()+": Got envelope-"+next.getId());
+            System.out.println(MessageChannel.class.getSimpleName()+": "+Thread.currentThread().getName()+": Got Envelope-"+next.getId()+"("+next+") (queue size="+queue.size()+")");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

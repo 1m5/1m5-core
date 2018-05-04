@@ -54,13 +54,16 @@ public class InfoVaultService extends BaseService {
         String type = (String)envelope.getHeader(Envelope.DATA_TYPE);
 //        Boolean isList = (Boolean)envelope.getHeader(Envelope.DATA_IS_LIST);
         if(type != null) {
-            if(type.equals("io.onemfive.data.DID")) {
-                m.data.get(0).put(DID.class.getName(),diddao.load(did.getAlias()));
+            if(type.equals(DID.class.getName())) {
+                m.data.get(0).put(type, diddao.load(did.getAlias()));
+                System.out.println(InfoVaultService.class.getSimpleName()+".load: DID loaded.");
             } else {
                 System.out.println(InfoVaultService.class.getSimpleName()+".load: Error: Loading of Type not supported yet:"+type);
+                return;
             }
         } else {
             System.out.println(InfoVaultService.class.getSimpleName()+".load: Error: Not type in header provided.");
+            return;
         }
         System.out.println(InfoVaultService.class.getSimpleName()+": Load performed.");
     }
@@ -72,12 +75,12 @@ public class InfoVaultService extends BaseService {
         String type = (String)envelope.getHeader(Envelope.DATA_TYPE);
 //        Boolean isList = (Boolean)envelope.getHeader(Envelope.DATA_IS_LIST);
         if(type != null) {
-            if(type.equals("io.onemfive.data.DID")) {
+            if(type.equals(DID.class.getName())) {
                 if(did.getId() == null)
-                    m.data.get(0).put(DID.class.getName(),diddao.createDID(did.getAlias(), did.getPassphrase()));
+                    m.data.get(0).put(type, diddao.createDID(did.getAlias(), did.getPassphrase()));
                 else {
                     diddao.updateDID(did);
-                    m.data.get(0).put(DID.class.getName(), did);
+                    m.data.get(0).put(type, did);
                 }
             } else {
                 System.out.println(InfoVaultService.class.getSimpleName()+".load: Error: Loading of Type not supported yet:"+type);
