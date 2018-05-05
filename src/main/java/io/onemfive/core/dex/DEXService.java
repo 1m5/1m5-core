@@ -6,7 +6,9 @@ import io.onemfive.core.MessageProducer;
 import java.util.Properties;
 
 /**
- * Created by Brian on 3/27/18.
+ * Decentralized EXchange Service
+ *
+ * @author objectorange
  */
 public class DEXService extends BaseService {
 
@@ -16,7 +18,7 @@ public class DEXService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("DEXService not implemented yet.");
+        System.out.println(DEXService.class.getSimpleName()+": not implemented yet.");
         return true;
     }
 }

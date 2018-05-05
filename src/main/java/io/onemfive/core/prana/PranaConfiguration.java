@@ -3,13 +3,11 @@ package io.onemfive.core.prana;
 import java.io.Serializable;
 
 /**
- * Provides Amino Service Information for this specific node.
+ * Provides Prana Service Information for this specific node.
  *
  * @author objectorange
  */
 public class PranaConfiguration implements Serializable {
-
-    public static final String NAME = "io.synapticcelerity.amino.PranaConfiguration";
 
     /**
      * Is CPU currently shareable

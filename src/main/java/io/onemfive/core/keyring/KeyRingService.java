@@ -18,9 +18,9 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("KeyRingService starting...");
+        System.out.println(KeyRingService.class.getSimpleName()+": starting...");
 
-        System.out.println("KeyRingService started.");
+        System.out.println(KeyRingService.class.getSimpleName()+": started.");
         return true;
     }
 

@@ -6,7 +6,9 @@ import io.onemfive.core.MessageProducer;
 import java.util.Properties;
 
 /**
- * Created by Brian on 3/27/18.
+ * TODO: Add Description
+ *
+ * @author objectorange
  */
 public class ConsensusService extends BaseService {
 
@@ -16,7 +18,7 @@ public class ConsensusService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("ConsensusService not implemented yet.");
+        System.out.println(ConsensusService.class.getSimpleName()+": not implemented yet.");
         return true;
     }
 

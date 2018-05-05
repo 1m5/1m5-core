@@ -6,7 +6,9 @@ import io.onemfive.core.MessageProducer;
 import java.util.Properties;
 
 /**
- * Created by Brian on 3/27/18.
+ * TODO: Add Description
+ *
+ * @author objectorange
  */
 public class ContentService extends BaseService {
 
@@ -16,7 +18,7 @@ public class ContentService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("ContentService not implemented yet.");
+        System.out.println(ContentService.class.getSimpleName()+": not implemented yet.");
         return true;
     }
 

@@ -18,9 +18,9 @@ public class PranaService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("PranaService starting...");
+        System.out.println(PranaService.class.getSimpleName()+": starting...");
 
-        System.out.println("PranaService started.");
+        System.out.println(PranaService.class.getSimpleName()+": started.");
         return true;
     }
 }

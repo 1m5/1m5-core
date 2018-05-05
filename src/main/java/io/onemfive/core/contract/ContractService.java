@@ -78,7 +78,7 @@ public class ContractService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("ContractService starting...");
+        System.out.println(ContractService.class.getSimpleName()+": starting...");
         ethereumContract = new EthereumContract();
         System.out.println("ContractService started.");
         return true;

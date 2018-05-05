@@ -51,8 +51,8 @@ public class RepositoryService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("RepositoryService starting...");
-        System.out.println("RepositoryService started.");
+        System.out.println(RepositoryService.class.getSimpleName()+": starting...");
+        System.out.println(RepositoryService.class.getSimpleName()+": started.");
         return true;
     }
 

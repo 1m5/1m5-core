@@ -54,7 +54,7 @@ public class SensorsService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("SensorsService starting...");
+        System.out.println(SensorsService.class.getSimpleName()+": starting...");
         try {
             config = Config.loadFromClasspath("sensors.config", properties);
 
@@ -74,7 +74,7 @@ public class SensorsService extends BaseService {
                             i2PSensor.start(config);
                             activeSensors.put(I2PSensor.class.getName(), i2PSensor);
                         }
-                    }, "SensorsService:I2PSensorStartThread").start();
+                    }, SensorsService.class.getSimpleName()+":I2PSensorStartThread").start();
                 }
 
                 if (registered.contains("mesh")) {
@@ -86,14 +86,14 @@ public class SensorsService extends BaseService {
                             meshSensor.start(config);
                             activeSensors.put(MeshSensor.class.getName(), meshSensor);
                         }
-                    }, "SensorsService:MeshSensorStartThread").start();
+                    }, SensorsService.class.getSimpleName()+":MeshSensorStartThread").start();
                 }
             }
 
-            System.out.println("SensorsService started.");
+            System.out.println(SensorsService.class.getSimpleName()+": started.");
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("SensorsService failed to start.");
+            System.out.println(SensorsService.class.getSimpleName()+": failed to start.");
             return false;
         }
         return true;

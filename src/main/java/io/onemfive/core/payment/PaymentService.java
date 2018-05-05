@@ -18,9 +18,9 @@ public class PaymentService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("PaymentService starting...");
+        System.out.println(PaymentService.class.getSimpleName()+": starting...");
 
-        System.out.println("PaymentService started.");
+        System.out.println(PaymentService.class.getSimpleName()+": started.");
         return true;
     }
 }

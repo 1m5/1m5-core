@@ -4,10 +4,10 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.data.DID;
+import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -44,14 +44,14 @@ public class DIDService extends BaseService {
     private void verify(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received verify DID request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
-        if(did != null) {
-            if(db.containsKey(did.getAlias())) {
-                did.setStatus(DID.Status.valueOf(db.getProperty(did.getAlias()+".status")));
-            } else {
-                did.setStatus(DID.Status.UNREGISTERED);
-            }
-            reply(envelope);
+        DID didLoaded = (DID)((DocumentMessage)envelope.getMessage()).data.get(0).get(DID.class.getName());
+        if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())) {
+            didLoaded.setVerified(true);
+            envelope.setHeader(Envelope.DID, didLoaded);
+        } else {
+            did.setVerified(false);
         }
+        reply(envelope);
     }
 
     /**
@@ -62,7 +62,8 @@ public class DIDService extends BaseService {
      */
     private void create(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received create DID request.");
-        DID did = (DID)envelope.getHeader(Envelope.DID);
+//        DID did = (DID)envelope.getHeader(Envelope.DID);
+        // TODO: Implement I2PBote example
 //        boolean created = false;
         // Use passphrase to encrypt and cache it
 //        try {
@@ -125,14 +126,6 @@ public class DIDService extends BaseService {
 //        } catch (IllegalDestinationParametersException e) {
 //            e.printStackTrace();
 //        }
-        did.setStatus(DID.Status.ACTIVE);
-        db.setProperty(did.getAlias()+".passphrase",did.getPassphrase());
-        db.setProperty(did.getAlias()+".status",DID.Status.ACTIVE.name());
-        try {
-            Config.saveToBase(dbFileName, db);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         reply(envelope);
     }
 
@@ -145,6 +138,15 @@ public class DIDService extends BaseService {
     private void authenticate(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received authn DID request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
+        DID didLoaded = (DID)((DocumentMessage)envelope.getMessage()).data.get(0).get(DID.class.getName());
+        // TODO: Replace with I2PBote example below
+        if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())
+                && did.getPassphrase() != null && did.getPassphrase().equals(didLoaded.getPassphrase())) {
+            didLoaded.setAuthenticated(true);
+            envelope.setHeader(Envelope.DID, didLoaded);
+        } else {
+            did.setAuthenticated(false);
+        }
 //        boolean authn = false;
 //        try {
 //            I2PBote.getInstance().tryPassword(passphrase.getBytes());
@@ -156,26 +158,20 @@ public class DIDService extends BaseService {
 //        } catch (PasswordException e) {
 //            e.printStackTrace();
 //        }
-        did.setAuthenticated(did.getPassphrase().equals(db.getProperty(did.getAlias()+".passphrase")));
-        if(db.getProperty(did.getAlias()+".status") == null) {
-            did.setStatus(DID.Status.UNREGISTERED);
-        } else {
-            did.setStatus(DID.Status.valueOf(db.getProperty(did.getAlias()+".status")));
-        }
         reply(envelope);
     }
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("DIDService starting up....");
+        System.out.println(DIDService.class.getSimpleName()+": starting....");
         try {
             db = Config.loadFromBase(dbFileName);
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("DIDService startup failed.");
+            System.out.println(DIDService.class.getSimpleName()+": start failed.");
             return false;
         }
-        System.out.println("DIDService started.");
+        System.out.println(DIDService.class.getSimpleName()+": started.");
         return true;
     }
 

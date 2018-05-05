@@ -2,11 +2,14 @@ package io.onemfive.core.aten;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.data.Aten;
 
 import java.util.Properties;
 
 /**
- * Created by Brian on 3/27/18.
+ * TODO: Add Description
+ *
+ * @author objectorange
  */
 public class AtenService extends BaseService {
 
@@ -16,7 +19,7 @@ public class AtenService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("AtenService not implemented yet.");
+        System.out.println(AtenService.class.getSimpleName()+": not implemented yet.");
         return true;
     }
 

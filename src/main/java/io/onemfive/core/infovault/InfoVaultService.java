@@ -5,6 +5,7 @@ import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 import io.onemfive.data.*;
+import io.onemfive.data.health.HealthRecord;
 
 import java.util.Properties;
 
@@ -25,6 +26,7 @@ public class InfoVaultService extends BaseService {
     private NitriteDBManager db;
 
     private DIDDAO diddao;
+    private HealthDAO healthDAO;
 
     public InfoVaultService(MessageProducer producer) {
         super(producer);
@@ -51,12 +53,15 @@ public class InfoVaultService extends BaseService {
         System.out.println(InfoVaultService.class.getSimpleName()+": Received load request.");
         DocumentMessage m = (DocumentMessage)envelope.getMessage();
         DID did = (DID)envelope.getHeader(Envelope.DID);
-        String type = (String)envelope.getHeader(Envelope.DATA_TYPE);
+        String type = (String)((DocumentMessage)envelope.getMessage()).data.get(0).get("type");
 //        Boolean isList = (Boolean)envelope.getHeader(Envelope.DATA_IS_LIST);
         if(type != null) {
             if(type.equals(DID.class.getName())) {
                 m.data.get(0).put(type, diddao.load(did.getAlias()));
-                System.out.println(InfoVaultService.class.getSimpleName()+".load: DID loaded.");
+                System.out.println(InfoVaultService.class.getSimpleName() + ".load: DID loaded.");
+            } else if(type.equals(HealthRecord.class.getName())) {
+                m.data.get(0).put(type, healthDAO.loadHealthRecord(did.getId()));
+                System.out.println(InfoVaultService.class.getSimpleName() + ".load: Health Record loaded.");
             } else {
                 System.out.println(InfoVaultService.class.getSimpleName()+".load: Error: Loading of Type not supported yet:"+type);
                 return;
@@ -72,7 +77,7 @@ public class InfoVaultService extends BaseService {
         System.out.println(InfoVaultService.class.getSimpleName()+": Received save request.");
         DocumentMessage m = (DocumentMessage)envelope.getMessage();
         DID did = (DID)envelope.getHeader(Envelope.DID);
-        String type = (String)envelope.getHeader(Envelope.DATA_TYPE);
+        String type = (String)((DocumentMessage)envelope.getMessage()).data.get(0).get("type");
 //        Boolean isList = (Boolean)envelope.getHeader(Envelope.DATA_IS_LIST);
         if(type != null) {
             if(type.equals(DID.class.getName())) {
@@ -99,6 +104,7 @@ public class InfoVaultService extends BaseService {
             db = new NitriteDBManager();
             db.start(properties);
             diddao = new DIDDAO(db);
+            healthDAO = new HealthDAO(db);
         } catch (Exception e) {
             System.out.println("InfoVaultService failed to start: "+e.getLocalizedMessage());
             e.printStackTrace();
