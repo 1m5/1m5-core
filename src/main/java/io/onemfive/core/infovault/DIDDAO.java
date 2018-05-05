@@ -2,16 +2,19 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 import io.onemfive.data.DID;
+import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.objects.Cursor;
 import org.dizitart.no2.objects.ObjectRepository;
 import org.dizitart.no2.objects.filters.ObjectFilters;
+
+import java.util.Random;
 
 /**
  * TODO: Add Description
  *
  * @author objectorange
  */
-class DIDDAO {
+public class DIDDAO {
 
     private NitriteDBManager dbMgr;
 
@@ -19,11 +22,12 @@ class DIDDAO {
         this.dbMgr = dbMgr;
     }
 
-    DID createDID(String alias, String passphrase) {
+    public DID createDID(String alias, String passphrase) {
         ObjectRepository<DID> r = dbMgr.getDb().getRepository(DID.class);
         DID did = load(alias);
         if(did == null) {
             did = new DID();
+            did.setId(new Random(934394732492921384L).nextLong());
             did.setAlias(alias);
             did.setPassphrase(passphrase);
             did.setStatus(DID.Status.ACTIVE);
@@ -34,12 +38,12 @@ class DIDDAO {
         return did;
     }
 
-    void updateDID(DID did) {
+    public void updateDID(DID did) {
         ObjectRepository<DID> r = dbMgr.getDb().getRepository(DID.class);
         r.update(did);
     }
 
-    DID load(String alias) {
+    public DID load(String alias) {
         ObjectRepository<DID> r = dbMgr.getDb().getRepository(DID.class);
         Cursor<DID> dids = r.find(ObjectFilters.eq("alias",alias));
         if(dids.size() > 0) {

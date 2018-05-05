@@ -3,12 +3,12 @@ package io.onemfive.core;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
-import io.onemfive.core.infovault.InfoVaultService;
+import io.onemfive.core.infovault.InfoVault;
 import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.*;
+import io.onemfive.data.health.HealthRecord;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -111,29 +111,8 @@ public class CoreTest {
 
     }
 
-//    @Test
     public void testInfoVault() {
-        DID did = new DID();
-        did.setAlias("Alice");
-        did.setPassphrase("1234");
-        Envelope e;
-        try {
-            ServiceCallback cb = new ServiceCallback() {
-                @Override
-                public void reply(Envelope envelope) {
-                    DocumentMessage m = (DocumentMessage)envelope.getMessage();
-                    assert("Good".equals(m.data.get(0).get("healthStatus")));
-                    lock.countDown();
-                }
-            };
-            e = Envelope.documentFactory();
-            e.setHeader(Envelope.ROUTE, new SimpleRoute(InfoVaultService.class.getName(),"Load"));
-            e.setHeader(Envelope.DID, did);
-            e.setHeader(Envelope.DATA_TYPE,"HealthRecord");
-            client.request(e, cb);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+
     }
 
     public void testKeyRing() {

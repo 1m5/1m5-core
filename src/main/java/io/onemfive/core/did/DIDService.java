@@ -34,9 +34,21 @@ public class DIDService extends BaseService {
     public void handleDocument(Envelope envelope) {
         Route route = (Route) envelope.getHeader(Envelope.ROUTE);
         switch(route.getOperation()) {
-            case OPERATION_VERIFY: verify(envelope);break;
-            case OPERATION_AUTHENTICATE: authenticate(envelope);break;
-            case OPERATION_CREATE: create(envelope);break;
+            case OPERATION_VERIFY: {
+                verify(envelope);
+                reply(envelope);
+                break;
+            }
+            case OPERATION_AUTHENTICATE: {
+                authenticate(envelope);
+                reply(envelope);
+                break;
+            }
+            case OPERATION_CREATE: {
+                create(envelope);
+                reply(envelope);
+                break;
+            }
             default: deadLetter(envelope); // Operation not supported
         }
     }
@@ -44,14 +56,13 @@ public class DIDService extends BaseService {
     private void verify(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received verify DID request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
-        DID didLoaded = (DID)((DocumentMessage)envelope.getMessage()).data.get(0).get(DID.class.getName());
+        DID didLoaded = infoVault.getDidDAO().load(did.getAlias());
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())) {
             didLoaded.setVerified(true);
             envelope.setHeader(Envelope.DID, didLoaded);
         } else {
             did.setVerified(false);
         }
-        reply(envelope);
     }
 
     /**
@@ -62,7 +73,9 @@ public class DIDService extends BaseService {
      */
     private void create(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received create DID request.");
-//        DID did = (DID)envelope.getHeader(Envelope.DID);
+        DID did = (DID)envelope.getHeader(Envelope.DID);
+        DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
+        envelope.setHeader(Envelope.DID, didCreated);
         // TODO: Implement I2PBote example
 //        boolean created = false;
         // Use passphrase to encrypt and cache it
@@ -126,7 +139,6 @@ public class DIDService extends BaseService {
 //        } catch (IllegalDestinationParametersException e) {
 //            e.printStackTrace();
 //        }
-        reply(envelope);
     }
 
     /**
@@ -138,7 +150,7 @@ public class DIDService extends BaseService {
     private void authenticate(Envelope envelope) {
         System.out.println(DIDService.class.getSimpleName()+": Received authn DID request.");
         DID did = (DID)envelope.getHeader(Envelope.DID);
-        DID didLoaded = (DID)((DocumentMessage)envelope.getMessage()).data.get(0).get(DID.class.getName());
+        DID didLoaded = infoVault.getDidDAO().load(did.getAlias());
         // TODO: Replace with I2PBote example below
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())
                 && did.getPassphrase() != null && did.getPassphrase().equals(didLoaded.getPassphrase())) {
@@ -158,7 +170,6 @@ public class DIDService extends BaseService {
 //        } catch (PasswordException e) {
 //            e.printStackTrace();
 //        }
-        reply(envelope);
     }
 
     @Override

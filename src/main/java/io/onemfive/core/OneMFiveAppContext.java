@@ -78,6 +78,7 @@ public class OneMFiveAppContext {
      * started in the same JVM after the first is shut down,
      * e.g. on Android.
      */
+
     public static OneMFiveAppContext getInstance() {
         if(globalAppContext == null) {
             synchronized (lockA) {

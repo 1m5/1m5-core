@@ -2,13 +2,13 @@ package io.onemfive.core.bus;
 
 import io.onemfive.core.*;
 import io.onemfive.core.did.DIDService;
+import io.onemfive.core.infovault.InfoVaultService;
 import io.onemfive.core.keyring.KeyRingService;
-import io.onemfive.core.payment.PaymentService;
 import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.repository.RepositoryService;
 import io.onemfive.core.orchestration.OrchestrationService;
-import io.onemfive.core.infovault.InfoVaultService;
+import io.onemfive.core.infovault.InfoVault;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
@@ -151,9 +151,18 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         registeredServices = new HashMap<>(13);
         runningServices = new HashMap<>(13);
 
-        // Register Base Services
-        PranaService pranaService = new PranaService(this);
-        registeredServices.put(PranaService.class.getName(), pranaService);
+        // Register Core Services
+        OrchestrationService orchestrationService = new OrchestrationService(this);
+        registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
+
+        InfoVaultService infoVaultService = new InfoVaultService(this);
+        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
+
+        DIDService DIDService = new DIDService(this);
+        registeredServices.put(DIDService.class.getName(), DIDService);
+
+//        PranaService pranaService = new PranaService(this);
+//        registeredServices.put(PranaService.class.getName(), pranaService);
 
 //        ConsensusService consensusService = new ConsensusService(this);
 //        registeredServices.put(ConsensusService.class.getName(), consensusService);
@@ -164,29 +173,20 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 //        DEXService dexService = new DEXService(this);
 //        registeredServices.put(DEXService.class.getName(), dexService);
 
-        RepositoryService repositoryService = new RepositoryService(this);
-        registeredServices.put(RepositoryService.class.getName(), repositoryService);
+//        RepositoryService repositoryService = new RepositoryService(this);
+//        registeredServices.put(RepositoryService.class.getName(), repositoryService);
 
-        InfoVaultService infoVaultService = new InfoVaultService(this);
-        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
-
-        KeyRingService keyRingService = new KeyRingService(this);
-        registeredServices.put(KeyRingService.class.getName(), keyRingService);
-
-        DIDService DIDService = new DIDService(this);
-        registeredServices.put(DIDService.class.getName(), DIDService);
+//        KeyRingService keyRingService = new KeyRingService(this);
+//        registeredServices.put(KeyRingService.class.getName(), keyRingService);
 
 //        PaymentService paymentService = new PaymentService(this);
 //        registeredServices.put(PaymentService.class.getName(), paymentService);
 
-        SensorsService sensorsService = new SensorsService(this);
-        registeredServices.put(SensorsService.class.getName(), sensorsService);
+//        SensorsService sensorsService = new SensorsService(this);
+//        registeredServices.put(SensorsService.class.getName(), sensorsService);
 
 //        AtenService atenService = new AtenService(this);
 //        registeredServices.put(AtenService.class.getName(), atenService);
-
-        OrchestrationService orchestrationService = new OrchestrationService(this);
-        registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
         // Start Registered Services
         final Properties props = this.properties;

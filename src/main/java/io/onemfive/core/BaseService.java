@@ -1,5 +1,6 @@
 package io.onemfive.core;
 
+import io.onemfive.core.infovault.InfoVault;
 import io.onemfive.data.CommandMessage;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
@@ -16,11 +17,14 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     protected boolean orchestrator = false;
     private MessageProducer producer;
+    protected InfoVault infoVault;
 
     public BaseService() {
+        infoVault = InfoVault.getInstance();
     }
 
     public BaseService(MessageProducer producer) {
+        infoVault = InfoVault.getInstance();
         this.producer = producer;
     }
 

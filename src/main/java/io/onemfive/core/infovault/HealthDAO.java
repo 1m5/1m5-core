@@ -6,26 +6,46 @@ import org.dizitart.no2.objects.Cursor;
 import org.dizitart.no2.objects.ObjectRepository;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
+import java.util.Random;
+
 /**
  * TODO: Add Description
  *
  * @author objectorange
  */
-class HealthDAO {
+public class HealthDAO {
 
     private NitriteDBManager dbMgr;
 
-    public HealthDAO(NitriteDBManager dbMgr) {
+    HealthDAO(NitriteDBManager dbMgr) {
         this.dbMgr = dbMgr;
     }
 
-    HealthRecord loadHealthRecord(Long did) {
+    public HealthRecord loadHealthRecord(Long did) {
+        System.out.println(HealthDAO.class.getSimpleName()+": Loading Health Record: did="+did);
         ObjectRepository<HealthRecord> r = dbMgr.getDb().getRepository(HealthRecord.class);
         Cursor<HealthRecord> records = r.find(ObjectFilters.eq("did",did));
         if(records.size() > 0) {
+            System.out.println(HealthDAO.class.getSimpleName()+": Health Record found for did="+did);
             return records.toList().get(0);
         } else {
-            return null;
+            System.out.println(HealthDAO.class.getSimpleName()+": Health Record not found for did="+did+"; creating...");
+            // Ensure every DID has a HealthRecord
+            HealthRecord record = new HealthRecord();
+            record.setDid(did);
+            saveHealthRecord(record);
+            return record;
+        }
+    }
+
+    public void saveHealthRecord(HealthRecord healthRecord) {
+        System.out.println(HealthDAO.class.getSimpleName()+": Saving Health Record: did="+healthRecord.getDid());
+        ObjectRepository<HealthRecord> r = dbMgr.getDb().getRepository(HealthRecord.class);
+        if(healthRecord.getId() == null) {
+            healthRecord.setId(new Random(89743847294874897L).nextLong());
+            r.insert(healthRecord);
+        } else {
+            r.update(healthRecord);
         }
     }
 }

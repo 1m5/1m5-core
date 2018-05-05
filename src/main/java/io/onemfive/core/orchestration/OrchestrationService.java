@@ -85,6 +85,7 @@ public class OrchestrationService extends BaseService {
                             // End of slip
                             System.out.println(OrchestrationService.class.getSimpleName()+": end of routing slip...");
                             slip.setRouted(true);
+                            slips.remove(slip.correlationId());
                             if(e.getHeader(Envelope.CLIENT_REPLY_ACTION)!= null) {
                                 System.out.println(OrchestrationService.class.getSimpleName()+": returning to client...");
                                 e.setHeader(Envelope.CLIENT_REPLY, true);
