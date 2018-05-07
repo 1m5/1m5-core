@@ -7,9 +7,13 @@ import io.onemfive.core.infovault.InfoVault;
 import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.*;
 import io.onemfive.data.health.HealthRecord;
+import io.onemfive.data.health.mental.memory.MemoryTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
+import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -111,8 +115,23 @@ public class CoreTest {
 
     }
 
+    @Test
     public void testInfoVault() {
-
+        System.out.println("Starting InfoVault test...");
+        InfoVault infoVault = InfoVault.getInstance();
+        infoVault.start(null);
+        DID did = infoVault.getDidDAO().load("Alice");
+        List<MemoryTest> tests = infoVault.getMemoryTestDAO().loadListByDID(did.getId(), 0, 10);
+        for(MemoryTest t : tests) {
+            System.out.println("MemoryTest: name="+t.getName()
+                    +", ended="+new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(t.getTimeEnded())
+                    +", bac="+t.getBloodAlcoholContent()
+                    +", avgResponseTime="+t.getAvgResponseTimeMs()
+                    +", difficulty="+t.getDifficulty()
+                    +", impairment="+t.getImpairment().name());
+        }
+        infoVault.shutdown();
+        System.out.println("InfoVault test finished.");
     }
 
     public void testKeyRing() {
@@ -138,7 +157,7 @@ public class CoreTest {
     @AfterClass
     public static void tearDown() {
         try {
-            lock.await(10, TimeUnit.SECONDS);
+            lock.await(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {}
         clientAppManager.unregister(client);
     }

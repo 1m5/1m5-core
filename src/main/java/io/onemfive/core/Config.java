@@ -14,7 +14,8 @@ public class Config {
     public static Properties loadFromClasspath(String name, Properties scProps) throws Exception {
         System.out.println("Loading properties file "+name+"...");
         Properties p = new Properties();
-        p.putAll(scProps);
+        if(scProps != null)
+            p.putAll(scProps);
         InputStream is = null;
         try {
             is = Config.class.getClassLoader().getResourceAsStream(name);
