@@ -6,6 +6,7 @@ import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.health.HealthRecord;
+import io.onemfive.data.health.mental.memory.MemoryTest;
 
 import java.util.List;
 import java.util.Map;
@@ -46,8 +47,19 @@ public class InfoVaultService extends BaseService {
         Object entity;
         for(Map<String,Object> map : maps) {
             entity = map.get(ENTITY);
-            if(entity != null && entity instanceof HealthRecord) {
-                map.put(ENTITY, infoVault.getHealthDAO().loadHealthRecord(((HealthRecord)entity).getDid()));
+            if(entity != null) {
+                if(entity instanceof HealthRecord) {
+                    map.put(ENTITY, infoVault.getHealthDAO().loadHealthRecord(((HealthRecord) entity).getDid()));
+                } else if(entity instanceof MemoryTest) {
+                    MemoryTest test = (MemoryTest)entity;
+                    if(test.getId() == null) {
+                        // New Test -> Load scores
+                        double borderline = infoVault.getMemoryTestDAO().minBorderlineImpairedScore(test.getDifficulty());
+                        double impaired = infoVault.getMemoryTestDAO().minImpairedScore(test.getDifficulty());
+                        double gross = infoVault.getMemoryTestDAO().minGrosslyImpairedScore(test.getDifficulty());
+                        test.setImpairmentScores(borderline, impaired, gross);
+                    }
+                }
             }
         }
     }
@@ -57,8 +69,14 @@ public class InfoVaultService extends BaseService {
         Object entity;
         for(Map<String,Object> map : maps) {
             entity = map.get(ENTITY);
-            if(entity != null && entity instanceof HealthRecord) {
-                infoVault.getHealthDAO().saveHealthRecord((HealthRecord)entity);
+            if(entity != null) {
+                if(entity instanceof HealthRecord) {
+                    infoVault.getHealthDAO().saveHealthRecord((HealthRecord) entity);
+                } else if(entity instanceof MemoryTest) {
+                    MemoryTest test = (MemoryTest)entity;
+                    infoVault.getMemoryTestDAO().create(test);
+                    map.put(ENTITY, test);
+                }
             }
         }
     }

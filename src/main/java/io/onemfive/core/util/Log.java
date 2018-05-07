@@ -14,7 +14,7 @@ import java.util.Locale;
 import io.onemfive.core.OneMFiveAppContext;
 
 /**
- * Wrapper class for whatever logging system SC uses.  This class should be
+ * Wrapper class for whatever logging system 1M5 uses.  This class should be
  * instantiated and kept as a variable for each class it is used by, ala:
  *  <code>private final Log _log = context.logManager().getLog(MyClassName.class);</code>
  *
@@ -22,7 +22,7 @@ import io.onemfive.core.OneMFiveAppContext;
  * and go fly a kite.
  *
  *
- * @author jrandom
+ * @author jrandom, objectorange
  */
 public class Log {
     private final Class<?> _class;

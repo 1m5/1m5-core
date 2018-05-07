@@ -152,11 +152,12 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         runningServices = new HashMap<>(13);
 
         // Register Core Services
-        OrchestrationService orchestrationService = new OrchestrationService(this);
-        registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
-
+        // Start InfoVaultService first synchronously to ensure InfoVault is started prior to other services getting an instance
         InfoVaultService infoVaultService = new InfoVaultService(this);
         registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
+
+        OrchestrationService orchestrationService = new OrchestrationService(this);
+        registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
         DIDService DIDService = new DIDService(this);
         registeredServices.put(DIDService.class.getName(), DIDService);

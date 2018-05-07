@@ -1,12 +1,15 @@
 package io.onemfive.core.util;
 
-/*
+/**
  * free (adj.): unencumbered; not under the control of others
  * Written by jrandom in 2003 and released into the public domain
  * with no warranty of any kind, either expressed or implied.
  * It probably won't make your computer catch on fire, or eat
  * your children, but it might.  Use at your own risk.
  *
+ * Altered to work within 1M5.
+ *
+ * @author jrandom, objectorange
  */
 
 import java.io.File;
@@ -131,8 +134,8 @@ public class LogManager implements Flushable {
     public LogManager(OneMFiveAppContext context) {
         _displayOnScreen = true;
         _alreadyNoticedMissingConfig = false;
-        _limits = new ConcurrentHashSet<LogLimit>();
-        _logs = new ConcurrentHashMap<Object, Log>(128);
+        _limits = new ConcurrentHashSet<>();
+        _logs = new ConcurrentHashMap<>(128);
         _defaultLimit = Log.ERROR;
         _context = context;
         _log = getLog(LogManager.class);
@@ -154,7 +157,6 @@ public class LogManager implements Flushable {
         //System.out.println("Created logManager " + this + " with context: " + context);
     }
 
-    /** @since 0.8.2 */
     private synchronized void startLogWriter() {
         // yeah, this doesn't always work, _writer should be volatile
         if (_writer != null)
@@ -311,9 +313,6 @@ public class LogManager implements Flushable {
         loadConfig();
     }
 
-    /**
-     *  @since 0.9.3
-     */
     boolean shouldDropDuplicates() {
         return _dropDuplicates;
     }
@@ -696,7 +695,6 @@ public class LogManager implements Flushable {
     /**
      *  Zero-copy.
      *  For the LogWriter
-     *  @since 0.8.2
      */
     Queue<LogRecord> getQueue() {
         return _records;
@@ -743,7 +741,6 @@ public class LogManager implements Flushable {
     /**
      *  Flush any pending records to disk.
      *  Blocking up to 250 ms.
-     *  @since 0.9.3
      */
     public void flush() {
         if (_writer != null) {
@@ -793,7 +790,6 @@ public class LogManager implements Flushable {
 
     /**
      *  Convenience method for LogRecordFormatter
-     *  @since 0.7.14
      */
     OneMFiveAppContext getContext() {
         return _context;

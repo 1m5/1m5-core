@@ -28,6 +28,7 @@ public class InfoVault implements LifeCycle {
 
     private DIDDAO didDAO;
     private HealthDAO healthDAO;
+    private MemoryTestDAO memoryTestDAO;
 
     private InfoVault(){}
 
@@ -48,6 +49,10 @@ public class InfoVault implements LifeCycle {
         return healthDAO;
     }
 
+    public MemoryTestDAO getMemoryTestDAO() {
+        return memoryTestDAO;
+    }
+
     @Override
     public boolean start(Properties properties) {
         System.out.println("InfoVault starting up...");
@@ -58,6 +63,7 @@ public class InfoVault implements LifeCycle {
 
             didDAO = new DIDDAO(db);
             healthDAO = new HealthDAO(db);
+            memoryTestDAO = new MemoryTestDAO(db);
 
         } catch (Exception e) {
             System.out.println("InfoVault failed to start: "+e.getLocalizedMessage());
