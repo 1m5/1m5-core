@@ -3,12 +3,14 @@ package io.onemfive.core.bus;
 import io.onemfive.core.*;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVaultService;
+import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.repository.RepositoryService;
 import io.onemfive.core.orchestration.OrchestrationService;
 import io.onemfive.core.infovault.InfoVault;
+import io.onemfive.core.securedrop.SecureDropService;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
@@ -159,8 +161,11 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         OrchestrationService orchestrationService = new OrchestrationService(this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
-        DIDService DIDService = new DIDService(this);
-        registeredServices.put(DIDService.class.getName(), DIDService);
+        DIDService didService = new DIDService(this);
+        registeredServices.put(DIDService.class.getName(), didService);
+
+//        IPFSService ipfsService = new IPFSService(this);
+//        registeredServices.put(IPFSService.class.getName(), ipfsService);
 
 //        PranaService pranaService = new PranaService(this);
 //        registeredServices.put(PranaService.class.getName(), pranaService);
@@ -188,6 +193,9 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
 //        AtenService atenService = new AtenService(this);
 //        registeredServices.put(AtenService.class.getName(), atenService);
+
+//        SecureDropService secureDropService = new SecureDropService(this);
+//        registeredServices.put(SecureDropService.class.getName(), secureDropService);
 
         // Start Registered Services
         final Properties props = this.properties;

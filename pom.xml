@@ -63,6 +63,13 @@
 		</profile>
 	</profiles>
 
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.onemfive</groupId>
@@ -76,6 +83,12 @@
 			<artifactId>nitrite</artifactId>
 			<version>3.0.0</version>
 			<!--<license>Apache 2.0</license>-->
+		</dependency>
+		<dependency>
+			<groupId>com.github.ipfs</groupId>
+			<artifactId>java-ipfs-api_2.12</artifactId>
+			<version>v1.2.0</version>
+			<!--<license>MIT</license>-->
 		</dependency>
 		<!-- Sensors: I2P -->
 		<dependency>
