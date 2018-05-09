@@ -1,4 +1,4 @@
-package io.onemfive.core.sensors.util;
+package io.onemfive.core.sensors.wifi.util;
 
 /**
  * TODO: Add Description
