@@ -23,14 +23,14 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-eventlog.txt
-prngseed.rnd
+/eventlog.txt
+/prngseed.rnd
 /router.config
-router.info
-router.keys.dat
-netDb
-logs
-keyBackup
-peerProfiles
-.1m5
-.data
+/router.info
+/router.keys.dat
+/netDb
+/logs
+/keyBackup
+/peerProfiles
+/.1m5
+/.data
