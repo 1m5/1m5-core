@@ -24,7 +24,7 @@ public class NitriteDBManager implements LifeCycle {
 
     private Nitrite db = null;
 
-    private static String dbFolder = "/data/";
+    private static String dbFolder = "/.data/";
     private static String dbName = "info.db";
     private static String dbFullPath;
     // TODO: Externalize username and passwords with user supplied
