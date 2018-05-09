@@ -17,7 +17,8 @@ public class TorSensor implements Sensor {
 
     @Override
     public boolean start(Properties properties) {
-        return false;
+
+        return true;
     }
 
     @Override
@@ -37,11 +38,12 @@ public class TorSensor implements Sensor {
 
     @Override
     public boolean shutdown() {
-        return false;
+
+        return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        return false;
+        return shutdown();
     }
 }

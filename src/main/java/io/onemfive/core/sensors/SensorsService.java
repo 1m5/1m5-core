@@ -77,6 +77,18 @@ public class SensorsService extends BaseService {
                     }, SensorsService.class.getSimpleName()+":I2PSensorStartThread").start();
                 }
 
+                if (registered.contains("tor")) {
+                    registeredSensors.put(TorSensor.class.getName(), new TorSensor());
+                    new AppThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            TorSensor torSensor = (TorSensor) registeredSensors.get(TorSensor.class.getName());
+                            torSensor.start(config);
+                            activeSensors.put(TorSensor.class.getName(), torSensor);
+                        }
+                    }, SensorsService.class.getSimpleName()+":TorSensorStartThread").start();
+                }
+
                 if (registered.contains("mesh")) {
                     registeredSensors.put(MeshSensor.class.getName(), new MeshSensor());
                     new AppThread(new Runnable() {
