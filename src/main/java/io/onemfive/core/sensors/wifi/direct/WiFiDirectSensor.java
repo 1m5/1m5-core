@@ -13,6 +13,7 @@ package io.onemfive.core.sensors.wifi.direct;
 //import android.util.Log;
 
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.data.Envelope;
 
 import java.util.Properties;
 
@@ -43,7 +44,12 @@ public class WiFiDirectSensor
 
     }
 
-//    @Override
+    @Override
+    public boolean send(Envelope envelope) {
+        return false;
+    }
+
+    //    @Override
 //    protected void onHandleIntent(Intent intent) {
 //        String message = "Event received by WiFi Direct Sensor.";
 //        Log.v(WiFiDirectSensor.class.getPackage().getName(),message);

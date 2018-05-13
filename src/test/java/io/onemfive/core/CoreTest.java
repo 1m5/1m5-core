@@ -115,7 +115,7 @@ public class CoreTest {
 
     }
 
-    @Test
+//    @Test
     public void testInfoVault() {
         System.out.println("Starting InfoVault test...");
         InfoVault infoVault = InfoVault.getInstance();

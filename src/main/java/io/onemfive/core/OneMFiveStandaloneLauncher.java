@@ -18,13 +18,13 @@ public class OneMFiveStandaloneLauncher {
     private static OneMFiveStandaloneLauncher launcher;
 
     public static void main(String args[]) {
-        System.out.println("Starting Synaptic Celerity...");
+        System.out.println("Starting 1M5 Standalone...");
         OneMFiveVersion.print();
 
         launcher = new OneMFiveStandaloneLauncher();
         launcher.launch(args);
 
-        System.out.println("Synaptic Celerity exiting...");
+        System.out.println("1M5 Standalone exiting...");
         System.exit(0);
     }
 

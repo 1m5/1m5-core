@@ -24,4 +24,19 @@ public class IPFSService extends BaseService {
         return true;
     }
 
+    @Override
+    public boolean shutdown() {
+        System.out.println(IPFSService.class.getSimpleName()+": stopping...");
+
+        System.out.println(IPFSService.class.getSimpleName()+": stopped.");
+        return true;
+    }
+
+    @Override
+    public boolean gracefulShutdown() {
+        System.out.println(IPFSService.class.getSimpleName()+": gracefully stopping...");
+
+        System.out.println(IPFSService.class.getSimpleName()+": gracefully stopped.");
+        return true;
+    }
 }

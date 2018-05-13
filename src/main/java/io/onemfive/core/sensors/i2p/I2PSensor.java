@@ -3,6 +3,7 @@ package io.onemfive.core.sensors.i2p;
 import io.onemfive.core.OneMFiveAppContext;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.data.Envelope;
 import net.i2p.router.Router;
 
 import java.io.File;
@@ -33,6 +34,11 @@ public class I2PSensor implements Sensor {
     private static Router router;
     private Status status = Status.INIT;
     private AppThread starterThread;
+
+    @Override
+    public boolean send(Envelope envelope) {
+        return false;
+    }
 
     @Override
     public boolean start(Properties properties) {

@@ -1,6 +1,7 @@
 package io.onemfive.core.sensors.i2p.bote;
 
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.data.Envelope;
 
 import java.util.Properties;
 
@@ -16,9 +17,16 @@ import java.util.Properties;
 public class I2PBoteSensor implements Sensor {
 
     @Override
-    public boolean start(Properties properties) {
-
+    public boolean send(Envelope envelope) {
         return false;
+    }
+
+    @Override
+    public boolean start(Properties properties) {
+        System.out.println(I2PBoteSensor.class.getSimpleName()+": starting...");
+
+        System.out.println(I2PBoteSensor.class.getSimpleName()+": started.");
+        return true;
     }
 
     @Override
@@ -38,11 +46,17 @@ public class I2PBoteSensor implements Sensor {
 
     @Override
     public boolean shutdown() {
-        return false;
+        System.out.println(I2PBoteSensor.class.getSimpleName()+": stopping...");
+
+        System.out.println(I2PBoteSensor.class.getSimpleName()+": stopped");
+        return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        return false;
+        System.out.println(I2PBoteSensor.class.getSimpleName()+": gracefully stopping...");
+
+        System.out.println(I2PBoteSensor.class.getSimpleName()+": gracefully stopped...");
+        return true;
     }
 }

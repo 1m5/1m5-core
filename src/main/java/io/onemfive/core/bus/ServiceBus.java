@@ -75,6 +75,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     }
 
     public void register(Class serviceClass) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
+        System.out.println("Registering service class: "+serviceClass.getName());
         if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
@@ -164,8 +165,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         DIDService didService = new DIDService(this);
         registeredServices.put(DIDService.class.getName(), didService);
 
-//        IPFSService ipfsService = new IPFSService(this);
-//        registeredServices.put(IPFSService.class.getName(), ipfsService);
+        IPFSService ipfsService = new IPFSService(this);
+        registeredServices.put(IPFSService.class.getName(), ipfsService);
 
 //        PranaService pranaService = new PranaService(this);
 //        registeredServices.put(PranaService.class.getName(), pranaService);
@@ -188,8 +189,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 //        PaymentService paymentService = new PaymentService(this);
 //        registeredServices.put(PaymentService.class.getName(), paymentService);
 
-//        SensorsService sensorsService = new SensorsService(this);
-//        registeredServices.put(SensorsService.class.getName(), sensorsService);
+        SensorsService sensorsService = new SensorsService(this);
+        registeredServices.put(SensorsService.class.getName(), sensorsService);
 
 //        AtenService atenService = new AtenService(this);
 //        registeredServices.put(AtenService.class.getName(), atenService);

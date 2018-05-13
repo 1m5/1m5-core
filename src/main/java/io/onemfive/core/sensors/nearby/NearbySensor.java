@@ -1,6 +1,7 @@
 package io.onemfive.core.sensors.nearby;
 
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.data.Envelope;
 
 import java.util.Properties;
 
@@ -10,6 +11,11 @@ import java.util.Properties;
  * @author objectorange
  */
 public class NearbySensor implements Sensor {
+
+    @Override
+    public boolean send(Envelope envelope) {
+        return false;
+    }
 
     @Override
     public boolean start(Properties properties) {

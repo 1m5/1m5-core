@@ -43,6 +43,8 @@ public class SensorsService extends BaseService {
         } else if(r.getOperation().endsWith(".bote") && activeSensors.containsKey(I2PBoteSensor.class.getName())) {
             // Use I2P Bote
             System.out.println(SensorsService.class.getName()+": using I2P Bote Sensor...");
+            I2PBoteSensor i2PBoteSensor = (I2PBoteSensor)activeSensors.get(I2PBoteSensor.class.getName());
+
         }
     }
 
@@ -64,6 +66,18 @@ public class SensorsService extends BaseService {
 
                 registeredSensors = new HashMap<>(registered.size());
                 activeSensors = new HashMap<>(registered.size());
+
+                if (registered.contains("bote")) {
+                    registeredSensors.put(I2PBoteSensor.class.getName(), new I2PBoteSensor());
+                    new AppThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            I2PBoteSensor i2PBoteSensor = (I2PBoteSensor) registeredSensors.get(I2PBoteSensor.class.getName());
+                            i2PBoteSensor.start(config);
+                            activeSensors.put(I2PBoteSensor.class.getName(), i2PBoteSensor);
+                        }
+                    }, SensorsService.class.getSimpleName()+":I2PBoteSensorStartThread").start();
+                }
 
                 if (registered.contains("i2p")) {
                     registeredSensors.put(I2PSensor.class.getName(), new I2PSensor());
