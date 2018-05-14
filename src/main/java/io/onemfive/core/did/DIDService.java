@@ -76,7 +76,7 @@ public class DIDService extends BaseService {
         DID did = (DID)envelope.getHeader(Envelope.DID);
         DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
         envelope.setHeader(Envelope.DID, didCreated);
-        // TODO: Implement I2PBote example
+        // TODO: Implement I2PBote example by requesting from I2P Sensor
 //        boolean created = false;
         // Use passphrase to encrypt and cache it
 //        try {

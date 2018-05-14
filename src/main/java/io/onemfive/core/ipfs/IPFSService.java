@@ -12,6 +12,8 @@ import java.util.Properties;
  */
 public class IPFSService extends BaseService {
 
+    public IPFSService() {super();}
+
     public IPFSService(MessageProducer producer) {
         super(producer);
     }

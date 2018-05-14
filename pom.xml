@@ -88,8 +88,37 @@
 		<dependency>
 			<groupId>net.i2p</groupId>
 			<artifactId>router</artifactId>
-			<version>0.9.33</version>
+			<version>0.9.34</version>
 			<!--<license>Public Domain</license>-->
+		</dependency>
+		<dependency>
+			<groupId>net.i2p.client</groupId>
+			<artifactId>streaming</artifactId>
+			<version>0.9.34</version>
+			<!--<license>Public Domain</license>-->
+		</dependency>
+		<!-- Sensors: I2P Bote -->
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>mailapi</artifactId>
+			<version>1.5.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.lambdaworks</groupId>
+			<artifactId>scrypt</artifactId>
+			<version>1.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.ntru</groupId>
+			<artifactId>ntru</artifactId>
+			<version>1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>flexi</groupId>
+			<artifactId>gmss</artifactId>
+			<version>1.7p1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs/flexi-gmss-1.7p1.jar</systemPath>
 		</dependency>
 		<!-- Contract -->
 		<dependency>
