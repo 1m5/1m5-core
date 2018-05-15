@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.Properties;
 
 /**
- * Embeds
+ * Embeds I2P
  *
  * @author objectorange
  */
@@ -42,24 +42,11 @@ public class I2PSensor implements Sensor {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("Starting I2PSensor...");
-        if(router == null) {
-            System.out.println("Instantiating I2P Router...");
-            File baseDir = OneMFiveAppContext.getInstance().getBaseDir();
-            String baseDirPath = baseDir.getAbsolutePath();
-            System.setProperty("i2p.dir.base", baseDirPath);
-            System.setProperty("i2p.dir.config", baseDirPath);
-            System.setProperty("wrapper.logfile", baseDirPath + "/wrapper.log");
-            status = Status.INIT;
-            router = new Router(properties);
-        }
-        if(!router.isAlive()) {
-            System.out.println("Starting I2P Router...");
-            router.setKillVMOnEnd(false);
-            status = Status.STARTING;
-            router.runRouter();
-            status = Status.RUNNING;
-        }
+        System.out.println(I2PSensor.class.getSimpleName()+": starting...");
+        status = Status.STARTING;
+        router = I2PRouterUtil.getGlobalI2PRouter(properties, true);
+        status = Status.RUNNING;
+        System.out.println(I2PSensor.class.getSimpleName()+": started.");
         return true;
     }
 
