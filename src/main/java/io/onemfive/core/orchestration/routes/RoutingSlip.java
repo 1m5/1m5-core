@@ -29,9 +29,10 @@ public class RoutingSlip extends SimpleRoute {
         this.routes = routes;
     }
 
-    public void addRoute(SimpleRoute route) throws Exception {
+    public boolean addRoute(SimpleRoute route) {
         route.setId(this.routeId);
         routes.add(route);
+        return true;
     }
 
     @Override
