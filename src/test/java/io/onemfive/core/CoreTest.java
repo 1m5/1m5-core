@@ -47,7 +47,7 @@ public class CoreTest {
 
     }
 
-//    @Test
+    @Test
     public void testDIDCreate() {
         DID did = new DID();
         did.setAlias("Alice");
