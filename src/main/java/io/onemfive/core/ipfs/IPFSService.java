@@ -3,8 +3,12 @@ package io.onemfive.core.ipfs;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.Route;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -15,7 +19,8 @@ import java.util.*;
 public class IPFSService extends BaseService {
 
     public static final String OPERATION_LOAD = "LOAD";
-    public static final String OPERATION_SEARCH = "SEARCH";
+    public static final String DATA_HASH = "HASH";
+    public static final String DATA_SNAPSHOT = "SNAPSHOT";
 
     private static final String TOR_GATEWAYS_PROP = "1m5.ipfs.gateways.tor";
 
@@ -36,15 +41,37 @@ public class IPFSService extends BaseService {
     @Override
     public void handleDocument(Envelope envelope) {
         // Request for IPFS Service
-
+        Route route = (Route)envelope.getHeader(Envelope.ROUTE);
+        switch(route.getOperation()){
+            case OPERATION_LOAD: {loadContent(envelope);reply(envelope);break;}
+            default: deadLetter(envelope);
+        }
     }
 
-    private void load(Envelope envelope) {
-
+    private void loadContent(Envelope envelope) {
+        String hash = (String)((DocumentMessage)envelope.getMessage()).data.get(0).get(DATA_HASH);
+        Boolean snapshot = (Boolean)((DocumentMessage)envelope.getMessage()).data.get(0).get(DATA_SNAPSHOT);
+        String torGateway = getActiveTorGateway();
+        try {
+            URL url;
+            if(snapshot != null && snapshot) {
+                url = new URL("https",torGateway,443,"/ipfs/"+hash);
+            } else {
+                url = new URL("https",torGateway,443,"/ipfn/"+hash);
+            }
+            envelope.setHeader(Envelope.URL,url);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void search(Envelope envelope) {
-        
+    private String getActiveTorGateway() {
+        for(String torGateway : torGateways.keySet()) {
+            if(torGateways.get(torGateway) == GatewayStatus.Active) {
+                return torGateway;
+            }
+        }
+        return null;
     }
 
     @Override
