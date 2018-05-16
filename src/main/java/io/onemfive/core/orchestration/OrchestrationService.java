@@ -70,22 +70,22 @@ public class OrchestrationService extends BaseService {
                     // New routing slip requested
                     System.out.println(OrchestrationService.class.getSimpleName()+": new routing slip...");
                     RoutingSlip slip = (RoutingSlip) route;
-                    slips.put(slip.correlationId(), slip);
+                    slips.put(slip.getId(), slip);
                     e.setHeader(Envelope.ROUTE, slip.currentRoute());
                     reply(e);
                 } else if (route instanceof SimpleRoute) {
                     System.out.println(OrchestrationService.class.getSimpleName()+": simple route...");
-                    if (slips.containsKey(route.correlationId())) {
+                    if (slips.containsKey(route.getId())) {
                         // Route from Routing Slip
                         System.out.println(OrchestrationService.class.getSimpleName()+": from routing slip...");
                         route.setRouted(true);
-                        RoutingSlip slip = slips.get(route.correlationId());
+                        RoutingSlip slip = slips.get(route.getId());
                         route = slip.nextRoute(e);
                         if (route == null) {
                             // End of slip
                             System.out.println(OrchestrationService.class.getSimpleName()+": end of routing slip...");
                             slip.setRouted(true);
-                            slips.remove(slip.correlationId());
+                            slips.remove(slip.getId());
                             if(e.getHeader(Envelope.CLIENT_REPLY_ACTION)!= null) {
                                 System.out.println(OrchestrationService.class.getSimpleName()+": returning to client...");
                                 e.setHeader(Envelope.CLIENT_REPLY, true);

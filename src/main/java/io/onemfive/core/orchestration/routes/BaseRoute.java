@@ -12,16 +12,16 @@ import java.util.Random;
 public abstract class BaseRoute implements Route {
 
     protected Boolean routed = false;
-    protected Long correlationId = new Random(843444628947321731L).nextLong();
+    protected Long routeId = new Random(843444628947321731L).nextLong();
 
     @Override
-    public void setCorrelationId(Long correlationId) {
-        this.correlationId = correlationId;
+    public void setId(Long routeId) {
+        this.routeId = routeId;
     }
 
     @Override
-    public Long correlationId() {
-        return correlationId;
+    public Long getId() {
+        return routeId;
     }
 
     @Override

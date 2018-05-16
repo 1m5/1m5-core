@@ -29,9 +29,8 @@ public class RoutingSlip extends SimpleRoute {
         this.routes = routes;
     }
 
-    // TODO: Add Support for nested Routing Slips
-    protected void addRoute(SimpleRoute route) throws Exception {
-        route.setCorrelationId(this.correlationId);
+    public void addRoute(SimpleRoute route) throws Exception {
+        route.setId(this.routeId);
         routes.add(route);
     }
 

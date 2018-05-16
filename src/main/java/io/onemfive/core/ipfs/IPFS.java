@@ -1,7 +1,8 @@
 package io.onemfive.core.ipfs;
 
 /**
- * TODO: Add Description
+ * Abstracts IPFS by setting up the data and meta-data required to connect
+ * through Tor (for now).
  *
  * @author objectorange
  */
