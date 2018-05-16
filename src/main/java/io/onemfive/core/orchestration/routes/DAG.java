@@ -18,12 +18,14 @@ public class DAG extends RoutingSlip {
         super(envelope, service, operation);
     }
 
-    public void addRoute(SimpleRoute route) throws CyclicRouteException {
+    public boolean addRoute(SimpleRoute route) {
         // Ensure no Service is called twice (Acyclic)
-        if(acyclic(route))
+        if(acyclic(route)) {
             routes.add(route);
-        else
-            throw new CyclicRouteException();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean acyclic(Route newRoute) {
