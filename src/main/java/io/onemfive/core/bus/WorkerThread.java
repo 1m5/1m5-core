@@ -31,15 +31,15 @@ final class WorkerThread extends AppThread {
     @Override
     public void run() {
         System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Waiting for channel to return message...");
-        Envelope envelope = channel.receive();
+        Envelope e = channel.receive();
         System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Envelope received from channel");
-        if (envelope.getHeader(Envelope.CLIENT_REPLY) != null) {
+        if (e.replyToClient()) {
             // Service Reply to client
             System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Requesting client notify...");
-            clientAppManager.notify(envelope);
+            clientAppManager.notify(e);
         } else {
             MessageConsumer consumer = null;
-            Route route = (Route)envelope.getHeader(Envelope.ROUTE);
+            Route route = e.getRoute();
             if(route == null || route.routed()) {
                 consumer = services.get(OrchestrationService.class.getName());
             } else {
@@ -55,16 +55,16 @@ final class WorkerThread extends AppThread {
             int sendAttempts = 0;
             int waitBetweenMillis = 1000;
             while (!received && sendAttempts < maxSendAttempts) {
-                if (consumer.receive(envelope)) {
+                if (consumer.receive(e)) {
                     System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Envelope received by service, acknowledging with channel...");
-                    channel.ack(envelope);
+                    channel.ack(e);
                     System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Channel Acknowledged.");
                     received = true;
                 } else {
                     synchronized (this) {
                         try {
                             this.wait(waitBetweenMillis);
-                        } catch (InterruptedException e) {
+                        } catch (InterruptedException ex) {
 
                         }
                     }

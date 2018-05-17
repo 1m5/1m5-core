@@ -97,8 +97,8 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
         Envelope newEnvelope = Envelope.envelopeFactory(envelope);
         // Don't set if the orchestration service
         if(!orchestrator) {
-            Route route = (Route)envelope.getHeader(Envelope.ROUTE);
-            route.setRouted(true);
+            Route route = envelope.getRoute();
+            if(route != null) route.setRouted(true);
         }
         while(!producer.send(newEnvelope) && ++attempts <= maxAttempts) {
             synchronized (this) {
