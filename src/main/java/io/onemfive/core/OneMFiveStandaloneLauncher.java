@@ -3,7 +3,6 @@ package io.onemfive.core;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
-import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.*;
 
 /**

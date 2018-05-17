@@ -2,12 +2,8 @@ package io.onemfive.core.orchestration;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
-import io.onemfive.core.orchestration.routes.RoutingSlip;
-import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.*;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -21,9 +17,9 @@ public class OrchestrationService extends BaseService {
     private boolean running = false;
     private boolean shuttingDown = false;
     private boolean shutdown = false;
-    // In-Progress Routing Slips
-    // TODO: Persist slips
-    private Map<Long,RoutingSlip> slips;
+
+    private int activeRoutes = 0;
+    private int remainingRoutes = 0;
 
     private final Object lock = new Object();
 
@@ -58,67 +54,46 @@ public class OrchestrationService extends BaseService {
 
     private void route(Envelope e) {
         if(running) {
-            Route route = (Route) e.getHeader(Envelope.ROUTE);
-            // Build Route and send to channel
-            if (route == null) {
-                // No route
-                System.out.println(OrchestrationService.class.getSimpleName()+": doesn't handle Envelopes with no Route for now.");
+            DirectedRouteGraph drg = e.getDRG();
+            Route route = e.getRoute();
+            // Select Next Route and send to channel
+            if (drg == null && route == null) {
+                // No dag or route
+                System.out.println(OrchestrationService.class.getSimpleName()+": doesn't handle Envelopes with no DirectedRouteGraph or Route for now. Must have one or both.");
                 deadLetter(e);
             } else {
-                // Routing Slip
-                if (route instanceof RoutingSlip) {
-                    // New routing slip requested
-                    System.out.println(OrchestrationService.class.getSimpleName()+": new routing slip...");
-                    RoutingSlip slip = (RoutingSlip) route;
-                    slips.put(slip.getId(), slip);
-                    e.setHeader(Envelope.ROUTE, slip.currentRoute());
-                    reply(e);
-                } else if (route instanceof SimpleRoute) {
-                    System.out.println(OrchestrationService.class.getSimpleName()+": simple route...");
-                    if (slips.containsKey(route.getId())) {
-                        // Route from Routing Slip
-                        System.out.println(OrchestrationService.class.getSimpleName()+": from routing slip...");
-                        route.setRouted(true);
-                        RoutingSlip slip = slips.get(route.getId());
-                        route = slip.nextRoute(e);
-                        if (route == null) {
-                            // End of slip
-                            System.out.println(OrchestrationService.class.getSimpleName()+": end of routing slip...");
-                            slip.setRouted(true);
-                            slips.remove(slip.getId());
-                            if(e.getHeader(Envelope.CLIENT_REPLY_ACTION)!= null) {
-                                System.out.println(OrchestrationService.class.getSimpleName()+": returning to client...");
-                                e.setHeader(Envelope.CLIENT_REPLY, true);
-                                e.setHeader(Envelope.ROUTE, slip);
-                                reply(e);
-                            } else {
-                                // End of the line for the routing slip and no reply to client
-                                System.out.println(OrchestrationService.class.getSimpleName()+": routing slip finished with no client reply.");
-                            }
-                        } else {
-                            // Forward to next route
-                            System.out.println(OrchestrationService.class.getSimpleName()+": routing slip forwarding to next route...");
-                            e.setHeader(Envelope.ROUTE, route);
-                            reply(e);
-                        }
-                    } else {
-                        if(e.getHeader(Envelope.REPLY) == null) {
-                            // Forward onto service
-                            reply(e);
-                        } else {
-                            // Coming back from service
-                            if(e.getHeader(Envelope.CLIENT_REPLY_ACTION) != null) {
-                                e.setHeader(Envelope.CLIENT_REPLY, true);
-                                reply(e);
-                            } else {
-                                // End of the line for the simple route and no reply to client
-                                System.out.println(OrchestrationService.class.getSimpleName()+": Simple Route finished with no client reply.");
-                            }
-                        }
+                if(drg != null) {
+                    if(!drg.inProgress()) {
+                        // new dag
+                        remainingRoutes += drg.numberRemainingRoutes();
+                        drg.start();
                     }
+                    if(drg.peekAtNextRoute() != null) {
+                        // dag has routes left, set next route
+                        e.setRoute(drg.nextRoute());
+                        reply(e);
+                        activeRoutes++;
+                    } else {
+                        activeRoutes--;
+                        remainingRoutes--;
+                    }
+                } else if(route.routed()) {
+                    // no routes left
+                    if(e.getClient() != null) {
+                        // is a client request so flag for reply to client
+                        e.setReplyToClient(true);
+                        reply(e);
+                    } else {
+                        // not a client request so just end
+                        endRoute(e);
+                    }
+                    activeRoutes--;
+                    remainingRoutes--;
                 } else {
-                    System.out.println(OrchestrationService.class.getSimpleName()+": doesn't handle other routes besides Routing Slip and Simple Route.");
-                    deadLetter(e);
+                    // dag is null, route is not, and route has not been routed
+                    reply(e);
+                    activeRoutes++;
+                    remainingRoutes++;
                 }
             }
         } else {
@@ -133,7 +108,10 @@ public class OrchestrationService extends BaseService {
         shuttingDown = false;
         shutdown = false;
         starting = true;
-        slips = new HashMap<>();
+
+        activeRoutes = 0;
+        remainingRoutes = 0;
+
         running = true;
         starting = false;
         System.out.println(OrchestrationService.class.getSimpleName()+": started.");
@@ -143,8 +121,15 @@ public class OrchestrationService extends BaseService {
     @Override
     public boolean shutdown() {
         running = false;
-        slips = null;
+        shuttingDown = true;
+        // Give it 3 seconds
+        int tries = 1;
+        while(remainingRoutes > 0 && tries > 0) {
+            waitABit(3 * 1000);
+            tries--;
+        }
         shutdown = true;
+        shuttingDown = false;
         return true;
     }
 
@@ -152,12 +137,12 @@ public class OrchestrationService extends BaseService {
     public boolean gracefulShutdown() {
         running = false;
         shuttingDown = true;
-        int tries = 1;
-        while(slips.size() > 0 && tries > 0) {
-            waitABit(2 * 1000);
+        // Give it 30 seconds
+        int tries = 10;
+        while(remainingRoutes > 0 && tries > 0) {
+            waitABit(3 * 1000);
             tries--;
         }
-        slips = null;
         shutdown = true;
         shuttingDown = false;
         return true;

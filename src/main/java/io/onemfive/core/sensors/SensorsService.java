@@ -1,5 +1,6 @@
 package io.onemfive.core.sensors;
 
+import io.onemfive.core.sensors.clearnet.ClearnetSensor;
 import io.onemfive.core.sensors.i2p.bote.I2PBoteSensor;
 import io.onemfive.core.sensors.tor.TorSensor;
 import io.onemfive.core.util.AppThread;
@@ -22,6 +23,8 @@ import java.util.*;
  */
 public class SensorsService extends BaseService {
 
+    public static final String OPERATION_SEND = "SEND";
+
     private Properties config;
     private Map<String, Sensor> registeredSensors;
     private Map<String, Sensor> activeSensors;
@@ -32,26 +35,50 @@ public class SensorsService extends BaseService {
 
     @Override
     public void handleDocument(Envelope envelope) {
-        Route r = (Route)envelope.getHeader(Envelope.ROUTE);
-        DocumentMessage m = (DocumentMessage)envelope.getMessage();
-        if(r.getOperation().startsWith("http") || r.getOperation().endsWith(".onion") && activeSensors.containsKey(TorSensor.class.getName())) {
-            // Use Tor
-            System.out.println(SensorsService.class.getName()+": using Tor Sensor...");
-        } else if(r.getOperation().endsWith(".i2p") && activeSensors.containsKey(I2PSensor.class.getName())) {
-            // Use I2P
-            System.out.println(SensorsService.class.getName()+": using I2P Sensor...");
-        } else if(r.getOperation().endsWith(".bote") && activeSensors.containsKey(I2PBoteSensor.class.getName())) {
-            // Use I2P Bote
-            System.out.println(SensorsService.class.getName()+": using I2P Bote Sensor...");
-            I2PBoteSensor i2PBoteSensor = (I2PBoteSensor)activeSensors.get(I2PBoteSensor.class.getName());
-
-        }
+        handleAll(envelope);
     }
 
     @Override
     public void handleEvent(Envelope envelope) {
-        super.handleEvent(envelope);
+        handleAll(envelope);
+    }
 
+    @Override
+    public void handleHeaders(Envelope envelope) {
+        handleAll(envelope);
+    }
+
+    @Override
+    public void handleCommand(Envelope envelope) {
+        handleAll(envelope);
+    }
+
+    private void handleAll(Envelope envelope) {
+        Route r = (Route)envelope.getHeader(Envelope.ROUTE);
+        Sensor sensor = null;
+        if(r.getOperation().endsWith(".onion") && activeSensors.containsKey(TorSensor.class.getName())) {
+            // Use Tor
+            System.out.println(SensorsService.class.getName()+": using Tor Sensor...");
+            sensor = activeSensors.get(TorSensor.class.getName());
+        } else if(r.getOperation().endsWith(".i2p") && activeSensors.containsKey(I2PSensor.class.getName())) {
+            // Use I2P
+            System.out.println(SensorsService.class.getName()+": using I2P Sensor...");
+            sensor = activeSensors.get(I2PSensor.class.getName());
+        } else if(r.getOperation().endsWith(".bote") && activeSensors.containsKey(I2PBoteSensor.class.getName())) {
+            // Use I2P Bote
+            System.out.println(SensorsService.class.getName()+": using I2P Bote Sensor...");
+            sensor = activeSensors.get(I2PBoteSensor.class.getName());
+        } else if(r.getOperation().endsWith(".mesh") && activeSensors.containsKey(MeshSensor.class.getName())) {
+            // Use Mesh
+            System.out.println(SensorsService.class.getName() + ": using Mesh Sensor...");
+            sensor = activeSensors.get(MeshSensor.class.getName());
+        } else if(r.getOperation().startsWith("http")) {
+            // Use Clearnet
+            sensor = activeSensors.get(ClearnetSensor.class.getName());
+        } else {
+            deadLetter(envelope);
+        }
+        if(sensor != null) sensor.send(envelope);
     }
 
     @Override
@@ -113,6 +140,18 @@ public class SensorsService extends BaseService {
                             activeSensors.put(MeshSensor.class.getName(), meshSensor);
                         }
                     }, SensorsService.class.getSimpleName()+":MeshSensorStartThread").start();
+                }
+
+                if (registered.contains("clearnet")) {
+                    registeredSensors.put(ClearnetSensor.class.getName(), new ClearnetSensor());
+                    new AppThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ClearnetSensor clearnetSensor = (ClearnetSensor) registeredSensors.get(ClearnetSensor.class.getName());
+                            clearnetSensor.start(config);
+                            activeSensors.put(ClearnetSensor.class.getName(), clearnetSensor);
+                        }
+                    }, SensorsService.class.getSimpleName()+":ClearnetSensorStartThread").start();
                 }
             }
 

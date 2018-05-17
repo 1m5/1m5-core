@@ -2,9 +2,9 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
-import io.onemfive.core.orchestration.routes.SimpleRoute;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.SimpleRoute;
 import io.onemfive.data.health.HealthRecord;
 import io.onemfive.data.health.mental.memory.MemoryTest;
 
@@ -33,10 +33,8 @@ public class InfoVaultService extends BaseService {
         SimpleRoute route = (SimpleRoute)envelope.getHeader(Envelope.ROUTE);
         if(OPERATION_LOAD.equals(route.getOperation())) {
             load(envelope);
-            reply(envelope);
         } else if(OPERATION_SAVE.equals(route.getOperation())) {
             save(envelope);
-            reply(envelope);
         } else {
             deadLetter(envelope);
         }

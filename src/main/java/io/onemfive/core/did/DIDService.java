@@ -31,22 +31,19 @@ public class DIDService extends BaseService {
     }
 
     @Override
-    public void handleDocument(Envelope envelope) {
+    public void handleHeaders(Envelope envelope) {
         Route route = (Route) envelope.getHeader(Envelope.ROUTE);
         switch(route.getOperation()) {
             case OPERATION_VERIFY: {
                 verify(envelope);
-                reply(envelope);
                 break;
             }
             case OPERATION_AUTHENTICATE: {
                 authenticate(envelope);
-                reply(envelope);
                 break;
             }
             case OPERATION_CREATE: {
                 create(envelope);
-                reply(envelope);
                 break;
             }
             default: deadLetter(envelope); // Operation not supported

@@ -38,17 +38,15 @@ final class SimpleClient implements Client {
     @Override
     public void request(Envelope e, ServiceCallback cb) {
         System.out.println("SimpleClient sending to service bus message channel");
-        e.setHeader(Envelope.CLIENT,id);
+        e.setClient(id);
         producer.send(e);
-
-        // Save callback for later retrieval (Correlation)
+        // Save callback for later retrieval using envelope id for correlation
         claimCheck.put(e.getId(), cb);
     }
 
     public void notify(Envelope e) {
         System.out.println("SimpleClient sending to ServiceCallback");
-        Long id = e.getId();
-        ServiceCallback cb = claimCheck.get(id);
+        ServiceCallback cb = claimCheck.get(e.getId());
         cb.reply(e);
         claimCheck.remove(e.getId());
     }

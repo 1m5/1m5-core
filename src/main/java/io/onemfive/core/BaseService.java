@@ -1,10 +1,7 @@
 package io.onemfive.core;
 
 import io.onemfive.core.infovault.InfoVault;
-import io.onemfive.data.CommandMessage;
-import io.onemfive.data.DocumentMessage;
-import io.onemfive.data.Envelope;
-import io.onemfive.data.EventMessage;
+import io.onemfive.data.*;
 
 import java.util.Properties;
 
@@ -47,11 +44,20 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
             runCommand(envelope);
         else
             handleHeaders(envelope);
+        // If not orchestrator, always return a reply.
+        // If orchestrator, it will determine if a reply should be sent.
+        if(!orchestrator) {
+            reply(envelope);
+        }
         return true;
     }
 
     protected final void deadLetter(Envelope envelope) {
         System.out.println("Can't route envelope:"+envelope);
+    }
+
+    protected final void endRoute(Envelope envelope) {
+        System.out.println("End of route and no client to return to:"+envelope);
     }
 
     @Override
@@ -89,8 +95,11 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
         int attempts = 0;
         // Create new Envelope instance with same ID, Headers, and Message so that Message Channel sees it as a different envelope.
         Envelope newEnvelope = Envelope.envelopeFactory(envelope);
-        if(!orchestrator)
-            newEnvelope.setHeader(Envelope.REPLY,true);
+        // Don't set if the orchestration service
+        if(!orchestrator) {
+            Route route = (Route)envelope.getHeader(Envelope.ROUTE);
+            route.setRouted(true);
+        }
         while(!producer.send(newEnvelope) && ++attempts <= maxAttempts) {
             synchronized (this) {
                 try {

@@ -4,15 +4,15 @@ import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVault;
-import io.onemfive.core.orchestration.routes.SimpleRoute;
+import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
-import io.onemfive.data.health.HealthRecord;
 import io.onemfive.data.health.mental.memory.MemoryTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +47,31 @@ public class CoreTest {
 
     }
 
+//    @Test
+    public void testIPFSPublishService() {
+        String content = "Hello World!";
+        Envelope e;
+        try {
+            ServiceCallback cb = new ServiceCallback() {
+                @Override
+                public void reply(Envelope envelope) {
+                    String hash = (String)((DocumentMessage)envelope.getMessage()).data.get(0).get(IPFSService.DATA_HASH);
+                    assert("joifoeifjeifa".equals(hash));
+                    lock.countDown();
+                }
+            };
+            e = Envelope.messageFactory(Envelope.MessageType.NONE);
+            DirectedRouteGraph drg = e.getDRG();
+            assert(drg.addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_PUBLISH)));
+            ((DocumentMessage)e.getMessage()).data.get(0).put(IPFSService.DATA_CONTENT, content);
+            ((DocumentMessage)e.getMessage()).data.get(0).put(IPFSService.DATA_SNAPSHOT, Boolean.FALSE);
+            client.request(e, cb);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
     @Test
     public void testDIDCreate() {
         DID did = new DID();
@@ -63,8 +88,9 @@ public class CoreTest {
                 }
             };
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            e.setHeader(Envelope.ROUTE, new SimpleRoute(DIDService.class.getName(),"Create"));
-            e.setHeader(Envelope.DID, did);
+            DirectedRouteGraph drg = e.getDRG();
+            assert(drg.addRoute(new SimpleRoute(DIDService.class.getName(),"Create")));
+            e.setDID(did);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -87,8 +113,9 @@ public class CoreTest {
                 }
             };
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            e.setHeader(Envelope.ROUTE, new SimpleRoute(DIDService.class.getName(),"Authenticate"));
-            e.setHeader(Envelope.DID, did);
+            DirectedRouteGraph drg = e.getDRG();
+            assert(drg.addRoute(new SimpleRoute(DIDService.class.getName(),"Authenticate")));
+            e.setDID(did);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();

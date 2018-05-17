@@ -1,4 +1,4 @@
-package io.onemfive.core.sensors.cell;
+package io.onemfive.core.sensors.clearnet;
 
 import io.onemfive.core.sensors.Sensor;
 import io.onemfive.data.Envelope;
@@ -10,7 +10,7 @@ import java.util.Properties;
  *
  * @author objectorange
  */
-public class CellularSensor implements Sensor {
+public class ClearnetSensor implements Sensor {
 
     @Override
     public boolean send(Envelope envelope) {
