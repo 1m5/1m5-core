@@ -1,6 +1,7 @@
 package io.onemfive.core.bus;
 
 import io.onemfive.core.*;
+import io.onemfive.core.admin.AdminService;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVaultService;
 import io.onemfive.core.ipfs.IPFSService;
@@ -155,6 +156,9 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         runningServices = new HashMap<>(13);
 
         // Register Core Services
+        AdminService adminService = new AdminService(this);
+        registeredServices.put(AdminService.class.getName(), adminService);
+
         // Start InfoVaultService first synchronously to ensure InfoVault is started prior to other services getting an instance
         InfoVaultService infoVaultService = new InfoVaultService(this);
         registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
