@@ -57,44 +57,34 @@ public class OrchestrationService extends BaseService {
             DirectedRouteGraph drg = e.getDRG();
             Route route = e.getRoute();
             // Select Next Route and send to channel
-            if (drg == null && route == null) {
-                // No dag or route
-                System.out.println(OrchestrationService.class.getSimpleName()+": doesn't handle Envelopes with no DirectedRouteGraph or Route for now. Must have one or both.");
-                deadLetter(e);
-            } else {
-                if(drg != null) {
-                    if(!drg.inProgress()) {
-                        // new dag
-                        remainingRoutes += drg.numberRemainingRoutes();
-                        drg.start();
-                    }
-                    if(drg.peekAtNextRoute() != null) {
-                        // dag has routes left, set next route
-                        e.setRoute(drg.nextRoute());
-                        reply(e);
-                        activeRoutes++;
-                    } else {
-                        activeRoutes--;
-                        remainingRoutes--;
-                    }
-                } else if(route.routed()) {
-                    // no routes left
-                    if(e.getClient() != null) {
-                        // is a client request so flag for reply to client
-                        e.setReplyToClient(true);
-                        reply(e);
-                    } else {
-                        // not a client request so just end
-                        endRoute(e);
-                    }
-                    activeRoutes--;
-                    remainingRoutes--;
-                } else {
-                    // dag is null, route is not, and route has not been routed
+
+            if(!drg.inProgress()) {
+                // new dag
+                remainingRoutes += drg.numberRemainingRoutes();
+                drg.start();
+            }
+            if(drg.peekAtNextRoute() != null) {
+                // dag has routes left, set next route
+                e.setRoute(drg.nextRoute());
+                reply(e);
+                activeRoutes++;
+            } else if(route == null || route.routed() || OrchestrationService.class.getName().equals(route.getService())) {
+                // no routes left
+                if(e.getClient() != null) {
+                    // is a client request so flag for reply to client
+                    e.setReplyToClient(true);
                     reply(e);
-                    activeRoutes++;
-                    remainingRoutes++;
+                } else {
+                    // not a client request so just end
+                    endRoute(e);
                 }
+                activeRoutes--;
+                remainingRoutes--;
+            } else {
+                // route is not null, hasn't been routed, and is not for Orchestration Service so one-way fire-and-forget -> Send on its way
+                reply(e);
+                activeRoutes++;
+                remainingRoutes++;
             }
         } else {
             System.out.println(OrchestrationService.class.getSimpleName()+": not running.");
