@@ -41,11 +41,6 @@ public class DIDService extends BaseService {
     }
 
     @Override
-    public void handleCommand(Envelope e) {
-        handleAll(e);
-    }
-
-    @Override
     public void handleHeaders(Envelope e) {
         handleAll(e);
     }

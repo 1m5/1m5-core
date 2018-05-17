@@ -47,11 +47,6 @@ public class SensorsService extends BaseService {
         handleAll(envelope);
     }
 
-    @Override
-    public void handleCommand(Envelope envelope) {
-        handleAll(envelope);
-    }
-
     private void handleAll(Envelope e) {
         Route r = e.getRoute();
         Sensor sensor = null;
