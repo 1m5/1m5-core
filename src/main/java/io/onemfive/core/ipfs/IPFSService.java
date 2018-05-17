@@ -4,10 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.sensors.SensorsService;
-import io.onemfive.data.DocumentMessage;
-import io.onemfive.data.Envelope;
-import io.onemfive.data.Route;
-import io.onemfive.data.SimpleRoute;
+import io.onemfive.data.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -24,10 +21,6 @@ public class IPFSService extends BaseService {
     public static final String OPERATION_PUBLISH_RETURN = "PUBLISH_RETURN";
     public static final String OPERATION_LOAD = "LOAD";
     public static final String OPERATION_LOAD_RETURN = "LOAD_RETURN";
-
-    public static final String DATA_CONTENT = "CONTENT";
-    public static final String DATA_HASH = "HASH";
-    public static final String DATA_SNAPSHOT = "SNAPSHOT";
 
     private static final String USE_TOR_PROP = "1m5.ipfs.gateways.useTor";
     private static final String TOR_GATEWAYS_PROP = "1m5.ipfs.gateways.tor";
@@ -52,7 +45,7 @@ public class IPFSService extends BaseService {
     @Override
     public void handleDocument(Envelope e) {
         // Request for IPFS Service
-        Route route = (Route)e.getHeader(Envelope.ROUTE);
+        Route route = e.getRoute();
         switch(route.getOperation()){
             case OPERATION_PUBLISH: {buildPublishRequest(e);break;}
             case OPERATION_PUBLISH_RETURN: {packContentHash(e);break;}
@@ -72,8 +65,9 @@ public class IPFSService extends BaseService {
     }
 
     private void buildLoadRequest(Envelope e) {
-        String hash = (String)((DocumentMessage)e.getMessage()).data.get(0).get(DATA_HASH);
-        Boolean snapshot = (Boolean)((DocumentMessage)e.getMessage()).data.get(0).get(DATA_SNAPSHOT);
+        DocumentMessage m = ((DocumentMessage)e.getMessage());
+        String hash = (String)m.data.get(0).get(DLC.HASH);
+        Boolean snapshot = (Boolean)((DocumentMessage)e.getMessage()).data.get(0).get(DLC.SNAPSHOT);
         String gateway = getActiveGateway();
         try {
             URL url;
@@ -82,7 +76,7 @@ public class IPFSService extends BaseService {
             } else {
                 url = new URL("https",gateway,443,"/ipfn/"+hash);
             }
-            e.setHeader(Envelope.URL,url);
+            e.setURL(url);
             // Add additional routes backwards as it's a stack
             e.getDRG().addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_LOAD_RETURN));
             e.getDRG().addRoute(new SimpleRoute(SensorsService.class.getName(),SensorsService.OPERATION_SEND));

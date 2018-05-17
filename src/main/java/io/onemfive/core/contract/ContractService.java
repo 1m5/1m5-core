@@ -22,56 +22,32 @@ public class ContractService extends BaseService {
     }
 
     @Override
-    public void handleDocument(Envelope envelope) {
-        Route route = (Route) envelope.getHeader(Envelope.ROUTE);
-        if(route.getOperation() != null) {
-            Contract c = selectContract(envelope);
+    public void handleDocument(Envelope e) {
+        Route route = e.getRoute();
+            Contract c = selectContract(e);
             if(c instanceof BountyContract) {
                 BountyContract bc = (BountyContract)c;
                 switch (route.getOperation()) {
-                    case "CreateBounty":
-                        bc.createBounty(envelope);
-                        return;
-                    case "SelectBounty":
-                        bc.selectBounty(envelope);
-                        return;
-                    case "VoteOnBounty":
-                        bc.voteOnBounty(envelope);
-                        return;
-                    case "RemoveBounty":
-                        bc.removeBounty(envelope);
-                        return;
-                    case "CloseBounty":
-                        bc.closeBounty(envelope);
-                        return;
-                    case "ListBounties":
-                        bc.listBounties(envelope);
-                        return;
+                    case "CreateBounty":{bc.createBounty(e);return;}
+                    case "SelectBounty":{bc.selectBounty(e);return;}
+                    case "VoteOnBounty":{bc.voteOnBounty(e);return;}
+                    case "RemoveBounty":{bc.removeBounty(e);return;}
+                    case "CloseBounty":{bc.closeBounty(e);return;}
+                    case "ListBounties":{bc.listBounties(e);return;}
+                    default: deadLetter(e);;
                 }
             }
             switch (route.getOperation()) {
-                case "CreateContract":
-                    c.createContract(envelope);
-                    return;
-                case "SendCurrencyToContract":
-                    c.sendCurrencyToContract(envelope);
-                    return;
-                case "AddVoter":
-                    c.addVoter(envelope);
-                    return;
-                case "RemoveVoter":
-                    c.removeVoter(envelope);
-                    return;
-                case "KillContract":
-                    c.killContract(envelope);
-                    return;
-                default:
-                    deadLetter(envelope); // Operation not supported
+                case "CreateContract":{c.createContract(e);return;}
+                case "SendCurrencyToContract":{c.sendCurrencyToContract(e);return;}
+                case "AddVoter":{c.addVoter(e);return;}
+                case "RemoveVoter":{c.removeVoter(e);return;}
+                case "KillContract":{c.killContract(e);return;}
+                default:deadLetter(e); // Operation not supported
             }
-        }
     }
 
-    private Contract selectContract(Envelope envelope) {
+    private Contract selectContract(Envelope e) {
         // Only Ethereum for now
         return ethereumContract;
     }

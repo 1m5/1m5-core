@@ -117,16 +117,16 @@ public final class ClientAppManager {
      *  If another object would happen to call this,
      *  it will just ignore the call.
      *
-     *  @param envelope non-null
+     *  @param e non-null
      */
-    public void notify(Envelope envelope) {
-        if(envelope != null) {
-            Long clientId = (Long) envelope.getHeader(Envelope.CLIENT);
+    public void notify(Envelope e) {
+        if(e != null) {
+            Long clientId = e.getClient();
             System.out.println(ClientAppManager.class.getSimpleName()+": Client.id="+clientId);
             Client client = getRegisteredApp(clientId);
             if (client != null) {
                 System.out.println(ClientAppManager.class.getSimpleName()+": Found client; notifying...");
-                client.notify(envelope);
+                client.notify(e);
             } else {
                 System.out.println(ClientAppManager.class.getSimpleName()+": Client not found. Number of registered clients: "+registered.size());
             }

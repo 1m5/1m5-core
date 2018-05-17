@@ -52,8 +52,8 @@ public class SensorsService extends BaseService {
         handleAll(envelope);
     }
 
-    private void handleAll(Envelope envelope) {
-        Route r = (Route)envelope.getHeader(Envelope.ROUTE);
+    private void handleAll(Envelope e) {
+        Route r = e.getRoute();
         Sensor sensor = null;
         if(r.getOperation().endsWith(".onion") && activeSensors.containsKey(TorSensor.class.getName())) {
             // Use Tor
@@ -75,9 +75,9 @@ public class SensorsService extends BaseService {
             // Use Clearnet
             sensor = activeSensors.get(ClearnetSensor.class.getName());
         } else {
-            deadLetter(envelope);
+            deadLetter(e);
         }
-        if(sensor != null) sensor.send(envelope);
+        if(sensor != null) sensor.send(e);
     }
 
     @Override

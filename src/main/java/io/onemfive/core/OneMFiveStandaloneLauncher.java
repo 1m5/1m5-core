@@ -42,14 +42,14 @@ public class OneMFiveStandaloneLauncher {
             try {
                 ServiceCallback cb = new ServiceCallback() {
                     @Override
-                    public void reply(Envelope envelope) {
-                        Route route = (Route) envelope.getHeaders().get(Envelope.ROUTE);
-                        System.out.println(ServiceCallback.class.getSimpleName()+": id="+envelope.getId()+", service="+route.getService()+", operation="+route.getOperation()+", message="+envelope.getMessage());
+                    public void reply(Envelope e) {
+                        Route route = e.getRoute();
+                        System.out.println(ServiceCallback.class.getSimpleName()+": id="+e.getId()+", service="+route.getService()+", operation="+route.getOperation()+", message="+e.getMessage());
                     }
                 };
                 e = Envelope.messageFactory(i+1, Envelope.MessageType.NONE);
-                e.setHeader(Envelope.ROUTE, new SimpleRoute(DIDService.class.getName(),"Create"));
-                e.setHeader(Envelope.DID, did);
+                e.getDRG().addRoute(new SimpleRoute(DIDService.class.getName(),DIDService.OPERATION_CREATE));
+                e.setDID(did);
                 c.request(e, cb);
             } catch (Exception ex) {
                 ex.printStackTrace();

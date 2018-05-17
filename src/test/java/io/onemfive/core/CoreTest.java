@@ -12,7 +12,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +54,7 @@ public class CoreTest {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
-                    String hash = (String)((DocumentMessage)envelope.getMessage()).data.get(0).get(IPFSService.DATA_HASH);
+                    String hash = (String)((DocumentMessage)envelope.getMessage()).data.get(0).get(DLC.HASH);
                     assert("joifoeifjeifa".equals(hash));
                     lock.countDown();
                 }
@@ -63,8 +62,8 @@ public class CoreTest {
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
             DirectedRouteGraph drg = e.getDRG();
             assert(drg.addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_PUBLISH)));
-            ((DocumentMessage)e.getMessage()).data.get(0).put(IPFSService.DATA_CONTENT, content);
-            ((DocumentMessage)e.getMessage()).data.get(0).put(IPFSService.DATA_SNAPSHOT, Boolean.FALSE);
+            ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.CONTENT, content);
+            ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.SNAPSHOT, Boolean.FALSE);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -82,14 +81,14 @@ public class CoreTest {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
-                    DID did = (DID)envelope.getHeader(Envelope.DID);
+                    DID did = envelope.getDID();
                     assert(did.getStatus() == DID.Status.ACTIVE);
                     lock.countDown();
                 }
             };
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
             DirectedRouteGraph drg = e.getDRG();
-            assert(drg.addRoute(new SimpleRoute(DIDService.class.getName(),"Create")));
+            assert(drg.addRoute(new SimpleRoute(DIDService.class.getName(),DIDService.OPERATION_CREATE)));
             e.setDID(did);
             client.request(e, cb);
         } catch (Exception ex) {
@@ -107,7 +106,7 @@ public class CoreTest {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
-                    DID did = (DID)envelope.getHeader(Envelope.DID);
+                    DID did = envelope.getDID();
                     assert(did != null && did.getAuthenticated());
                     lock.countDown();
                 }

@@ -31,32 +31,42 @@ public class DIDService extends BaseService {
     }
 
     @Override
-    public void handleHeaders(Envelope envelope) {
-        Route route = (Route) envelope.getHeader(Envelope.ROUTE);
+    public void handleDocument(Envelope e) {
+        handleAll(e);
+    }
+
+    @Override
+    public void handleEvent(Envelope e) {
+        handleAll(e);
+    }
+
+    @Override
+    public void handleCommand(Envelope e) {
+        handleAll(e);
+    }
+
+    @Override
+    public void handleHeaders(Envelope e) {
+        handleAll(e);
+    }
+
+    private void handleAll(Envelope e) {
+        Route route = e.getRoute();
         switch(route.getOperation()) {
-            case OPERATION_VERIFY: {
-                verify(envelope);
-                break;
-            }
-            case OPERATION_AUTHENTICATE: {
-                authenticate(envelope);
-                break;
-            }
-            case OPERATION_CREATE: {
-                create(envelope);
-                break;
-            }
-            default: deadLetter(envelope); // Operation not supported
+            case OPERATION_VERIFY: {verify(e);break;}
+            case OPERATION_AUTHENTICATE: {authenticate(e);break;}
+            case OPERATION_CREATE: {create(e);break;}
+            default: deadLetter(e); // Operation not supported
         }
     }
 
-    private void verify(Envelope envelope) {
+    private void verify(Envelope e) {
         System.out.println(DIDService.class.getSimpleName()+": Received verify DID request.");
-        DID did = (DID)envelope.getHeader(Envelope.DID);
+        DID did = e.getDID();
         DID didLoaded = infoVault.getDidDAO().load(did.getAlias());
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())) {
             didLoaded.setVerified(true);
-            envelope.setHeader(Envelope.DID, didLoaded);
+            e.setDID(didLoaded);
         } else {
             did.setVerified(false);
         }
@@ -66,13 +76,13 @@ public class DIDService extends BaseService {
      * Creates and returns DID
      * TODO: Option 1: connect to local Bote instance to create public/private keys
      * TODO: Option 2: role your own crypto for generating keys that can be used in I2P
-     * @param envelope
+     * @param e
      */
-    private void create(Envelope envelope) {
+    private void create(Envelope e) {
         System.out.println(DIDService.class.getSimpleName()+": Received create DID request.");
-        DID did = (DID)envelope.getHeader(Envelope.DID);
+        DID did = e.getDID();
         DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
-        envelope.setHeader(Envelope.DID, didCreated);
+        e.setDID(didCreated);
         // TODO: Implement I2PBote example by requesting from I2P Sensor
 //        boolean created = false;
         // Use passphrase to encrypt and cache it
@@ -142,17 +152,17 @@ public class DIDService extends BaseService {
      * Authenticates passphrase
      * TODO: Option 1: connect to local I2P Bote instance to validate passphrase
      * TODO: Option 2: role your own crypto for validating passphrases used in I2P Bote
-     * @param envelope
+     * @param e
      */
-    private void authenticate(Envelope envelope) {
+    private void authenticate(Envelope e) {
         System.out.println(DIDService.class.getSimpleName()+": Received authn DID request.");
-        DID did = (DID)envelope.getHeader(Envelope.DID);
+        DID did = e.getDID();
         DID didLoaded = infoVault.getDidDAO().load(did.getAlias());
         // TODO: Replace with I2PBote example below
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())
                 && did.getPassphrase() != null && did.getPassphrase().equals(didLoaded.getPassphrase())) {
             didLoaded.setAuthenticated(true);
-            envelope.setHeader(Envelope.DID, didLoaded);
+            e.setDID(didLoaded);
         } else {
             did.setAuthenticated(false);
         }

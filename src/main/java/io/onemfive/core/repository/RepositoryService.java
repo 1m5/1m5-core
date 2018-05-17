@@ -20,28 +20,26 @@ public class RepositoryService extends BaseService {
     }
 
     @Override
-    public void handleDocument(Envelope envelope) {
-        Route route = (Route) envelope.getHeader(Envelope.ROUTE);
-        if (route.getOperation() != null) {
-            Repository r = selectRepository(envelope);
-            switch (route.getOperation()) {
-                case "ProvideAccess": r.provideAccess(envelope);break;
-                case "ListRepositories": r.listRepositories(envelope);break;
-                case "GetRepository": r.getRepository(envelope);break;
-                case "ListProjects": r.listProjects(envelope);break;
-                case "GetProject": r.getProject(envelope);break;
-                case "ListCards": r.listCards(envelope);break;
-                case "GetCard": r.getCard(envelope);break;
-                case "ListCardsWithBounties": r.listCardsWithBounties(envelope);break;
-                case "ChooseCardWithBounty": r.chooseCardWithBounty(envelope);break;
-                case "PullRequestForBounty": r.pullRequestForBounty(envelope);break;
-                case "CommitPullRequest": r.commitPullRequest(envelope);break;
-                default: deadLetter(envelope); // Operation not supported
-            }
+    public void handleDocument(Envelope e) {
+        Route route = e.getRoute();
+        Repository r = selectRepository(e);
+        switch (route.getOperation()) {
+            case "ProvideAccess": r.provideAccess(e);break;
+            case "ListRepositories": r.listRepositories(e);break;
+            case "GetRepository": r.getRepository(e);break;
+            case "ListProjects": r.listProjects(e);break;
+            case "GetProject": r.getProject(e);break;
+            case "ListCards": r.listCards(e);break;
+            case "GetCard": r.getCard(e);break;
+            case "ListCardsWithBounties": r.listCardsWithBounties(e);break;
+            case "ChooseCardWithBounty": r.chooseCardWithBounty(e);break;
+            case "PullRequestForBounty": r.pullRequestForBounty(e);break;
+            case "CommitPullRequest": r.commitPullRequest(e);break;
+            default: deadLetter(e); // Operation not supported
         }
     }
 
-    private Repository selectRepository(Envelope envelope) {
+    private Repository selectRepository(Envelope e) {
         Repository repository = null;
         // Only GitHub for now
         repository = new GitHubRepository();
