@@ -9,7 +9,6 @@ import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.mesh.MeshSensor;
-import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
@@ -167,12 +166,12 @@ public class SensorsService extends BaseService {
 
     @Override
     public boolean gracefulShutdown() {
-        if(registeredSensors.containsKey(I2PSensor.class.getName())) {
+        if(registeredSensors.containsKey(ClearnetSensor.class.getName())) {
             new AppThread(new Runnable() {
                 @Override
                 public void run() {
-                    I2PSensor i2PSensor = (I2PSensor)activeSensors.get(I2PSensor.class.getName());
-                    i2PSensor.gracefulShutdown();
+                    Sensor s = activeSensors.get(ClearnetSensor.class.getName());
+                    if(s != null) s.gracefulShutdown();
                 }
             }).start();
         }
@@ -180,8 +179,35 @@ public class SensorsService extends BaseService {
             new AppThread(new Runnable() {
                 @Override
                 public void run() {
-                    MeshSensor meshSensor = (MeshSensor)activeSensors.get(MeshSensor.class.getName());
-                    meshSensor.shutdown();
+                    Sensor s = activeSensors.get(MeshSensor.class.getName());
+                    if(s != null) s.gracefulShutdown();
+                }
+            }).start();
+        }
+        if(registeredSensors.containsKey(TorSensor.class.getName())) {
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    Sensor s = activeSensors.get(TorSensor.class.getName());
+                    if(s != null) s.gracefulShutdown();
+                }
+            }).start();
+        }
+        if(registeredSensors.containsKey(I2PSensor.class.getName())) {
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    Sensor s = activeSensors.get(I2PSensor.class.getName());
+                    if(s != null) s.gracefulShutdown();
+                }
+            }).start();
+        }
+        if(registeredSensors.containsKey(I2PBoteSensor.class.getName())) {
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    Sensor s = activeSensors.get(I2PBoteSensor.class.getName());
+                    if(s != null) s.gracefulShutdown();
                 }
             }).start();
         }
