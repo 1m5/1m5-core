@@ -34,7 +34,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     }
 
     @Override
-    public boolean receive(Envelope envelope) {
+    public final boolean receive(Envelope envelope) {
         System.out.println(BaseService.class.getSimpleName()+": Envelope received by service. Handling...");
         if(envelope.getMessage() instanceof DocumentMessage)
             handleDocument(envelope);
