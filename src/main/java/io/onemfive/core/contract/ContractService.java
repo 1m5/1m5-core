@@ -15,6 +15,21 @@ import java.util.Properties;
  */
 public class ContractService extends BaseService {
 
+    // Bounties
+    public static final String OPERATION_CREATE_BOUNTY = "CREATE_BOUNTY";
+    public static final String OPERATION_SELECT_BOUNTY = "SELECT_BOUNTY";
+    public static final String OPERATION_VOTE_ON_BOUNTY = "VOTE_ON_BOUNTY";
+    public static final String OPERATION_REMOVE_BOUNTY = "REMOVE_BOUNTY";
+    public static final String OPERATION_CLOSE_BOUNTY = "CLOSE_BOUNTY";
+    public static final String OPERATION_LIST_BOUNTIES = "LIST_BOUNTIES";
+
+    // General Contracts
+    public static final String OPERATION_CREATE_CONTRACT = "CREATE_CONTRACT";
+    public static final String OPERATION_SEND_CURRENCY_TO_CONTRACT = "SEND_CURRENCY_TO_CONTRACT";
+    public static final String OPERATION_ADD_VOTER = "ADD_VOTER";
+    public static final String OPERATION_REMOVE_VOTER = "REMOVE_VOTER";
+    public static final String OPERATION_KILL_CONTRACT = "KILL_CONTRACT";
+
     private EthereumContract ethereumContract;
 
     public ContractService(MessageProducer producer) {
@@ -28,21 +43,21 @@ public class ContractService extends BaseService {
             if(c instanceof BountyContract) {
                 BountyContract bc = (BountyContract)c;
                 switch (route.getOperation()) {
-                    case "CreateBounty":{bc.createBounty(e);return;}
-                    case "SelectBounty":{bc.selectBounty(e);return;}
-                    case "VoteOnBounty":{bc.voteOnBounty(e);return;}
-                    case "RemoveBounty":{bc.removeBounty(e);return;}
-                    case "CloseBounty":{bc.closeBounty(e);return;}
-                    case "ListBounties":{bc.listBounties(e);return;}
+                    case OPERATION_CREATE_BOUNTY:{bc.createBounty(e);return;}
+                    case OPERATION_SELECT_BOUNTY:{bc.selectBounty(e);return;}
+                    case OPERATION_VOTE_ON_BOUNTY:{bc.voteOnBounty(e);return;}
+                    case OPERATION_REMOVE_BOUNTY:{bc.removeBounty(e);return;}
+                    case OPERATION_CLOSE_BOUNTY:{bc.closeBounty(e);return;}
+                    case OPERATION_LIST_BOUNTIES:{bc.listBounties(e);return;}
                     default: deadLetter(e);;
                 }
             }
             switch (route.getOperation()) {
-                case "CreateContract":{c.createContract(e);return;}
-                case "SendCurrencyToContract":{c.sendCurrencyToContract(e);return;}
-                case "AddVoter":{c.addVoter(e);return;}
-                case "RemoveVoter":{c.removeVoter(e);return;}
-                case "KillContract":{c.killContract(e);return;}
+                case OPERATION_CREATE_CONTRACT:{c.createContract(e);return;}
+                case OPERATION_SEND_CURRENCY_TO_CONTRACT:{c.sendCurrencyToContract(e);return;}
+                case OPERATION_ADD_VOTER:{c.addVoter(e);return;}
+                case OPERATION_REMOVE_VOTER:{c.removeVoter(e);return;}
+                case OPERATION_KILL_CONTRACT:{c.killContract(e);return;}
                 default:deadLetter(e); // Operation not supported
             }
     }
