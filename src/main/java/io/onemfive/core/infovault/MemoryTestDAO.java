@@ -2,16 +2,14 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 import io.onemfive.data.health.mental.memory.MemoryTest;
-import org.dizitart.no2.Document;
 import org.dizitart.no2.FindOptions;
 import org.dizitart.no2.SortOrder;
 import org.dizitart.no2.objects.Cursor;
 import org.dizitart.no2.objects.ObjectRepository;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
-import java.util.ArrayList;
+import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
 
 /**
  * TODO: Add Description
@@ -21,6 +19,7 @@ import java.util.Random;
 public class MemoryTestDAO {
 
     private NitriteDBManager dbMgr;
+    private SecureRandom random = new SecureRandom(new byte[2398]);
 
     MemoryTestDAO(NitriteDBManager dbMgr) {
         this.dbMgr = dbMgr;
@@ -28,7 +27,7 @@ public class MemoryTestDAO {
 
     public void create(MemoryTest memoryTest) {
         ObjectRepository<MemoryTest> r = dbMgr.getDb().getRepository(MemoryTest.class);
-        memoryTest.setId(new Random(98473249837442L).nextLong());
+        memoryTest.setId(random.nextLong());
         r.insert(memoryTest);
     }
 

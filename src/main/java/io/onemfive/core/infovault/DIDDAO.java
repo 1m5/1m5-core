@@ -2,12 +2,9 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 import io.onemfive.data.DID;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.objects.Cursor;
-import org.dizitart.no2.objects.ObjectRepository;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 /**
  * TODO: Add Description
@@ -17,21 +14,22 @@ import java.util.Random;
 public class DIDDAO {
 
     private NitriteDBManager dbMgr;
+    private SecureRandom random = new SecureRandom(new byte[2398]);
 
     DIDDAO(NitriteDBManager dbMgr) {
         this.dbMgr = dbMgr;
     }
 
     public DID createDID(String alias, String passphrase) {
-        ObjectRepository<DID> r = dbMgr.getDb().getRepository(DID.class);
         DID did = load(alias);
         if(did == null) {
+            System.out.println(DIDDAO.class.getName()+": Creating DID with alias: "+alias);
             did = new DID();
-            did.setId(new Random(934394732492921384L).nextLong());
+            did.setId(random.nextLong());
             did.setAlias(alias);
             did.setPassphrase(passphrase);
             did.setStatus(DID.Status.ACTIVE);
-            r.insert(did);
+            dbMgr.getDb().getRepository(DID.class).insert(did);
         } else {
             System.out.println(DIDDAO.class.getName()+": DID alias already present: "+alias);
         }
@@ -39,18 +37,12 @@ public class DIDDAO {
     }
 
     public void updateDID(DID did) {
-        ObjectRepository<DID> r = dbMgr.getDb().getRepository(DID.class);
-        r.update(did);
+        dbMgr.getDb().getRepository(DID.class).update(did);
     }
 
     public DID load(String alias) {
-        ObjectRepository<DID> r = dbMgr.getDb().getRepository(DID.class);
-        Cursor<DID> dids = r.find(ObjectFilters.eq("alias",alias));
-        if(dids.size() > 0) {
-            return dids.toList().get(0);
-        } else {
-            return null;
-        }
+        return dbMgr.getDb().getRepository(DID.class)
+                .find(ObjectFilters.eq("alias",alias)).firstOrDefault();
     }
 
 }

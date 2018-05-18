@@ -6,7 +6,7 @@ import org.dizitart.no2.objects.Cursor;
 import org.dizitart.no2.objects.ObjectRepository;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 /**
  * TODO: Add Description
@@ -16,6 +16,7 @@ import java.util.Random;
 public class HealthDAO {
 
     private NitriteDBManager dbMgr;
+    private SecureRandom random = new SecureRandom(new byte[2398]);
 
     HealthDAO(NitriteDBManager dbMgr) {
         this.dbMgr = dbMgr;
@@ -42,7 +43,7 @@ public class HealthDAO {
         System.out.println(HealthDAO.class.getSimpleName()+": Saving Health Record: did="+healthRecord.getDid());
         ObjectRepository<HealthRecord> r = dbMgr.getDb().getRepository(HealthRecord.class);
         if(healthRecord.getId() == null) {
-            healthRecord.setId(new Random(89743847294874897L).nextLong());
+            healthRecord.setId(random.nextLong());
             r.insert(healthRecord);
         } else {
             r.update(healthRecord);
