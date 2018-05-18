@@ -169,6 +169,9 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         DIDService didService = new DIDService(this);
         registeredServices.put(DIDService.class.getName(), didService);
 
+        IPFSService ipfsService = new IPFSService(this);
+        registeredServices.put(IPFSService.class.getName(), ipfsService);
+
 //        PranaService pranaService = new PranaService(this);
 //        registeredServices.put(PranaService.class.getName(), pranaService);
 
