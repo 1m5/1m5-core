@@ -24,7 +24,7 @@ public class IPFSService extends BaseService {
 
     private static final String USE_TOR_PROP = "1m5.ipfs.gateways.useTor";
     private static final String TOR_GATEWAYS_PROP = "1m5.ipfs.gateways.tor";
-    private static final String CLEARNET_GATEWAYS_PROP = "1m5.ipfs.gateways.clear";
+    private static final String CLEARNET_GATEWAYS_PROP = "1m5.ipfs.gateways.clearnet";
 
     private Properties config;
     private IPFS ipfs;
