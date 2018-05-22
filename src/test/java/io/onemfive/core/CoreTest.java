@@ -7,6 +7,7 @@ import io.onemfive.core.infovault.InfoVault;
 import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 import io.onemfive.data.health.mental.memory.MemoryTest;
+import io.onemfive.data.util.DLC;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -61,9 +62,8 @@ public class CoreTest {
             };
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
             DirectedRouteGraph drg = e.getDRG();
-            assert(drg.addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_PUBLISH)));
+            assert(drg.addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_GATEWAY_ADD)));
             ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.CONTENT, content);
-            ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.SNAPSHOT, Boolean.FALSE);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();
