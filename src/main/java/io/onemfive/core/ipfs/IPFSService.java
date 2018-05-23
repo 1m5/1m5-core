@@ -181,16 +181,22 @@ public class IPFSService extends BaseService {
                 if(isRequest) {
                     urlStr = getActiveGateway().replace(":hash", "");
                     Multipart m = new Multipart(encoding);
-                    try {
-                        if (request.file.isDirectory()) {
-                            m.addSubtree("", ((FileWrapper)request.file).getFile());
-                        } else {
-                            m.addFilePart(request.name, request.file);
+                    if (request.files == null) {
+                        request.files = new ArrayList<>();
+                    }
+                    if (request.file != null) {
+                        request.files.add(request.file);
+                    }
+                    for (NamedStreamable file : request.files) {
+                        try {
+                            if (file.isDirectory()) {
+                                m.addSubtree("", ((FileWrapper) file).getFile());
+                            } else {
+                                m.addFilePart(file.getName(), file);
+                            }
+                        } catch (IOException e1) {
+                            e1.printStackTrace(); // TODO: Return error report instead
                         }
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                        // TODO: Replace with error message
-                        return;
                     }
                     request.multipart = m;
                 } else {

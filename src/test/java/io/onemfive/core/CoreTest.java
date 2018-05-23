@@ -4,6 +4,7 @@ import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVault;
+import io.onemfive.core.ipfs.IPFSResponse;
 import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 import io.onemfive.data.health.mental.memory.MemoryTest;
@@ -47,16 +48,16 @@ public class CoreTest {
 
     }
 
-//    @Test
-    public void testIPFSPublishService() {
+    @Test
+    public void testIPFSGatewayPublishService() {
         String content = "Hello World!";
         Envelope e;
         try {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
-                    String hash = (String)((DocumentMessage)envelope.getMessage()).data.get(0).get(DLC.HASH);
-                    assert("joifoeifjeifa".equals(hash));
+                    IPFSResponse response = (IPFSResponse)((DocumentMessage)envelope.getMessage()).data.get(0).get(IPFSResponse.class.getName());
+                    assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
                     lock.countDown();
                 }
             };
@@ -68,10 +69,32 @@ public class CoreTest {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
     }
 
-    @Test
+//    @Test
+    public void testIPFSPublishService() {
+        String content = "Hello World!";
+        Envelope e;
+        try {
+            ServiceCallback cb = new ServiceCallback() {
+                @Override
+                public void reply(Envelope envelope) {
+                    IPFSResponse response = (IPFSResponse)((DocumentMessage)envelope.getMessage()).data.get(0).get(IPFSResponse.class.getName());
+                    assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
+                    lock.countDown();
+                }
+            };
+            e = Envelope.messageFactory(Envelope.MessageType.NONE);
+            DirectedRouteGraph drg = e.getDRG();
+            assert(drg.addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_ADD)));
+            ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.CONTENT, content);
+            client.request(e, cb);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+//    @Test
     public void testDIDCreate() {
         DID did = new DID();
         did.setAlias("Alice");
