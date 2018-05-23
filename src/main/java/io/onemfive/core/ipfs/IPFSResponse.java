@@ -1,5 +1,9 @@
 package io.onemfive.core.ipfs;
 
+import io.onemfive.data.util.MerkleNode;
+import io.onemfive.data.util.MultiAddress;
+import io.onemfive.data.util.Multihash;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -20,5 +24,6 @@ public class IPFSResponse {
     public Map<Multihash, Object> pins;
     public Object resultObject;
     public Map<String, Object> stats;
-
+    public Map<String, String> gateways;
+    public List<MultiAddress> multiAddresses;
 }

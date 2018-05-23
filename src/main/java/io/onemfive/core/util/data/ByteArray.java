@@ -9,8 +9,6 @@ package io.onemfive.core.util.data;
  *
  */
 
-import io.onemfive.core.util.Base58;
-
 import java.io.Serializable;
 
 /**

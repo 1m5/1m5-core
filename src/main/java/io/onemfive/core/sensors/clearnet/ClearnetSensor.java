@@ -1,17 +1,20 @@
 package io.onemfive.core.sensors.clearnet;
 
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.data.Message;
+import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.util.Multipart;
 import okhttp3.*;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * TODO: Add Description
@@ -39,11 +42,65 @@ public class ClearnetSensor implements Sensor {
         if(h.containsKey(Envelope.HEADER_USER_AGENT)) {
             hStr.put(Envelope.HEADER_USER_AGENT, (String)h.get(Envelope.HEADER_USER_AGENT));
         }
+        ByteBuffer bodyBytes = null;
+        CacheControl cacheControl = null;
+        if(e.getMultipart() != null) {
+            // handle file upload
+            hStr.put(Envelope.HEADER_CONTENT_TYPE, "multipart/form-data; boundary=" + Multipart.createBoundary());
+            Multipart m = e.getMultipart();
+            try {
+                bodyBytes = ByteBuffer.wrap(m.finish().getBytes());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                // TODO: Replace with error message
+                return false;
+            }
+            cacheControl = new CacheControl.Builder().noCache().build();
+        }
         Headers headers = Headers.of(hStr);
-        Request req = new Request.Builder()
-                .url(url)
-                .headers(headers)
-                .build();
+
+        Message m = e.getMessage();
+        if(m instanceof DocumentMessage) {
+            Object contentObj = ((DocumentMessage)m).data.get(0).get(DLC.CONTENT);
+            if(contentObj instanceof String) {
+                if(bodyBytes == null) {
+                    bodyBytes = ByteBuffer.wrap(((String)contentObj).getBytes());
+                } else {
+                    bodyBytes.put(((String)contentObj).getBytes());
+                }
+            } else if(contentObj instanceof byte[]) {
+                if(bodyBytes == null) {
+                    bodyBytes = ByteBuffer.wrap((byte[])contentObj);
+                } else {
+                    bodyBytes.put((byte[])contentObj);
+                }
+            }
+        } else {
+            System.out.println(ClearnetSensor.class.getSimpleName()+": Only DocumentMessages supported at this time.");
+            return false;
+        }
+
+        RequestBody requestBody = null;
+        if(bodyBytes != null) {
+            requestBody = RequestBody.create(MediaType.parse((String) h.get(Envelope.HEADER_CONTENT_TYPE)), bodyBytes.array());
+        }
+
+        Request.Builder b = new Request.Builder().url(url);
+        if(cacheControl != null)
+            b = b.cacheControl(cacheControl);
+        b = b.headers(headers);
+        switch(e.getAction()) {
+            case ADD: {b = b.post(requestBody);break;}
+            case UPDATE: {b = b.put(requestBody);break;}
+            case REMOVE: {b = (requestBody == null ? b.delete() : b.delete(requestBody));break;}
+            case VIEW: {b = b.get();break;}
+            default: {
+                System.out.println(ClearnetSensor.class.getSimpleName()+": Envelope.action must be set to ADD, UPDATE, REMOVE, or VIEW");
+                return false;
+            }
+        }
+        Request req = b.build();
+
         try (Response response = c.newCall(req).execute()) {
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
@@ -52,10 +109,10 @@ public class ClearnetSensor implements Sensor {
             for (int i = 0; i < responseHeaders.size(); i++) {
                 System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
             }
-            ResponseBody body = response.body();
-            if(body != null) {
-                System.out.println(body.string());
-                ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.CONTENT,body);
+            ResponseBody responseBody = response.body();
+            if(responseBody != null) {
+                System.out.println(responseBody.string());
+                ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.CONTENT,responseBody.bytes());
             } else {
                 ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.CONTENT,DLC.NONE);
             }

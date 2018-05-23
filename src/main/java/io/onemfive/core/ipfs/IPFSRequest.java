@@ -1,7 +1,11 @@
 package io.onemfive.core.ipfs;
 
+import io.onemfive.data.util.MultiAddress;
+import io.onemfive.data.util.Multihash;
+import io.onemfive.data.util.Multipart;
+import io.onemfive.data.util.NamedStreamable;
+
 import java.io.File;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -38,6 +42,5 @@ public class IPFSRequest {
     public String multiAddr;
     public String targetStr;
     public String path;
-    public URL targetURL;
-    public byte[] bodyBytes;
+    public String encoding;
 }
