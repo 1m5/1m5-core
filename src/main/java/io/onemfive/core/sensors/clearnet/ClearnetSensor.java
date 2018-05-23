@@ -2,13 +2,11 @@ package io.onemfive.core.sensors.clearnet;
 
 import io.onemfive.core.sensors.Sensor;
 import io.onemfive.data.Message;
-import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.util.Multipart;
 import okhttp3.*;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
