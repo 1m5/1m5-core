@@ -44,8 +44,8 @@ public class ClearnetSensor implements Sensor {
         CacheControl cacheControl = null;
         if(e.getMultipart() != null) {
             // handle file upload
-            hStr.put(Envelope.HEADER_CONTENT_TYPE, "multipart/form-data; boundary=" + Multipart.createBoundary());
             Multipart m = e.getMultipart();
+            hStr.put(Envelope.HEADER_CONTENT_TYPE, "multipart/form-data; boundary=" + m.getBoundary());
             try {
                 bodyBytes = ByteBuffer.wrap(m.finish().getBytes());
             } catch (IOException e1) {
