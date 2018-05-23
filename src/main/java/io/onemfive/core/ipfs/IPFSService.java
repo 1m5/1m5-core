@@ -26,7 +26,7 @@ public class IPFSService extends BaseService {
     // Gateways
     public static final String OPERATION_GATEWAY_LIST = "GATEWAY_LIST";
     public static final String OPERATION_GATEWAY_ADD = "GATEWAY_ADD";
-    public static final String OPERATION_GATEWAY_RM = "GATEWAY_RM";
+//    public static final String OPERATION_GATEWAY_RM = "GATEWAY_RM";
     public static final String OPERATION_GATEWAY_GET = "GATEWAY_GET";
 
     // Local
@@ -180,8 +180,26 @@ public class IPFSService extends BaseService {
             case OPERATION_GATEWAY_ADD: {
                 if(isRequest) {
                     urlStr = getActiveGateway().replace(":hash", "");
+                    Multipart m = new Multipart(encoding);
+                    try {
+                        if (request.file.isDirectory()) {
+                            m.addSubtree("", ((FileWrapper)request.file).getFile());
+                        } else {
+                            m.addFilePart(request.name, request.file);
+                        }
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                        // TODO: Replace with error message
+                        return;
+                    }
+                    request.multipart = m;
                 } else {
-
+                    List<MerkleNode> merkleNodes = new ArrayList<>();
+                    List<Object> objects = JSONParser.parseStream(contentStr);
+                    for(Object object : objects) {
+                        merkleNodes.add(MerkleNode.fromJSON(object));
+                    }
+                    response.merkleNodes = merkleNodes;
                 }
                 break;
             }
@@ -189,18 +207,18 @@ public class IPFSService extends BaseService {
                 if(isRequest) {
                     urlStr = getActiveGateway().replace(":hash", request.hash.toString());
                 } else {
-
+                    response.resultBytes = contentBytes;
                 }
                 break;
             }
-            case OPERATION_GATEWAY_RM: {
-                if(isRequest) {
-                    urlStr = getActiveGateway().replace(":hash", request.hash.toString());
-                } else {
-
-                }
-                break;
-            }
+//            case OPERATION_GATEWAY_RM: {
+//                if(isRequest) {
+//                    urlStr = getActiveGateway().replace(":hash", request.hash.toString());
+//                } else {
+//
+//                }
+//                break;
+//            }
             case OPERATION_ADD: {
                 if(isRequest) {
                     urlStr = local + version + "add?stream-channels=true";
