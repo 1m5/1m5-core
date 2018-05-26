@@ -139,19 +139,23 @@ public class IPFSService extends BaseService {
     public void handleDocument(Envelope e) {
         // Request for IPFS Service
         boolean isRequest = true;
-        IPFSRequest request = (IPFSRequest)((DocumentMessage)e.getMessage()).data.get(0).get(IPFSRequest.class.getName());
+        e.setHeader(Envelope.HEADER_CONTENT_TYPE,"application/json; charset=utf-8");
+        IPFSRequest request = (IPFSRequest)DLC.getData(IPFSRequest.class, e);
         Route route = e.getRoute();
         String operation = route.getOperation();
         String contentStr = "";
         byte[] contentBytes = null;
         IPFSResponse response = null;
         if(operation.equals(OPERATION_PACK)) {
+            System.out.println(IPFSService.class.getSimpleName()+": handling IPFSResponse...");
             operation = request.requestedOperation;
             isRequest = false;
-            contentBytes = (byte[])((DocumentMessage)e.getMessage()).data.get(0).get(DLC.CONTENT);
+            contentBytes = (byte[])DLC.getContent(e);
             contentStr = new String(contentBytes);
             response = new IPFSResponse();
-            ((DocumentMessage)e.getMessage()).data.get(0).put(IPFSResponse.class.getName(),response);
+            DLC.addData(IPFSResponse.class, response, e);
+        } else {
+            System.out.println(IPFSService.class.getSimpleName()+": handling IPFSRequest: "+request);
         }
         String urlStr = "";
 //        Boolean snapshot = (Boolean)((DocumentMessage)e.getMessage()).data.get(0).get(DLC.SNAPSHOT);
@@ -161,9 +165,11 @@ public class IPFSService extends BaseService {
         switch(operation){
             case OPERATION_GATEWAY_LIST: {
                 if(isRequest) {
+                    System.out.println(IPFSService.class.getSimpleName()+": Sending Gateway List request...");
                     urlStr = gatewaysListUrl;
                     e.setAction(Envelope.Action.VIEW);
                 } else {
+                    System.out.println(IPFSService.class.getSimpleName()+": Received Gateway List response: ");
                     Map<String, String> gateways = new HashMap<>();
                     List<Object> objects = (List<Object>)JSONParser.parse(contentStr);
                     String gateway;
@@ -172,6 +178,7 @@ public class IPFSService extends BaseService {
                         gateway = (String)obj;
                         status = clearnetGateways.get(gateway);
                         gateways.put(gateway,status.name());
+                        System.out.println(gateway+":"+status.name());
                     }
                     response.gateways = gateways;
                 }
@@ -890,29 +897,33 @@ public class IPFSService extends BaseService {
 
         } catch (MalformedURLException e1) {
             e1.printStackTrace();
+            // TODO: return error message
+            return;
         }
-        if(request.multipart != null) {
+        if(isRequest && request.multipart != null) {
             e.setMultipart(request.multipart);
         }
-        e.getDRG().addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_PACK));
-        e.getDRG().addRoute(new SimpleRoute(SensorsService.class.getName(),SensorsService.OPERATION_SEND));
+        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_PACK,e);
+        DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND,e);
     }
 
     private String getActiveGateway() {
+        // TODO: ClearnetSensor only works with this URL and HTTP for now
+        // TODO: need to update SSL support before adding other HTTPS urls
         String activeGateway = "https://ipfs.io/ipfs/:hash";
-        if(useTor) {
-            for (String torGateway : torGateways.keySet()) {
-                if (torGateways.get(torGateway) == GatewayStatus.Active) {
-                    activeGateway = torGateway;break;
-                }
-            }
-        } else {
-            for (String clearnetGateway : clearnetGateways.keySet()) {
-                if (clearnetGateways.get(clearnetGateway) == GatewayStatus.Active) {
-                    activeGateway = clearnetGateway;break;
-                }
-            }
-        }
+//        if(useTor) {
+//            for (String torGateway : torGateways.keySet()) {
+//                if (torGateways.get(torGateway) == GatewayStatus.Active) {
+//                    activeGateway = torGateway;break;
+//                }
+//            }
+//        } else {
+//            for (String clearnetGateway : clearnetGateways.keySet()) {
+//                if (clearnetGateways.get(clearnetGateway) == GatewayStatus.Active) {
+//                    activeGateway = clearnetGateway;break;
+//                }
+//            }
+//        }
         return activeGateway; // default
     }
 

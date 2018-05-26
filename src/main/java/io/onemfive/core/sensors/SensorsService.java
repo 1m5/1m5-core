@@ -50,23 +50,31 @@ public class SensorsService extends BaseService {
     private void handleAll(Envelope e) {
         Route r = e.getRoute();
         Sensor sensor = null;
-        if(r.getOperation().endsWith(".onion") && activeSensors.containsKey(TorSensor.class.getName())) {
+        if(r.getOperation().endsWith(".onion")
+                || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".onion"))
+                && activeSensors.containsKey(TorSensor.class.getName())) {
             // Use Tor
             System.out.println(SensorsService.class.getName()+": using Tor Sensor...");
             sensor = activeSensors.get(TorSensor.class.getName());
-        } else if(r.getOperation().endsWith(".i2p") && activeSensors.containsKey(I2PSensor.class.getName())) {
+        } else if(r.getOperation().endsWith(".i2p")
+                || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".i2p"))
+                && activeSensors.containsKey(I2PSensor.class.getName())) {
             // Use I2P
             System.out.println(SensorsService.class.getName()+": using I2P Sensor...");
             sensor = activeSensors.get(I2PSensor.class.getName());
-        } else if(r.getOperation().endsWith(".bote") && activeSensors.containsKey(I2PBoteSensor.class.getName())) {
+        } else if(r.getOperation().endsWith(".bote")
+                || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".bote"))
+                && activeSensors.containsKey(I2PBoteSensor.class.getName())) {
             // Use I2P Bote
             System.out.println(SensorsService.class.getName()+": using I2P Bote Sensor...");
             sensor = activeSensors.get(I2PBoteSensor.class.getName());
-        } else if(r.getOperation().endsWith(".mesh") && activeSensors.containsKey(MeshSensor.class.getName())) {
+        } else if(r.getOperation().endsWith(".mesh")
+                || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".mesh"))
+                && activeSensors.containsKey(MeshSensor.class.getName())) {
             // Use Mesh
             System.out.println(SensorsService.class.getName() + ": using Mesh Sensor...");
             sensor = activeSensors.get(MeshSensor.class.getName());
-        } else if(r.getOperation().startsWith("http")) {
+        } else if(r.getOperation().startsWith("http") || e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().startsWith("http")) {
             // Use Clearnet
             sensor = activeSensors.get(ClearnetSensor.class.getName());
         } else {

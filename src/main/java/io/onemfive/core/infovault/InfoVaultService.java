@@ -4,9 +4,11 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.data.*;
 import io.onemfive.data.health.HealthRecord;
+import io.onemfive.data.health.mental.memory.MemortyTestPopScores;
 import io.onemfive.data.health.mental.memory.MemoryTest;
 import io.onemfive.data.util.DLC;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -36,22 +38,32 @@ public class InfoVaultService extends BaseService {
     }
 
     private void load(Envelope e) {
-        List<Map<String,Object>> maps = ((DocumentMessage)e.getMessage()).data;
-        Object entity;
-        for(Map<String,Object> map : maps) {
-            entity = map.get(DLC.ENTITY);
-            if(entity != null) {
-                if(entity instanceof HealthRecord) {
-                    map.put(DLC.ENTITY, infoVault.getHealthDAO().loadHealthRecord(((HealthRecord) entity).getDid()));
-                } else if(entity instanceof MemoryTest) {
-                    MemoryTest test = (MemoryTest)entity;
-                    if(test.getId() == null) {
+        Object entity = DLC.getEntity(e);
+        List list = null;
+        if(entity != null) {
+            if(entity instanceof List) {
+                list = (List)entity;
+                entity = list.get(0);
+            }
+            if(entity instanceof HealthRecord) {
+                if(list == null) {
+                    DLC.addEntity(infoVault.getHealthDAO().loadHealthRecord(((HealthRecord) entity).getDid()),e);
+                } else {
+                    System.out.println(InfoVaultService.class.getSimpleName()+": HealthRecord lists not supported for loading yet.");
+                }
+            } else if(entity instanceof MemoryTest) {
+                if(list == null) {
+                    MemoryTest test = (MemoryTest) entity;
+                    if (test.getPopScores() == null) {
                         // New Test -> Load scores
                         double borderline = infoVault.getMemoryTestDAO().minBorderlineImpairedScore(test.getDifficulty());
                         double impaired = infoVault.getMemoryTestDAO().minImpairedScore(test.getDifficulty());
                         double gross = infoVault.getMemoryTestDAO().minGrosslyImpairedScore(test.getDifficulty());
-                        test.setImpairmentScores(borderline, impaired, gross);
+                        MemortyTestPopScores popScores = new MemortyTestPopScores(borderline, impaired, gross);
+                        test.setPopScores(popScores);
                     }
+                } else {
+                    DLC.addEntity(infoVault.getMemoryTestDAO().loadListByDID(e.getDID().getId(), 0, 10), e);
                 }
             }
         }

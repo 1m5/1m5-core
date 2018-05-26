@@ -4,15 +4,18 @@ import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVault;
+import io.onemfive.core.ipfs.IPFSRequest;
 import io.onemfive.core.ipfs.IPFSResponse;
 import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 import io.onemfive.data.health.mental.memory.MemoryTest;
 import io.onemfive.data.util.DLC;
+import io.onemfive.data.util.FileWrapper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -49,22 +52,25 @@ public class CoreTest {
     }
 
     @Test
-    public void testIPFSGatewayPublishService() {
-        String content = "Hello World!";
+    public void testIPFSGatewayListService() {
         Envelope e;
         try {
             ServiceCallback cb = new ServiceCallback() {
                 @Override
                 public void reply(Envelope envelope) {
-                    IPFSResponse response = (IPFSResponse)((DocumentMessage)envelope.getMessage()).data.get(0).get(IPFSResponse.class.getName());
-                    assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
+                    IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+                    assert(response != null && response.gateways != null && response.gateways.size() > 0);
+                    for(String gateway : response.gateways.keySet()) {
+                        System.out.println("Gateways:");
+                        System.out.println(gateway +":"+response.gateways.get(gateway));
+                    }
                     lock.countDown();
                 }
             };
-            e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            DirectedRouteGraph drg = e.getDRG();
-            assert(drg.addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_GATEWAY_ADD)));
-            ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.CONTENT, content);
+            e = Envelope.documentFactory();
+            IPFSRequest ipfsRequest = new IPFSRequest();
+            assert(DLC.addData(IPFSRequest.class, ipfsRequest, e));
+            DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_LIST, e);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -72,27 +78,28 @@ public class CoreTest {
     }
 
 //    @Test
-    public void testIPFSPublishService() {
-        String content = "Hello World!";
-        Envelope e;
-        try {
-            ServiceCallback cb = new ServiceCallback() {
-                @Override
-                public void reply(Envelope envelope) {
-                    IPFSResponse response = (IPFSResponse)((DocumentMessage)envelope.getMessage()).data.get(0).get(IPFSResponse.class.getName());
-                    assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
-                    lock.countDown();
-                }
-            };
-            e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            DirectedRouteGraph drg = e.getDRG();
-            assert(drg.addRoute(new SimpleRoute(IPFSService.class.getName(),IPFSService.OPERATION_ADD)));
-            ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.CONTENT, content);
-            client.request(e, cb);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
+//    public void testIPFSGatewayPublishService() {
+//        Envelope e;
+//        try {
+//            ServiceCallback cb = new ServiceCallback() {
+//                @Override
+//                public void reply(Envelope envelope) {
+//                    IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+//                    assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
+//                    lock.countDown();
+//                }
+//            };
+//            e = Envelope.documentFactory();
+//            IPFSRequest ipfsRequest = new IPFSRequest();
+//            File testFile = new File("ipfsTest.txt");
+//            ipfsRequest.file = new FileWrapper(testFile);
+//            DLC.addData(IPFSRequest.class, ipfsRequest, e);
+//            DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
+//            client.request(e, cb);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
+//    }
 
 //    @Test
     public void testDIDCreate() {
@@ -110,9 +117,8 @@ public class CoreTest {
                 }
             };
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            DirectedRouteGraph drg = e.getDRG();
-            assert(drg.addRoute(new SimpleRoute(DIDService.class.getName(),DIDService.OPERATION_CREATE)));
             e.setDID(did);
+            DLC.addRoute(DIDService.class, DIDService.OPERATION_CREATE, e);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -135,9 +141,8 @@ public class CoreTest {
                 }
             };
             e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            DirectedRouteGraph drg = e.getDRG();
-            assert(drg.addRoute(new SimpleRoute(DIDService.class.getName(),"Authenticate")));
             e.setDID(did);
+            DLC.addRoute(DIDService.class, DIDService.OPERATION_AUTHENTICATE,e);
             client.request(e, cb);
         } catch (Exception ex) {
             ex.printStackTrace();
