@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  */
 public class KeyLoggerCleaner implements Cleaner {
 
-    private final Logger LOG = Logger.getLogger(KeyLoggerCleaner.class.getName());
+    private static final Logger LOG = Logger.getLogger(KeyLoggerCleaner.class.getName());
 
 
 }

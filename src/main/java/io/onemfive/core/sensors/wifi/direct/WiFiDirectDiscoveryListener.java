@@ -15,7 +15,7 @@ public class WiFiDirectDiscoveryListener
 //        implements
 //        WifiP2pManager.ActionListener
 {
-    private final Logger LOG = Logger.getLogger(WiFiDirectDiscoveryListener.class.getName());
+//    private static final Logger LOG = Logger.getLogger(WiFiDirectDiscoveryListener.class.getName());
 
 //    private Context context;
 //

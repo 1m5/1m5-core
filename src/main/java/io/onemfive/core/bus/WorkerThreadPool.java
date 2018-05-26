@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 final class WorkerThreadPool extends AppThread {
 
-    private final Logger LOG = Logger.getLogger(WorkerThreadPool.class.getName());
+    private static final Logger LOG = Logger.getLogger(WorkerThreadPool.class.getName());
 
     public enum Status {Starting, Running, Stopping, Stopped}
 
@@ -59,10 +59,10 @@ final class WorkerThreadPool extends AppThread {
         while(spin.get()) {
             synchronized (this){
                 try {
-                    System.out.println("*");
+                    LOG.info("*");
                     int queueSize = channel.getQueue().size();
                     if(queueSize > 0) {
-                        System.out.println("Pool: Queue Size = "+queueSize+" : Launching thread...");
+                        LOG.info("Queue Size = "+queueSize+" : Launching thread...");
                         pool.execute(new WorkerThread(channel, clientAppManager, services));
                     } else {
                         this.wait(500); // wait 500ms

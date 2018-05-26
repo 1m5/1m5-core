@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public final class ClientAppManager {
 
-    private final Logger LOG = Logger.getLogger(ClientAppManager.class.getName());
+    private static final Logger LOG = Logger.getLogger(ClientAppManager.class.getName());
 
     public enum Status {STOPPED, INITIALIZING, READY}
 
@@ -52,22 +52,22 @@ public final class ClientAppManager {
      * @return non-null
      */
     public boolean initialize() {
-        System.out.println(ClientAppManager.class.getSimpleName()+": requesting instance...");
+        LOG.info("Requesting instance...");
         if(status == Status.STOPPED) {
-            System.out.println(ClientAppManager.class.getSimpleName()+": initializing...");
+            LOG.info("initializing...");
             status = Status.INITIALIZING;
             context = OneMFiveAppContext.getInstance();
             ServiceBus serviceBus = context.getServiceBus();
             if (serviceBus.getStatus() == ServiceBus.Status.Stopped) {
-                System.out.println("Starting Service Bus...");
+                LOG.info("Starting Service Bus...");
                 serviceBus.start(null);
-                System.out.println("Service Bus started.");
+                LOG.info("Service Bus started.");
             }
-            System.out.println("Service Bus running.");
+            LOG.info("Service Bus running.");
             // Assign service bus to producer for sending messages to service bus
             producer = serviceBus;
             status = Status.READY;
-            System.out.println(ClientAppManager.class.getSimpleName()+": ready");
+            LOG.info("Ready");
         }
         client = buildClient();
         return true;
@@ -77,7 +77,7 @@ public final class ClientAppManager {
      * Shuts down the client app manager instance and the 1M5 service.
      */
     public boolean stop() {
-        System.out.println(ClientAppManager.class.getSimpleName()+": shutting down...");
+        LOG.info("Shutting down...");
         boolean isStopped = false;
         if(status == Status.READY) {
             ServiceBus serviceBus = context.getServiceBus();
@@ -86,7 +86,7 @@ public final class ClientAppManager {
             }
             registered.clear();
         }
-        System.out.println(ClientAppManager.class.getSimpleName()+": shutdown");
+        LOG.info("Shutdown");
         if(isStopped) status = Status.STOPPED;
         return isStopped;
     }
@@ -125,13 +125,13 @@ public final class ClientAppManager {
     public void notify(Envelope e) {
         if(e != null) {
             Long clientId = e.getClient();
-            System.out.println(ClientAppManager.class.getSimpleName()+": Client.id="+clientId);
+            LOG.info("Client.id="+clientId);
             Client client = getRegisteredApp(clientId);
             if (client != null) {
-                System.out.println(ClientAppManager.class.getSimpleName()+": Found client; notifying...");
+                LOG.info("Found client; notifying...");
                 client.notify(e);
             } else {
-                System.out.println(ClientAppManager.class.getSimpleName()+": Client not found. Number of registered clients: "+registered.size());
+                LOG.warning("Client not found. Number of registered clients: "+registered.size());
             }
         }
     }

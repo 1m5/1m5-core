@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  */
 public class IPFSService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(IPFSService.class.getName());
+    private static final Logger LOG = Logger.getLogger(IPFSService.class.getName());
 
     // Gateways
     public static final String OPERATION_GATEWAY_LIST = "GATEWAY_LIST";
@@ -150,7 +150,7 @@ public class IPFSService extends BaseService {
         byte[] contentBytes = null;
         IPFSResponse response = null;
         if(operation.equals(OPERATION_PACK)) {
-            System.out.println(IPFSService.class.getSimpleName()+": handling IPFSResponse...");
+            LOG.info("Handling IPFSResponse...");
             operation = request.requestedOperation;
             isRequest = false;
             contentBytes = (byte[])DLC.getContent(e);
@@ -158,7 +158,7 @@ public class IPFSService extends BaseService {
             response = new IPFSResponse();
             DLC.addData(IPFSResponse.class, response, e);
         } else {
-            System.out.println(IPFSService.class.getSimpleName()+": handling IPFSRequest: "+request);
+            LOG.info("Handling IPFSRequest: "+request);
         }
         String urlStr = "";
 //        Boolean snapshot = (Boolean)((DocumentMessage)e.getMessage()).data.get(0).get(DLC.SNAPSHOT);
@@ -168,11 +168,11 @@ public class IPFSService extends BaseService {
         switch(operation){
             case OPERATION_GATEWAY_LIST: {
                 if(isRequest) {
-                    System.out.println(IPFSService.class.getSimpleName()+": Sending Gateway List request...");
+                    LOG.info("Sending Gateway List request...");
                     urlStr = gatewaysListUrl;
                     e.setAction(Envelope.Action.VIEW);
                 } else {
-                    System.out.println(IPFSService.class.getSimpleName()+": Received Gateway List response: ");
+                    LOG.info("Received Gateway List response: ");
                     Map<String, String> gateways = new HashMap<>();
                     List<Object> objects = (List<Object>)JSONParser.parse(contentStr);
                     String gateway;
@@ -181,7 +181,7 @@ public class IPFSService extends BaseService {
                         gateway = (String)obj;
                         status = clearnetGateways.get(gateway);
                         gateways.put(gateway,status.name());
-                        System.out.println(gateway+":"+status.name());
+                        LOG.info(gateway+":"+status.name());
                     }
                     response.gateways = gateways;
                 }
@@ -206,6 +206,7 @@ public class IPFSService extends BaseService {
                             }
                         } catch (IOException e1) {
                             e1.printStackTrace(); // TODO: Return error report instead
+                            LOG.warning("IOException caught adding to Multipart: "+e1.getLocalizedMessage());
                         }
                     }
                     request.multipart = m;
@@ -254,6 +255,7 @@ public class IPFSService extends BaseService {
                             }
                         } catch (IOException e1) {
                             e1.printStackTrace(); // TODO: Return error report instead
+                            LOG.warning("IOException caught adding to Multipart: "+e1.getLocalizedMessage());
                         }
                     }
                     request.multipart = m;
@@ -290,6 +292,7 @@ public class IPFSService extends BaseService {
                             urlStr = local + version + "cat?arg=" + request.hash.toString() + URLEncoder.encode(request.subPath, encoding);
                         } catch (UnsupportedEncodingException e1) {
                             e1.printStackTrace(); // TODO: Return error report instead
+                            LOG.warning("UnsupportedEncodingException caught encoding path: "+request.subPath+"; with encoding="+encoding);
                         }
                     }
                 } else {
@@ -458,6 +461,7 @@ public class IPFSService extends BaseService {
                             m.addFilePart("file", new ByteArrayWrapper(f));
                         } catch (IOException e1) {
                             e1.printStackTrace(); // TODO: Return error report instead
+                            LOG.warning("IOException caught while adding File wrapped with ByteArrayWrapper to Multipart: "+e1.getLocalizedMessage());
                         }
                     }
                     request.multipart = m;
@@ -489,6 +493,7 @@ public class IPFSService extends BaseService {
                             m.addFilePart("file", new ByteArrayWrapper(f));
                         } catch (IOException e1) {
                             e1.printStackTrace(); // TODO: Return error report instead
+                            LOG.warning("IOException caught while adding File wrapped with ByteArrayWrapper to Multipart: "+e1.getLocalizedMessage());
                         }
                     }
                     request.multipart = m;
@@ -511,6 +516,7 @@ public class IPFSService extends BaseService {
                             m.addFilePart("file", new ByteArrayWrapper(f));
                         } catch (IOException e1) {
                             e1.printStackTrace(); // TODO: Return error report instead
+                            LOG.warning("IOException caught while adding File wrapped with ByteArrayWrapper to Multipart: "+e1.getLocalizedMessage());
                         }
                     }
                     request.multipart = m;
@@ -561,7 +567,7 @@ public class IPFSService extends BaseService {
             case OPERATION_OBJECT_NEW: {
                 if(isRequest) {
                     if(request.template != null && !ObjectTemplates.contains(request.template)) {
-                        System.out.println("Unrecognised template: "+request.template);
+                        LOG.warning("Unrecognised template: "+request.template);
                         // TODO: Return error report instead
                         return;
                     }
@@ -575,7 +581,7 @@ public class IPFSService extends BaseService {
             case OPERATION_OBJECT_PATCH: {
                 if(isRequest) {
                     if(!ObjectPatchTypes.contains(request.command)) {
-                        System.out.println("Illegal Object.patch command type: " + request.command);
+                        LOG.warning("Illegal Object.patch command type: " + request.command);
                         // TODO: Return error report instead
                         return;
                     }
@@ -585,21 +591,21 @@ public class IPFSService extends BaseService {
                     switch (request.command) {
                         case "add-link":
                             if (request.target == null) {
-                                System.out.println("add-link requires name and target!");
+                                LOG.warning("add-link requires name and target!");
                                 // TODO: Return error report instead
                                 return;
                             }
                         case "rm-link":
                             if (request.name == null) {
-                                System.out.println("link name is required!");
+                                LOG.warning("link name is required!");
                                 // TODO: Return error report instead
                                 return;
                             }
                         case "set-data":
                         case "append-data":
                             if (request.dataBytes == null) {
-                                System.out.println("set-data requires data!");
-                                System.out.println("link name is required!");
+                                LOG.warning("set-data requires data!");
+                                LOG.warning("link name is required!");
                                 // TODO: Return error report instead
                                 return;
                             }
@@ -610,6 +616,7 @@ public class IPFSService extends BaseService {
                             } catch (IOException e1) {
                                 e1.printStackTrace();
                                 // TODO: Return error report instead
+                                LOG.warning("IOException caught while adding File wrapped with ByteArrayWrapper to Multipart: "+e1.getLocalizedMessage());
                                 return;
                             }
                             request.multipart = m;
@@ -842,6 +849,7 @@ public class IPFSService extends BaseService {
                     } catch (IOException e1) {
                         e1.printStackTrace();
                         // TODO: Return error report instead
+                        LOG.warning("IOException caught while adding File to Multipart: "+e1.getLocalizedMessage());
                         return;
                     }
                     request.multipart = m;
@@ -897,10 +905,10 @@ public class IPFSService extends BaseService {
         }
         try {
             e.setURL(new URL(urlStr));
-
         } catch (MalformedURLException e1) {
             e1.printStackTrace();
             // TODO: return error message
+            LOG.warning("MalformedURLException caught while creating new URL: "+urlStr);
             return;
         }
         if(isRequest && request.multipart != null) {
@@ -932,7 +940,7 @@ public class IPFSService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(IPFSService.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
         try {
             config = Config.loadFromClasspath("ipfs.config", properties);
 
@@ -975,18 +983,19 @@ public class IPFSService extends BaseService {
 
         } catch (Exception e) {
             e.printStackTrace();
+            LOG.warning("Exception caught while starting: "+e.getLocalizedMessage());
             return false;
         }
 
-        System.out.println(IPFSService.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 
     @Override
     public boolean shutdown() {
-        System.out.println(IPFSService.class.getSimpleName()+": stopping...");
+        LOG.info("Shutting down...");
 
-        System.out.println(IPFSService.class.getSimpleName()+": stopped.");
+        LOG.info("Shutdown.");
         return true;
     }
 

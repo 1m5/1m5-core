@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class ContractService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(ContractService.class.getName());
+    private static final Logger LOG = Logger.getLogger(ContractService.class.getName());
 
     // Bounties
     public static final String OPERATION_CREATE_BOUNTY = "CREATE_BOUNTY";
@@ -72,9 +72,9 @@ public class ContractService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(ContractService.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
         ethereumContract = new EthereumContract();
-        System.out.println("ContractService started.");
+        LOG.info("Started");
         return true;
     }
 

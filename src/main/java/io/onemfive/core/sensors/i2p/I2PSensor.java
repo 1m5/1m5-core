@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class I2PSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(I2PSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(I2PSensor.class.getName());
 
     public enum Status {
         // These states persist even if it died.
@@ -45,11 +45,11 @@ public class I2PSensor implements Sensor {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(I2PSensor.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
         status = Status.STARTING;
         router = I2PRouterUtil.getGlobalI2PRouter(properties, true);
         status = Status.RUNNING;
-        System.out.println(I2PSensor.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 
@@ -70,7 +70,8 @@ public class I2PSensor implements Sensor {
 
     @Override
     public boolean shutdown() {
-        return false;
+        router.shutdown(1);
+        return true;
     }
 
     @Override

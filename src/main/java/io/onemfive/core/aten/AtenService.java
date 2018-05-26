@@ -22,7 +22,7 @@ public class AtenService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(AtenService.class.getSimpleName()+": not implemented yet.");
+        LOG.info("Not implemented yet.");
         return true;
     }
 

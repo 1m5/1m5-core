@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class ContentService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(ContentService.class.getName());
+    private static final Logger LOG = Logger.getLogger(ContentService.class.getName());
 
     public ContentService(MessageProducer producer) {
         super(producer);
@@ -21,7 +21,7 @@ public class ContentService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(ContentService.class.getSimpleName()+": not implemented yet.");
+        LOG.info("Not implemented yet.");
         return true;
     }
 

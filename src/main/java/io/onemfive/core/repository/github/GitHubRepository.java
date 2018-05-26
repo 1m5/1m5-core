@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  */
 public class GitHubRepository implements Repository {
 
-    private final Logger LOG = Logger.getLogger(GitHubRepository.class.getName());
+    private static final Logger LOG = Logger.getLogger(GitHubRepository.class.getName());
 
     @Override
     public void provideAccess(Envelope envelope) {

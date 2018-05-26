@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class MeshSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(MeshSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(MeshSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {
@@ -22,9 +22,9 @@ public class MeshSensor implements Sensor {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("Starting MeshSensor...");
+        LOG.info("Starting...");
 
-        System.out.println("MeshSensor started.");
+        LOG.info("Started.");
         return true;
     }
 
@@ -45,14 +45,14 @@ public class MeshSensor implements Sensor {
 
     @Override
     public boolean shutdown() {
-        System.out.println("Shutting down MeshSensor...");
+        LOG.info("Shutting down...");
 
-        System.out.println("MeshSensor shutdown.");
+        LOG.info("Shutdown.");
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        return false;
+        return shutdown();
     }
 }

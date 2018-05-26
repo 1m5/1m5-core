@@ -9,7 +9,11 @@ import java.util.logging.Logger;
  */
 public class OneMFiveVersion {
 
-    private final Logger LOG = Logger.getLogger(OneMFiveVersion.class.getName());
+    static {
+        System.setProperty("java.util.logging.config.file","logging.config");
+    }
+
+    private static final Logger LOG = Logger.getLogger(OneMFiveVersion.class.getName());
 
     /** deprecated */
     public final static String ID = "io.synapticcelerity.core";
@@ -25,7 +29,7 @@ public class OneMFiveVersion {
     }
 
     public static void print() {
-        System.out.println("SC ID: " + ID);
-        System.out.println("SC Version: " + FULL_VERSION);
+        LOG.info("SC ID: " + ID);
+        LOG.info("SC Version: " + FULL_VERSION);
     }
 }

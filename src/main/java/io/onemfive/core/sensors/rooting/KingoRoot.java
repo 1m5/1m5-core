@@ -9,6 +9,6 @@ import java.util.logging.Logger;
  */
 public class KingoRoot {
 
-    private final Logger LOG = Logger.getLogger(KingoRoot.class.getName());
+    private static final Logger LOG = Logger.getLogger(KingoRoot.class.getName());
 
 }

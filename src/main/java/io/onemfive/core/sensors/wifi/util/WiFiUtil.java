@@ -9,7 +9,7 @@ import java.util.logging.Logger;
  */
 public class WiFiUtil {
 
-    private final Logger LOG = Logger.getLogger(WiFiUtil.class.getName());
+    private static final Logger LOG = Logger.getLogger(WiFiUtil.class.getName());
 
     /**
      * distance = 10 ^ ((27.55 - (20 * log10(frequency)) + signalLevel)/20)

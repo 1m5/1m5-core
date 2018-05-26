@@ -11,6 +11,6 @@ import java.util.logging.Logger;
  */
 public class GoogleCleaner implements Cleaner {
 
-    private final Logger LOG = Logger.getLogger(GoogleCleaner.class.getName());
+    private static final Logger LOG = Logger.getLogger(GoogleCleaner.class.getName());
 
 }

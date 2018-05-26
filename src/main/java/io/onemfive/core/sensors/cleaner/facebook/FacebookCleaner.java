@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  */
 public class FacebookCleaner implements Cleaner {
 
-    private final Logger LOG = Logger.getLogger(FacebookCleaner.class.getName());
+    private static final Logger LOG = Logger.getLogger(FacebookCleaner.class.getName());
 
 
 }

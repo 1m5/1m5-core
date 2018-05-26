@@ -9,6 +9,6 @@ import java.util.logging.Logger;
  */
 public class HoneyPotCM {
 
-    private final Logger LOG = Logger.getLogger(HoneyPotCM.class.getName());
+    private static final Logger LOG = Logger.getLogger(HoneyPotCM.class.getName());
 
 }

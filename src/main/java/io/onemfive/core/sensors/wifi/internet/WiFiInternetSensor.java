@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class WiFiInternetSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(WiFiInternetSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(WiFiInternetSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

@@ -16,7 +16,7 @@ public class PeerDeviceList
 //        implements WifiP2pManager.PeerListListener
 {
 
-    private final Logger LOG = Logger.getLogger(PeerDeviceList.class.getName());
+//    private static final Logger LOG = Logger.getLogger(PeerDeviceList.class.getName());
 
 //    private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
 //    private WifiP2pDevice device;

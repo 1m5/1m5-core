@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 public class InfoVaultService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(InfoVaultService.class.getName());
+    private static final Logger LOG = Logger.getLogger(InfoVaultService.class.getName());
 
     public static final String OPERATION_LOAD = "LOAD";
     public static final String OPERATION_SAVE = "SAVE";
@@ -52,7 +52,7 @@ public class InfoVaultService extends BaseService {
                 if(list == null) {
                     DLC.addEntity(infoVault.getHealthDAO().loadHealthRecord(((HealthRecord) entity).getDid()),e);
                 } else {
-                    System.out.println(InfoVaultService.class.getSimpleName()+": HealthRecord lists not supported for loading yet.");
+                    LOG.warning("HealthRecord lists not supported for loading yet.");
                 }
             } else if(entity instanceof MemoryTest) {
                 if(list == null) {
@@ -91,17 +91,17 @@ public class InfoVaultService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(InfoVaultService.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
         infoVault.start(properties);
-        System.out.println(InfoVaultService.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 
     @Override
     public boolean shutdown() {
-        System.out.println(InfoVaultService.class.getSimpleName()+": shutting down...");
+        LOG.info("Shutting down...");
         infoVault.shutdown();
-        System.out.println(InfoVaultService.class.getSimpleName()+": shutdown.");
+        LOG.info("Shutdown.");
         return true;
     }
 

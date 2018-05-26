@@ -11,7 +11,7 @@ public class WiFiDirectDisconnectListener
 //        implements WifiP2pManager.ActionListener
 {
 
-    private final Logger LOG = Logger.getLogger(WiFiDirectDisconnectListener.class.getName());
+//    private static final Logger LOG = Logger.getLogger(WiFiDirectDisconnectListener.class.getName());
 
     private PeerDevice peerDevice;
 

@@ -11,6 +11,6 @@ import java.util.logging.Logger;
  */
 public class TwitterCleaner implements Cleaner {
 
-    private final Logger LOG = Logger.getLogger(TwitterCleaner.class.getName());
+    private static final Logger LOG = Logger.getLogger(TwitterCleaner.class.getName());
 
 }

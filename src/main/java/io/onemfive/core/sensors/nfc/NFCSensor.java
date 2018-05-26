@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class NFCSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(NFCSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(NFCSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

@@ -15,7 +15,7 @@ public class WiFiDirectCancelConnectListener
 //        implements WifiP2pManager.ActionListener
 {
 
-    private final Logger LOG = Logger.getLogger(WiFiDirectCancelConnectListener.class.getName());
+//    private static final Logger LOG = Logger.getLogger(WiFiDirectCancelConnectListener.class.getName());
 
 //    private Context context;
 //

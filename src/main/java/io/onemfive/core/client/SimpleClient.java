@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 final class SimpleClient implements Client {
 
-    private final Logger LOG = Logger.getLogger(SimpleClient.class.getName());
+    private static final Logger LOG = Logger.getLogger(SimpleClient.class.getName());
 
     private Map<Long,ServiceCallback> claimCheck;
     private Long id;
@@ -40,7 +40,7 @@ final class SimpleClient implements Client {
 
     @Override
     public void request(Envelope e, ServiceCallback cb) {
-        System.out.println("SimpleClient sending to service bus message channel");
+        LOG.info("Sending to service bus message channel");
         e.setClient(id);
         producer.send(e);
         // Save callback for later retrieval using envelope id for correlation
@@ -48,7 +48,7 @@ final class SimpleClient implements Client {
     }
 
     public void notify(Envelope e) {
-        System.out.println("SimpleClient sending to ServiceCallback");
+        LOG.info("Sending to ServiceCallback");
         ServiceCallback cb = claimCheck.get(e.getId());
         cb.reply(e);
         claimCheck.remove(e.getId());

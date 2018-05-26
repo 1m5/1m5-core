@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class DIDService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(DIDService.class.getName());
+    private static final Logger LOG = Logger.getLogger(DIDService.class.getName());
 
     public static final String OPERATION_VERIFY = "Verify";
     public static final String OPERATION_AUTHENTICATE = "Authenticate";
@@ -59,14 +59,16 @@ public class DIDService extends BaseService {
     }
 
     private void verify(Envelope e) {
-        System.out.println(DIDService.class.getSimpleName()+": Received verify DID request.");
+        LOG.info("Received verify DID request.");
         DID did = e.getDID();
         DID didLoaded = infoVault.getDidDAO().load(did.getAlias());
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())) {
             didLoaded.setVerified(true);
             e.setDID(didLoaded);
+            LOG.info("DID verification successful.");
         } else {
             did.setVerified(false);
+            LOG.info("DID verification unsuccessful.");
         }
     }
 
@@ -77,7 +79,7 @@ public class DIDService extends BaseService {
      * @param e
      */
     private void create(Envelope e) {
-        System.out.println(DIDService.class.getSimpleName()+": Received create DID request.");
+        LOG.info("Received create DID request.");
         DID did = e.getDID();
         DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
         e.setDID(didCreated);
@@ -153,7 +155,7 @@ public class DIDService extends BaseService {
      * @param e
      */
     private void authenticate(Envelope e) {
-        System.out.println(DIDService.class.getSimpleName()+": Received authn DID request.");
+        LOG.info("Received authn DID request.");
         DID did = e.getDID();
         DID didLoaded = infoVault.getDidDAO().load(did.getAlias());
         // TODO: Replace with I2PBote example below
@@ -179,15 +181,15 @@ public class DIDService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(DIDService.class.getSimpleName()+": starting....");
+        LOG.info("Starting....");
         try {
             db = Config.loadFromBase(dbFileName);
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(DIDService.class.getSimpleName()+": start failed.");
+            LOG.warning("Start failed.");
             return false;
         }
-        System.out.println(DIDService.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 

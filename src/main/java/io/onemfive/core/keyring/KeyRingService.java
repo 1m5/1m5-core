@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class KeyRingService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(KeyRingService.class.getName());
+    private static final Logger LOG = Logger.getLogger(KeyRingService.class.getName());
 
     public KeyRingService(MessageProducer producer) {
         super(producer);
@@ -21,9 +21,9 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(KeyRingService.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
 
-        System.out.println(KeyRingService.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 

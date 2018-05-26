@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  */
 public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailListener {
 
-    private final Logger LOG = Logger.getLogger(I2PBoteSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(I2PBoteSensor.class.getName());
 
     public enum Status {
         // These states persist even if it died.
@@ -266,7 +266,7 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(I2PBoteSensor.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
         status = Status.STARTING;
         router = I2PRouterUtil.getGlobalI2PRouter(properties, true);
         i2PBote = I2PBote.getInstance();
@@ -274,7 +274,7 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
         i2PBote.addNewEmailListener(this);
         i2PBote.addNetworkStatusListener(this);
         status = Status.RUNNING;
-        System.out.println(I2PBoteSensor.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 
@@ -295,17 +295,17 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
 
     @Override
     public boolean shutdown() {
-        System.out.println(I2PBoteSensor.class.getSimpleName()+": stopping...");
+        LOG.info("Shutting down...");
 
-        System.out.println(I2PBoteSensor.class.getSimpleName()+": stopped");
+        LOG.info("Shutdown.");
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        System.out.println(I2PBoteSensor.class.getSimpleName()+": gracefully stopping...");
+        LOG.info("Gracefully shutting down...");
 
-        System.out.println(I2PBoteSensor.class.getSimpleName()+": gracefully stopped...");
+        LOG.info("Gracefully shutdown.");
         return true;
     }
 }

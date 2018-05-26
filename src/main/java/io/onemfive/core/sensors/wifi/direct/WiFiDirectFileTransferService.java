@@ -10,7 +10,7 @@ import java.util.logging.Logger;
  */
 public class WiFiDirectFileTransferService {
 
-    private final Logger LOG = Logger.getLogger(WiFiDirectFileTransferService.class.getName());
+//    private static final Logger LOG = Logger.getLogger(WiFiDirectFileTransferService.class.getName());
 
     private static final int SOCKET_TIMEOUT = 5000;
     public static final String ACTION_SEND_FILE = "com.example.android.wifidirect.SEND_FILE";

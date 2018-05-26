@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  */
 public class NitriteDBManager implements LifeCycle {
 
-    private final Logger LOG = Logger.getLogger(NitriteDBManager.class.getName());
+    private static final Logger LOG = Logger.getLogger(NitriteDBManager.class.getName());
 
     private Nitrite db = null;
 
@@ -49,7 +49,7 @@ public class NitriteDBManager implements LifeCycle {
                 db.getRepository(Contract.class).update(c);
             }
         } else {
-            System.out.println(NitriteDBManager.class.getName()+": No support for saving class="+persistable.getClass().getName());
+            LOG.warning(NitriteDBManager.class.getName()+": No support for saving class="+persistable.getClass().getName());
         }
         return true;
     }
@@ -60,24 +60,24 @@ public class NitriteDBManager implements LifeCycle {
             if(c.getId() != null) {
                 return db.getRepository(Contract.class).getById(NitriteId.createId(c.getId()));
             } else {
-                System.out.println(NitriteDBManager.class.getName()+": No support for finding objects during load.");
+                LOG.warning("No support for finding objects during load.");
             }
         } else {
-            System.out.println(NitriteDBManager.class.getName()+": No support for saving class="+persistable.getClass().getName());
+            LOG.warning("No support for saving class="+persistable.getClass().getName());
         }
         return null;
     }
 
     public List<Persistable> loadObjectList(Class clazz, Integer offset, Integer pageSize, String sortBy, Boolean ascending) {
         List<Persistable> persistables = new ArrayList<>();
-        if(clazz.getName().equals("io.onemfive.data.Contract")) {
+        if(clazz.getName().equals(Contract.class.getName())) {
             ObjectRepository<Contract> repository = db.getRepository(Contract.class);
             Cursor cursor = repository.find();
             for(Object obj : cursor) {
                 persistables.add((Persistable)obj);
             }
         } else {
-            System.out.println(NitriteDBManager.class.getName()+": No support for saving class="+clazz.getName());
+            LOG.warning("No support for saving class="+clazz.getName());
         }
         return persistables;
     }
@@ -128,7 +128,7 @@ public class NitriteDBManager implements LifeCycle {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("NitriteDBManager starting...");
+        LOG.info("Starting...");
         dbFullPath = OneMFiveAppContext.getInstance().getBaseDir()+dbFolder;
         File f = new File(dbFullPath);
         if(!f.exists()) f.mkdir();
@@ -136,7 +136,7 @@ public class NitriteDBManager implements LifeCycle {
                 .compressed()
                 .filePath(dbFullPath+dbName)
                 .openOrCreate(dbUsername, dbUserPassword);
-        System.out.println("NitriteDBManager started.");
+        LOG.info("Started.");
         return true;
     }
 
@@ -157,11 +157,11 @@ public class NitriteDBManager implements LifeCycle {
 
     @Override
     public boolean shutdown() {
-        System.out.println("NitriteDBManager shutting down...");
+        LOG.info("Shutting down...");
         if(db != null && !db.isClosed()) {
             db.close();
         }
-        System.out.println("NitriteDBManager shutdown.");
+        LOG.info("Shutdown.");
         return true;
     }
 

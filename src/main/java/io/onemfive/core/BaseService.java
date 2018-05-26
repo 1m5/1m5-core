@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public abstract class BaseService implements MessageConsumer, Service, LifeCycle {
 
-    private final Logger LOG = Logger.getLogger(BaseService.class.getName());
+    private static final Logger LOG = Logger.getLogger(BaseService.class.getName());
 
     protected boolean orchestrator = false;
     private MessageProducer producer;
@@ -38,7 +38,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public final boolean receive(Envelope envelope) {
-        System.out.println(BaseService.class.getSimpleName()+": Envelope received by service. Handling...");
+        LOG.info("Envelope received by service. Handling...");
         if(envelope.getMessage() instanceof DocumentMessage)
             handleDocument(envelope);
         else if(envelope.getMessage() instanceof EventMessage)

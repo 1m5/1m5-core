@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 final class WorkerThread extends AppThread {
 
-    private final Logger LOG = Logger.getLogger(WorkerThread.class.getName());
+    private static final Logger LOG = Logger.getLogger(WorkerThread.class.getName());
 
     private MessageChannel channel;
     private ClientAppManager clientAppManager;
@@ -33,12 +33,12 @@ final class WorkerThread extends AppThread {
 
     @Override
     public void run() {
-        System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Waiting for channel to return message...");
+        LOG.info(Thread.currentThread().getName() + "Waiting for channel to return message...");
         Envelope e = channel.receive();
-        System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Envelope received from channel");
+        LOG.info(Thread.currentThread().getName() + "Envelope received from channel");
         if (e.replyToClient()) {
             // Service Reply to client
-            System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Requesting client notify...");
+            LOG.info(Thread.currentThread().getName() + "Requesting client notify...");
             clientAppManager.notify(e);
         } else {
             MessageConsumer consumer = null;
@@ -49,7 +49,7 @@ final class WorkerThread extends AppThread {
                 consumer = services.get(route.getService());
                 if (consumer == null) {
                     // Service name provided is not registered.
-                    System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Route found in header; Service not registered; Please register service: "+route.getService());
+                    LOG.warning(Thread.currentThread().getName() + "Route found in header; Service not registered; Please register service: "+route.getService());
                     return;
                 }
             }
@@ -59,9 +59,9 @@ final class WorkerThread extends AppThread {
             int waitBetweenMillis = 1000;
             while (!received && sendAttempts < maxSendAttempts) {
                 if (consumer.receive(e)) {
-                    System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Envelope received by service, acknowledging with channel...");
+                    LOG.info(Thread.currentThread().getName() + "Envelope received by service, acknowledging with channel...");
                     channel.ack(e);
-                    System.out.println(WorkerThread.class.getSimpleName()+": "+Thread.currentThread().getName() + ": Channel Acknowledged.");
+                    LOG.info(Thread.currentThread().getName() + "Channel Acknowledged.");
                     received = true;
                 } else {
                     synchronized (this) {

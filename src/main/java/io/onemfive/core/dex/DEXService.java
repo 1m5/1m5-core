@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class DEXService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(DEXService.class.getName());
+    private static final Logger LOG = Logger.getLogger(DEXService.class.getName());
 
     public DEXService(MessageProducer producer) {
         super(producer);
@@ -21,7 +21,7 @@ public class DEXService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(DEXService.class.getSimpleName()+": not implemented yet.");
+        LOG.info("Not implemented yet.");
         return true;
     }
 }

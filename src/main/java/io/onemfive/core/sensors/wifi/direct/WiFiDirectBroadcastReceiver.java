@@ -11,7 +11,7 @@ public class WiFiDirectBroadcastReceiver
 //        extends BroadcastReceiver
 {
 
-    private final Logger LOG = Logger.getLogger(WiFiDirectBroadcastReceiver.class.getName());
+//    private static final Logger LOG = Logger.getLogger(WiFiDirectBroadcastReceiver.class.getName());
 
 //    private WifiP2pManager manager;
 //    private Channel channel;

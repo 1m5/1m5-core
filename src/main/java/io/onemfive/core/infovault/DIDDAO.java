@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  */
 public class DIDDAO {
 
-    private final Logger LOG = Logger.getLogger(DIDDAO.class.getName());
+    private static final Logger LOG = Logger.getLogger(DIDDAO.class.getName());
 
     private NitriteDBManager dbMgr;
     private SecureRandom random = new SecureRandom(new byte[2398]);
@@ -26,7 +26,7 @@ public class DIDDAO {
     public DID createDID(String alias, String passphrase) {
         DID did = load(alias);
         if(did == null) {
-            System.out.println(DIDDAO.class.getName()+": Creating DID with alias: "+alias);
+            LOG.info("Creating DID with alias: "+alias);
             did = new DID();
             did.setId(random.nextLong());
             did.setAlias(alias);
@@ -34,7 +34,7 @@ public class DIDDAO {
             did.setStatus(DID.Status.ACTIVE);
             dbMgr.getDb().getRepository(DID.class).insert(did);
         } else {
-            System.out.println(DIDDAO.class.getName()+": DID alias already present: "+alias);
+            LOG.info("DID alias already present: "+alias);
         }
         return did;
     }

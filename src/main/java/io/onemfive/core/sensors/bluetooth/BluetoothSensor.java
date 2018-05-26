@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class BluetoothSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(BluetoothSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(BluetoothSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

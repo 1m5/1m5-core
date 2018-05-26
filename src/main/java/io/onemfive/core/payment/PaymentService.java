@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class PaymentService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(PaymentService.class.getName());
+    private static final Logger LOG = Logger.getLogger(PaymentService.class.getName());
 
     public PaymentService(MessageProducer producer) {
         super(producer);
@@ -21,9 +21,9 @@ public class PaymentService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(PaymentService.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
 
-        System.out.println(PaymentService.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 }

@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public class MemoryTestDAO {
 
-    private final Logger LOG = Logger.getLogger(MemoryTestDAO.class.getName());
+    private static final Logger LOG = Logger.getLogger(MemoryTestDAO.class.getName());
 
     private NitriteDBManager dbMgr;
     private SecureRandom random = new SecureRandom(new byte[2398]);

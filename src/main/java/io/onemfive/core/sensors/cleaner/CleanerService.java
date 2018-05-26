@@ -9,6 +9,6 @@ import java.util.logging.Logger;
  */
 public class CleanerService {
 
-    private final Logger LOG = Logger.getLogger(CleanerService.class.getName());
+    private static final Logger LOG = Logger.getLogger(CleanerService.class.getName());
 
 }

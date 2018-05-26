@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class ConsensusService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(ConsensusService.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConsensusService.class.getName());
 
     public ConsensusService(MessageProducer producer) {
         super(producer);
@@ -21,7 +21,7 @@ public class ConsensusService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(ConsensusService.class.getSimpleName()+": not implemented yet.");
+        LOG.info("Not implemented yet.");
         return true;
     }
 

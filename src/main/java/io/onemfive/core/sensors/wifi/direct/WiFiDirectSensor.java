@@ -30,7 +30,7 @@ public class WiFiDirectSensor
 //        DeviceActionListener
 {
 
-    private final Logger LOG = Logger.getLogger(WiFiDirectSensor.class.getName());
+//    private static final Logger LOG = Logger.getLogger(WiFiDirectSensor.class.getName());
 
 //    private WifiP2pManager manager;
     private boolean isWifiP2pEnabled = false;

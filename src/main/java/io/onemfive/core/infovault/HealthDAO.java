@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class HealthDAO {
 
-    private final Logger LOG = Logger.getLogger(HealthDAO.class.getName());
+    private static final Logger LOG = Logger.getLogger(HealthDAO.class.getName());
 
     private NitriteDBManager dbMgr;
     private SecureRandom random = new SecureRandom(new byte[2398]);
@@ -26,14 +26,14 @@ public class HealthDAO {
     }
 
     public HealthRecord loadHealthRecord(Long did) {
-        System.out.println(HealthDAO.class.getSimpleName()+": Loading Health Record: did="+did);
+        LOG.info("Loading Health Record: did="+did);
         ObjectRepository<HealthRecord> r = dbMgr.getDb().getRepository(HealthRecord.class);
         Cursor<HealthRecord> records = r.find(ObjectFilters.eq("did",did));
         if(records.size() > 0) {
-            System.out.println(HealthDAO.class.getSimpleName()+": Health Record found for did="+did);
+            LOG.info("Health Record found for did="+did);
             return records.toList().get(0);
         } else {
-            System.out.println(HealthDAO.class.getSimpleName()+": Health Record not found for did="+did+"; creating...");
+            LOG.info("Health Record not found for did="+did+"; creating...");
             // Ensure every DID has a HealthRecord
             HealthRecord record = new HealthRecord();
             record.setDid(did);
@@ -43,7 +43,7 @@ public class HealthDAO {
     }
 
     public void saveHealthRecord(HealthRecord healthRecord) {
-        System.out.println(HealthDAO.class.getSimpleName()+": Saving Health Record: did="+healthRecord.getDid());
+        LOG.info("Saving Health Record: did="+healthRecord.getDid());
         ObjectRepository<HealthRecord> r = dbMgr.getDb().getRepository(HealthRecord.class);
         if(healthRecord.getId() == null) {
             healthRecord.setId(random.nextLong());

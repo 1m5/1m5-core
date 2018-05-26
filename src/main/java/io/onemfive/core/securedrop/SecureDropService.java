@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class SecureDropService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(SecureDropService.class.getName());
+    private static final Logger LOG = Logger.getLogger(SecureDropService.class.getName());
 
     public SecureDropService(MessageProducer producer) {
         super(producer);
@@ -24,9 +24,9 @@ public class SecureDropService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(SecureDropService.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
 
-        System.out.println(SecureDropService.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 }

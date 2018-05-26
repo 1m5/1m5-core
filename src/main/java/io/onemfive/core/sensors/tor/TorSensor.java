@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class TorSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(TorSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(TorSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

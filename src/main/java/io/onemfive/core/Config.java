@@ -12,10 +12,10 @@ import java.util.logging.Logger;
  */
 public class Config {
 
-    private final Logger LOG = Logger.getLogger(Config.class.getName());
+    private static final Logger LOG = Logger.getLogger(Config.class.getName());
 
     public static Properties loadFromClasspath(String name, Properties scProps) throws Exception {
-        System.out.println("Loading properties file "+name+"...");
+        LOG.info("Loading properties file "+name+"...");
         Properties p = new Properties();
         if(scProps != null)
             p.putAll(scProps);
@@ -23,14 +23,14 @@ public class Config {
         try {
             is = Config.class.getClassLoader().getResourceAsStream(name);
             p.load(is);
-            System.out.println("Loaded properties file "+name+" with following name-value pairs:");
+            LOG.info("Loaded properties file "+name+" with following name-value pairs:");
             Enumeration propNames = p.propertyNames();
             while(propNames.hasMoreElements()){
                 String propName = (String)propNames.nextElement();
-                System.out.println(propName+":"+p.getProperty(propName));
+                LOG.info(propName+":"+p.getProperty(propName));
             }
         } catch (Exception e) {
-            System.out.println("Failed to load properties file "+name);
+            LOG.warning("Failed to load properties file "+name);
             throw e;
         } finally {
             if(is!=null)
@@ -41,25 +41,25 @@ public class Config {
     }
 
     public static Properties loadFromBase(String name) throws IOException {
-        System.out.println("Loading properties file "+name+"...");
+        LOG.info("Loading properties file "+name+"...");
         Properties p = new Properties();
         InputStream is = null;
         String path = OneMFiveAppContext.getInstance().getBaseDir()+"/"+name;
-        System.out.println("Loading properties file from "+path+"...");
+        LOG.info("Loading properties file from "+path+"...");
         File folder = new File(path);
         boolean pathExists = true;
         if(folder.exists()) {
             try {
                 is = new FileInputStream(path);
                 p.load(is);
-                System.out.println("Loaded properties file " + path + " with following name-value pairs:");
+                LOG.info("Loaded properties file " + path + " with following name-value pairs:");
                 Enumeration propNames = p.propertyNames();
                 while (propNames.hasMoreElements()) {
                     String propName = (String) propNames.nextElement();
-                    System.out.println(propName + ":" + p.getProperty(propName));
+                    LOG.info(propName + ":" + p.getProperty(propName));
                 }
             } catch (Exception e) {
-                System.out.println("Failed to load properties file " + path);
+                LOG.warning("Failed to load properties file " + path);
                 throw e;
             } finally {
                 if (is != null)
@@ -72,24 +72,24 @@ public class Config {
             try {
                 pathExists = folder.createNewFile();
             } catch (IOException e) {
-                System.out.println("Failed to create new file at: "+path);
+                LOG.warning("Failed to create new file at: "+path);
                 throw(e);
             }
         }
         if(!pathExists) {
-            System.out.println("Couldn't create path: "+path);
+            LOG.warning("Couldn't create path: "+path);
         }
 
         return p;
     }
 
     public static void saveToClasspath(String name, Properties props) throws IOException {
-        System.out.println("Saving properties file "+name+"...");
+        LOG.info("Saving properties file "+name+"...");
         props.store(new FileOutputStream(name), null);
     }
 
     public static void saveToBase(String name, Properties props) throws IOException {
-        System.out.println("Saving properties file "+name+"...");
+        LOG.info("Saving properties file "+name+"...");
         String path = OneMFiveAppContext.getInstance().getBaseDir()+"/"+name;
         props.store(new FileOutputStream(path), null);
     }

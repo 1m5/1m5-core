@@ -11,6 +11,6 @@ import java.util.logging.Logger;
  */
 public class SurveillanceCleaner implements Cleaner {
 
-    private final Logger LOG = Logger.getLogger(SurveillanceCleaner.class.getName());
+    private static final Logger LOG = Logger.getLogger(SurveillanceCleaner.class.getName());
 
 }

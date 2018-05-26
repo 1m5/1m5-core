@@ -26,7 +26,7 @@ import java.util.logging.Logger;
  */
 public final class ClearnetSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(ClearnetSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(ClearnetSensor.class.getName());
 
     private static final Set<String> trustedHosts = new HashSet<>();
 
@@ -35,10 +35,10 @@ public final class ClearnetSensor implements Sensor {
         @Override
         public boolean verify(String hostname, SSLSession session) {
             if(trustedHosts.contains(hostname)) {
-                System.out.println(ClearnetSensor.class.getSimpleName() + ": Trusted Host :" + hostname);
+                LOG.info("Trusted Host :" + hostname);
                 return true;
             } else {
-                System.out.println(ClearnetSensor.class.getSimpleName() + ": Untrusted Host :" + hostname);
+                LOG.warning("Untrusted Host :" + hostname);
                 return false;
             }
         }
@@ -93,7 +93,7 @@ public final class ClearnetSensor implements Sensor {
     public boolean send(Envelope e) {
         URL url = e.getURL();
         if(url != null) {
-            System.out.println(ClearnetSensor.class.getSimpleName()+": URL="+url.toString());
+            LOG.info("URL="+url.toString());
         }
         Map<String,Object> h = e.getHeaders();
         Map<String,String> hStr = new HashMap<>();
@@ -120,7 +120,8 @@ public final class ClearnetSensor implements Sensor {
                 bodyBytes = ByteBuffer.wrap(m.finish().getBytes());
             } catch (IOException e1) {
                 e1.printStackTrace();
-                // TODO: Replace with error message
+                // TODO: Provide error message
+                LOG.warning("IOException caught while building HTTP body with multipart: "+e1.getLocalizedMessage());
                 return false;
             }
             cacheControl = new CacheControl.Builder().noCache().build();
@@ -144,7 +145,7 @@ public final class ClearnetSensor implements Sensor {
                 }
             }
         } else {
-            System.out.println(ClearnetSensor.class.getSimpleName()+": Only DocumentMessages supported at this time.");
+            LOG.warning("Only DocumentMessages supported at this time.");
             return false;
         }
 
@@ -163,24 +164,25 @@ public final class ClearnetSensor implements Sensor {
             case REMOVE: {b = (requestBody == null ? b.delete() : b.delete(requestBody));break;}
             case VIEW: {b = b.get();break;}
             default: {
-                System.out.println(ClearnetSensor.class.getSimpleName()+": Envelope.action must be set to ADD, UPDATE, REMOVE, or VIEW");
+                LOG.warning("Envelope.action must be set to ADD, UPDATE, REMOVE, or VIEW");
                 return false;
             }
         }
         Request req = b.build();
-        System.out.println(ClearnetSensor.class.getSimpleName()+": sending http request...");
+        LOG.info("Sending http request, host="+url.getHost());
         Response response = null;
-        System.out.println("host="+url.getHost());
         if(url.toString().startsWith("https:")) {
             if(trustedHosts.contains(url.getHost())) {
                 try {
-                    System.out.println(ClearnetSensor.class.getSimpleName() + ": trusted host, using compatible connection...");
+                    LOG.info("Trusted host, using compatible connection...");
                     response = httpsCompatibleClient.newCall(req).execute();
-                    if(!response.isSuccessful())
-                        throw new IOException("Unexpected code " + response);
+                    if(!response.isSuccessful()) {
+                        LOG.warning("Unexpected code " + response);
+                        return false;
+                    }
                 } catch (IOException e1) {
                     e1.printStackTrace();
-                    System.out.println(ClearnetSensor.class.getSimpleName()+": compatible connection attempt failed.");
+                    LOG.warning("Compatible connection attempt failed: "+e1.getLocalizedMessage());
                     return false;
                 }
             } else {
@@ -191,26 +193,28 @@ public final class ClearnetSensor implements Sensor {
                         throw new IOException("Unexpected code " + response);
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    System.out.println(ClearnetSensor.class.getSimpleName() + ": strong connection attempt failed.");
+                    LOG.warning("Strong connection attempt failed: "+ex.getLocalizedMessage());
                     return false;
                 }
             }
         } else {
             try {
                 response = httpClient.newCall(req).execute();
-                if(!response.isSuccessful())
-                    throw new IOException("Unexpected code " + response);
+                if(!response.isSuccessful()) {
+                    LOG.warning("Unexpected code " + response);
+                    return false;
+                }
             } catch (IOException e2) {
                 e2.printStackTrace();
-                System.out.println(ClearnetSensor.class.getSimpleName()+": light connection attempt failed. Giving up.");
+                LOG.warning("Light connection attempt failed. Giving up. "+e2.getLocalizedMessage());
                 return false;
             }
         }
 
-        System.out.println(ClearnetSensor.class.getSimpleName()+": received http response.");
+        LOG.info("Received http response.");
         Headers responseHeaders = response.headers();
         for (int i = 0; i < responseHeaders.size(); i++) {
-            System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+            LOG.info(responseHeaders.name(i) + ": " + responseHeaders.value(i));
         }
         ResponseBody responseBody = response.body();
         if(responseBody != null) {
@@ -221,8 +225,9 @@ public final class ClearnetSensor implements Sensor {
             } finally {
                 responseBody.close();
             }
-            System.out.print(new String((byte[])DLC.getContent(e)));
+            LOG.info(new String((byte[])DLC.getContent(e)));
         } else {
+            LOG.info("Body was null.");
             DLC.addContent(null,e);
         }
         return true;

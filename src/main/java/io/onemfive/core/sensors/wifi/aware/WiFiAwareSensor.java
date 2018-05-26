@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 public class WiFiAwareSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(WiFiAwareSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(WiFiAwareSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

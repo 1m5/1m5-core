@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class AggressionFilter {
 
-    private final Logger LOG = Logger.getLogger(AggressionFilter.class.getName());
+    private static final Logger LOG = Logger.getLogger(AggressionFilter.class.getName());
 
 
 }

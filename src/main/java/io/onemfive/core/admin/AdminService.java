@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  */
 public class AdminService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(AdminService.class.getName());
+    private static final Logger LOG = Logger.getLogger(AdminService.class.getName());
 
     public static final String OPERATION_REGISTER_SERVICES = "REGISTER_SERVICES";
 
@@ -44,7 +44,7 @@ public class AdminService extends BaseService {
     }
 
     private void registerServices(Envelope e){
-        List<Class> servicesToRegister = (List<Class>)((DocumentMessage)e.getMessage()).data.get(0).get(DLC.ENTITY);
+        List<Class> servicesToRegister = (List<Class>)DLC.getEntity(e);
         List<Exception> exceptionList = new ArrayList<>();
         int i = 0;
         for(Class c : servicesToRegister) {
@@ -65,9 +65,9 @@ public class AdminService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(AdminService.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
 
-        System.out.println(AdminService.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 }

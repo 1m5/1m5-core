@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  */
 public class OrchestrationService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(OrchestrationService.class.getName());
+    private static final Logger LOG = Logger.getLogger(OrchestrationService.class.getName());
 
     private boolean starting = false;
     private boolean running = false;
@@ -39,19 +39,19 @@ public class OrchestrationService extends BaseService {
      */
     @Override
     public void handleDocument(Envelope e) {
-        System.out.println(OrchestrationService.class.getSimpleName()+": Received document by Orchestration Service; routing...");
+        LOG.info("Received document by Orchestration Service; routing...");
         route(e);
     }
 
     @Override
     public void handleEvent(Envelope e) {
-        System.out.println(OrchestrationService.class.getSimpleName()+": Received event by Orchestration Service; routing...");
+        LOG.info("Received event by Orchestration Service; routing...");
         route(e);
     }
 
     @Override
     public void handleHeaders(Envelope e) {
-        System.out.println(OrchestrationService.class.getSimpleName()+": Received headers by Orchestration Service; routing...");
+        LOG.info("Received headers by Orchestration Service; routing...");
         route(e);
     }
 
@@ -90,14 +90,14 @@ public class OrchestrationService extends BaseService {
                 remainingRoutes++;
             }
         } else {
-            System.out.println(OrchestrationService.class.getSimpleName()+": not running.");
+            LOG.info("Not running.");
             deadLetter(e);
         }
     }
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(OrchestrationService.class.getSimpleName()+": Starting...");
+        LOG.info("Starting...");
         shuttingDown = false;
         shutdown = false;
         starting = true;
@@ -107,7 +107,7 @@ public class OrchestrationService extends BaseService {
 
         running = true;
         starting = false;
-        System.out.println(OrchestrationService.class.getSimpleName()+": started.");
+        LOG.info("Started.");
         return true;
     }
 

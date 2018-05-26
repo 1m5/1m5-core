@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  */
 public class SensorsService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(SensorsService.class.getName());
+    private static final Logger LOG = Logger.getLogger(SensorsService.class.getName());
 
     public static final String OPERATION_SEND = "SEND";
 
@@ -57,30 +57,32 @@ public class SensorsService extends BaseService {
                 || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".onion"))
                 && activeSensors.containsKey(TorSensor.class.getName())) {
             // Use Tor
-            System.out.println(SensorsService.class.getName()+": using Tor Sensor...");
+            LOG.info("Using Tor Sensor...");
             sensor = activeSensors.get(TorSensor.class.getName());
         } else if(r.getOperation().endsWith(".i2p")
                 || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".i2p"))
                 && activeSensors.containsKey(I2PSensor.class.getName())) {
             // Use I2P
-            System.out.println(SensorsService.class.getName()+": using I2P Sensor...");
+            LOG.info("Using I2P Sensor...");
             sensor = activeSensors.get(I2PSensor.class.getName());
         } else if(r.getOperation().endsWith(".bote")
                 || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".bote"))
                 && activeSensors.containsKey(I2PBoteSensor.class.getName())) {
             // Use I2P Bote
-            System.out.println(SensorsService.class.getName()+": using I2P Bote Sensor...");
+            LOG.info("Using I2P Bote Sensor...");
             sensor = activeSensors.get(I2PBoteSensor.class.getName());
         } else if(r.getOperation().endsWith(".mesh")
                 || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".mesh"))
                 && activeSensors.containsKey(MeshSensor.class.getName())) {
             // Use Mesh
-            System.out.println(SensorsService.class.getName() + ": using Mesh Sensor...");
+            LOG.info("Using Mesh Sensor...");
             sensor = activeSensors.get(MeshSensor.class.getName());
         } else if(r.getOperation().startsWith("http") || e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().startsWith("http")) {
             // Use Clearnet
+            LOG.info("Using Clearnet Sensor...");
             sensor = activeSensors.get(ClearnetSensor.class.getName());
         } else {
+            LOG.warning("No Sensor registered for Operation: "+r.getOperation()+" and URL: "+e.getURL().toString());
             deadLetter(e);
         }
         if(sensor != null) sensor.send(e);
@@ -88,7 +90,7 @@ public class SensorsService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(SensorsService.class.getSimpleName()+": starting...");
+        LOG.info("Starting...");
         try {
             config = Config.loadFromClasspath("sensors.config", properties);
 
@@ -107,6 +109,7 @@ public class SensorsService extends BaseService {
                             I2PBoteSensor i2PBoteSensor = (I2PBoteSensor) registeredSensors.get(I2PBoteSensor.class.getName());
                             i2PBoteSensor.start(config);
                             activeSensors.put(I2PBoteSensor.class.getName(), i2PBoteSensor);
+                            LOG.info("I2PBoteSensor registered as active.");
                         }
                     }, SensorsService.class.getSimpleName()+":I2PBoteSensorStartThread").start();
                 }
@@ -119,6 +122,7 @@ public class SensorsService extends BaseService {
                             I2PSensor i2PSensor = (I2PSensor) registeredSensors.get(I2PSensor.class.getName());
                             i2PSensor.start(config);
                             activeSensors.put(I2PSensor.class.getName(), i2PSensor);
+                            LOG.info("I2PSensor registered as active.");
                         }
                     }, SensorsService.class.getSimpleName()+":I2PSensorStartThread").start();
                 }
@@ -131,6 +135,7 @@ public class SensorsService extends BaseService {
                             TorSensor torSensor = (TorSensor) registeredSensors.get(TorSensor.class.getName());
                             torSensor.start(config);
                             activeSensors.put(TorSensor.class.getName(), torSensor);
+                            LOG.info("TorSensor registered as active.");
                         }
                     }, SensorsService.class.getSimpleName()+":TorSensorStartThread").start();
                 }
@@ -143,6 +148,7 @@ public class SensorsService extends BaseService {
                             MeshSensor meshSensor = (MeshSensor) registeredSensors.get(MeshSensor.class.getName());
                             meshSensor.start(config);
                             activeSensors.put(MeshSensor.class.getName(), meshSensor);
+                            LOG.info("MeshSensor registered as active.");
                         }
                     }, SensorsService.class.getSimpleName()+":MeshSensorStartThread").start();
                 }
@@ -155,15 +161,16 @@ public class SensorsService extends BaseService {
                             ClearnetSensor clearnetSensor = (ClearnetSensor) registeredSensors.get(ClearnetSensor.class.getName());
                             clearnetSensor.start(config);
                             activeSensors.put(ClearnetSensor.class.getName(), clearnetSensor);
+                            LOG.info("ClearnetSensor registered as active.");
                         }
                     }, SensorsService.class.getSimpleName()+":ClearnetSensorStartThread").start();
                 }
             }
 
-            System.out.println(SensorsService.class.getSimpleName()+": started.");
+            LOG.info("Started.");
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(SensorsService.class.getSimpleName()+": failed to start.");
+            LOG.warning("Failed to start.");
             return false;
         }
         return true;

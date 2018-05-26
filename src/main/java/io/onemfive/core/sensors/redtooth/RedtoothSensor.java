@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class RedtoothSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(RedtoothSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(RedtoothSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

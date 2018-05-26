@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class NearbySensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(NearbySensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(NearbySensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

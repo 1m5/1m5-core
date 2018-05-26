@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class RepositoryService extends BaseService {
 
-    private final Logger LOG = Logger.getLogger(RepositoryService.class.getName());
+    private static final Logger LOG = Logger.getLogger(RepositoryService.class.getName());
 
     public RepositoryService(MessageProducer producer) {
         super(producer);
@@ -52,8 +52,8 @@ public class RepositoryService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println(RepositoryService.class.getSimpleName()+": starting...");
-        System.out.println(RepositoryService.class.getSimpleName()+": started.");
+        LOG.info("Starting...");
+        LOG.info("Started.");
         return true;
     }
 

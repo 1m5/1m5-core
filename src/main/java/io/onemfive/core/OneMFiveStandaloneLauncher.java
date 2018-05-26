@@ -16,18 +16,22 @@ import java.util.logging.Logger;
  */
 public class OneMFiveStandaloneLauncher {
 
-    private final Logger LOG = Logger.getLogger(OneMFiveStandaloneLauncher.class.getName());
+    static {
+        System.setProperty("java.util.logging.config.file","logging.config");
+    }
+
+    private static final Logger LOG = Logger.getLogger(OneMFiveStandaloneLauncher.class.getName());
 
     private static OneMFiveStandaloneLauncher launcher;
 
     public static void main(String args[]) {
-        System.out.println("Starting 1M5 Standalone...");
+        LOG.info("Starting 1M5 Standalone...");
         OneMFiveVersion.print();
 
         launcher = new OneMFiveStandaloneLauncher();
         launcher.launch(args);
 
-        System.out.println("1M5 Standalone exiting...");
+        LOG.info("1M5 Standalone exiting...");
         System.exit(0);
     }
 
@@ -48,7 +52,7 @@ public class OneMFiveStandaloneLauncher {
                     @Override
                     public void reply(Envelope e) {
                         Route route = e.getRoute();
-                        System.out.println(ServiceCallback.class.getSimpleName()+": id="+e.getId()+", service="+route.getService()+", operation="+route.getOperation()+", message="+e.getMessage());
+                        LOG.info("CB: id="+e.getId()+", service="+route.getService()+", operation="+route.getOperation()+", message="+e.getMessage());
                     }
                 };
                 e = Envelope.messageFactory(i+1, Envelope.MessageType.NONE);

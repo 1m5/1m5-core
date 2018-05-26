@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 public class I2PRouterUtil {
 
-    private final Logger LOG = Logger.getLogger(I2PRouterUtil.class.getName());
+    private static final Logger LOG = Logger.getLogger(I2PRouterUtil.class.getName());
 
     public static Router getGlobalI2PRouter(Properties properties, boolean autoStart) {
         Router globalRouter = null;
@@ -23,7 +23,7 @@ public class I2PRouterUtil {
         if(routerContext != null) {
             globalRouter = routerContext.router();
             if(globalRouter == null) {
-                System.out.println("Instantiating I2P Router...");
+                LOG.info("Instantiating I2P Router...");
                 File baseDir = OneMFiveAppContext.getInstance().getBaseDir();
                 String baseDirPath = baseDir.getAbsolutePath();
                 System.setProperty("i2p.dir.base", baseDirPath);
@@ -32,7 +32,7 @@ public class I2PRouterUtil {
                 globalRouter = new Router(properties);
             }
             if(autoStart && !globalRouter.isAlive()) {
-                System.out.println("Starting I2P Router...");
+                LOG.info("Starting I2P Router...");
                 globalRouter.setKillVMOnEnd(false);
                 globalRouter.runRouter();
             }

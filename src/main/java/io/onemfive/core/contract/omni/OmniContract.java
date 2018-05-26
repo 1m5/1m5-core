@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 public class OmniContract implements Contract {
 
-    private final Logger LOG = Logger.getLogger(OmniContract.class.getName());
+    private static final Logger LOG = Logger.getLogger(OmniContract.class.getName());
 
     @Override
     public void createContract(Envelope envelope) {

@@ -23,7 +23,7 @@ public class PeerDevice
 //        implements ConnectionInfoListener
 {
 
-    private final Logger LOG = Logger.getLogger(PeerDevice.class.getName());
+//    private static final Logger LOG = Logger.getLogger(PeerDevice.class.getName());
 
     public static final String IP_PEER = "192.168.49.1";
     public static int PORT = 8988;

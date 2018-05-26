@@ -39,7 +39,11 @@ import java.util.logging.Logger;
  */
 public class OneMFiveAppContext {
 
-    private final Logger LOG = Logger.getLogger(OneMFiveAppContext.class.getName());
+    static {
+        System.setProperty("java.util.logging.config.file","logging.config");
+    }
+
+    private static final Logger LOG = Logger.getLogger(OneMFiveAppContext.class.getName());
 
     /** the context that components without explicit root are bound */
     protected static OneMFiveAppContext globalAppContext;
@@ -87,10 +91,10 @@ public class OneMFiveAppContext {
         if(globalAppContext == null) {
             synchronized (lockA) {
                 globalAppContext = new OneMFiveAppContext(false, null);
-                System.out.println(OneMFiveAppContext.class.getSimpleName()+": created and returning new instance: "+globalAppContext);
+                LOG.info("Created and returning new instance: "+globalAppContext);
             }
         } else {
-            System.out.println(OneMFiveAppContext.class.getSimpleName() + ": returning cached instance: " + globalAppContext);
+            LOG.info("Returning cached instance: " + globalAppContext);
         }
         return globalAppContext;
     }
@@ -99,10 +103,10 @@ public class OneMFiveAppContext {
         if(globalAppContext == null) {
             synchronized (lockA) {
                 globalAppContext = new OneMFiveAppContext(false, properties);
-                System.out.println(OneMFiveAppContext.class.getSimpleName()+": created and returning new instance: "+globalAppContext);
+                LOG.info("Created and returning new instance: "+globalAppContext);
             }
         } else {
-            System.out.println(OneMFiveAppContext.class.getSimpleName() + ": returning cached instance: " + globalAppContext);
+            LOG.info("Returning cached instance: " + globalAppContext);
         }
         return globalAppContext;
     }
@@ -195,7 +199,7 @@ public class OneMFiveAppContext {
 
         String s = getProperty("1m5.dir.base", System.getProperty("user.dir"));
         s += "/.1m5";
-        System.out.println("Base Directory: "+s);
+        LOG.info("Base Directory: "+s);
         baseDir = new File(s);
         if(!baseDir.exists()) {
             baseDir.mkdir();
@@ -259,7 +263,7 @@ public class OneMFiveAppContext {
             if (globalAppContext == null) {
                 globalAppContext = this;
             } else {
-                System.out.println("Warning - New context not replacing old one, you now have an additional one");
+                LOG.warning("Warning - New context not replacing old one, you now have an additional one");
                 (new Exception("I did it")).printStackTrace();
             }
         }
@@ -348,11 +352,11 @@ public class OneMFiveAppContext {
                 } else if (tmpDir.mkdir()) {
                     tmpDir.deleteOnExit();
                 } else {
-                    System.err.println("WARNING: Could not create temp dir " + tmpDir.getAbsolutePath());
+                    LOG.warning("WARNING: Could not create temp dir " + tmpDir.getAbsolutePath());
                     tmpDir = new SecureFile(baseDir, "tmp");
                     tmpDir.mkdirs();
                     if (!tmpDir.exists())
-                        System.err.println("ERROR: Could not create temp dir " + tmpDir.getAbsolutePath());
+                        LOG.severe("ERROR: Could not create temp dir " + tmpDir.getAbsolutePath());
                 }
             }
         }

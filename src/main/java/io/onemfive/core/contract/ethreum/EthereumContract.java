@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  */
 public class EthereumContract implements Contract {
 
-    private final Logger LOG = Logger.getLogger(EthereumContract.class.getName());
+    private static final Logger LOG = Logger.getLogger(EthereumContract.class.getName());
 
     public EthereumContract() {
 

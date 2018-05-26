@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  */
 public class AmazonCleaner implements Cleaner {
 
-    private final Logger LOG = Logger.getLogger(AmazonCleaner.class.getName());
+    private static final Logger LOG = Logger.getLogger(AmazonCleaner.class.getName());
 
 
 }

@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class HAMSensor implements Sensor {
 
-    private final Logger LOG = Logger.getLogger(HAMSensor.class.getName());
+    private static final Logger LOG = Logger.getLogger(HAMSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

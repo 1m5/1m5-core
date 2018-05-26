@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 public class InfoVault implements LifeCycle {
 
-    private final Logger LOG = Logger.getLogger(InfoVault.class.getName());
+    private static final Logger LOG = Logger.getLogger(InfoVault.class.getName());
 
     private static InfoVault instance;
     private static Object lock = new Object();
@@ -58,7 +58,7 @@ public class InfoVault implements LifeCycle {
 
     @Override
     public boolean start(Properties properties) {
-        System.out.println("InfoVault starting up...");
+        LOG.info("Starting...");
         try {
             props = Config.loadFromClasspath("infovault.config", properties);
             db = new NitriteDBManager();
@@ -69,11 +69,11 @@ public class InfoVault implements LifeCycle {
             memoryTestDAO = new MemoryTestDAO(db);
 
         } catch (Exception e) {
-            System.out.println("InfoVault failed to start: "+e.getLocalizedMessage());
             e.printStackTrace();
+            LOG.warning("Failed to start: "+e.getLocalizedMessage());
             return false;
         }
-        System.out.println("InfoVault started.");
+        LOG.info("Started.");
         return true;
     }
 
@@ -94,9 +94,9 @@ public class InfoVault implements LifeCycle {
 
     @Override
     public boolean shutdown() {
-        System.out.println("InfoVault shutting down...");
+        LOG.info("Shutting down...");
         boolean shutdown = db.shutdown();
-        System.out.println("InfoVault shutdown.");
+        System.out.println("Shutdown.");
         return shutdown;
     }
 

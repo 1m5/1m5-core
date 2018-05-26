@@ -39,7 +39,7 @@ import java.util.logging.Logger;
  */
 public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegistrar {
 
-    private final Logger LOG = Logger.getLogger(ServiceBus.class.getName());
+    private static final Logger LOG = Logger.getLogger(ServiceBus.class.getName());
 
     public enum Status {Starting, Running, Stopping, Stopped}
 
@@ -64,22 +64,22 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     public ServiceBus(Properties properties, ClientAppManager clientAppManager) {
         this.properties = properties;
         this.clientAppManager = clientAppManager;
-        System.out.println(ServiceBus.class.getSimpleName()+": ServiceBus instantiated with maxThreads="+maxThreads+" and maxMessagesCached="+maxMessagesCached);
+        LOG.info("Instantiated with maxThreads="+maxThreads+" and maxMessagesCached="+maxMessagesCached);
     }
 
     @Override
     public boolean send(Envelope envelope) {
-        System.out.println(ServiceBus.class.getSimpleName()+": Received envelope. Sending to channel...");
+        LOG.info("Received envelope. Sending to channel...");
         if(pool != null && pool.getStatus() == WorkerThreadPool.Status.Running) {
             return channel.send(envelope);
         } else {
-            System.out.println(ServiceBus.class.getSimpleName()+": Unable to send to channel: pool.status="+pool.getStatus().toString());
+            LOG.warning("Unable to send to channel: pool.status="+pool.getStatus().toString());
             return false;
         }
     }
 
     public void register(Class serviceClass) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
-        System.out.println("Registering service class: "+serviceClass.getName());
+        LOG.info("Registering service class: "+serviceClass.getName());
         if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
@@ -89,12 +89,14 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             service.setProducer(this);
             // register service
             registeredServices.put(serviceClass.getName(), service);
+            LOG.info("Service registered successfully: "+serviceName);
             // start registered service
             new AppThread(new Runnable() {
                 @Override
                 public void run() {
                     if(service.start(properties)) {
                         runningServices.put(serviceName, service);
+                        LOG.info("Service registered successfully as running: "+serviceName);
                     }
                 }
             }, serviceName+"-StartupThread").start();
@@ -115,6 +117,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
                     if(service.shutdown()) {
                         runningServices.remove(serviceName);
                         registeredServices.remove(serviceName);
+                        LOG.info("Service unregistered successfully: "+serviceName);
                     }
                 }
             }, serviceName+"-ShutdownThread").start();
@@ -150,7 +153,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Failed to load bus.config in ServiceBus.");
+            LOG.warning("Failed to load bus.config in ServiceBus.");
         }
 
         channel = new MessageChannel(maxMessagesCached);
@@ -250,6 +253,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
      */
     @Override
     public boolean shutdown() {
+        LOG.info("Shutting down...");
         status = Status.Stopping;
         spin.set(false);
         pool.shutdown();
@@ -266,6 +270,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             }, serviceName+"-ShutdownThread").start();
         }
         status = Status.Stopped;
+        LOG.info("Shutdown.");
         return true;
     }
 
@@ -278,7 +283,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
      */
     @Override
     public boolean gracefulShutdown() {
-        return false;
+        return shutdown();
     }
 
     public Status getStatus() {

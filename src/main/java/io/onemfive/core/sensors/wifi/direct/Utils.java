@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class Utils {
 
-    private final Logger LOG = Logger.getLogger(Utils.class.getName());
+    private static final Logger LOG = Logger.getLogger(Utils.class.getName());
 
     private final static String p2pInt = "p2p-p2p0";
 
