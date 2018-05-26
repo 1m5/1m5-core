@@ -1,5 +1,7 @@
 package io.onemfive.core.sensors.wifi.direct;
 
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
@@ -8,6 +10,8 @@ package io.onemfive.core.sensors.wifi.direct;
 public class WiFiDirectDisconnectListener
 //        implements WifiP2pManager.ActionListener
 {
+
+    private final Logger LOG = Logger.getLogger(WiFiDirectDisconnectListener.class.getName());
 
     private PeerDevice peerDevice;
 

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -19,6 +20,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class InfoVaultService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(InfoVaultService.class.getName());
 
     public static final String OPERATION_LOAD = "LOAD";
     public static final String OPERATION_SAVE = "SAVE";

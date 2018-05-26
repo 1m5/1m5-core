@@ -8,6 +8,7 @@ import io.onemfive.data.Envelope;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 
 /**
  * Manages Client Application interaction with the 1M5 service.
@@ -15,6 +16,8 @@ import java.util.Random;
  * @author objectorange
  */
 public final class ClientAppManager {
+
+    private final Logger LOG = Logger.getLogger(ClientAppManager.class.getName());
 
     public enum Status {STOPPED, INITIALIZING, READY}
 

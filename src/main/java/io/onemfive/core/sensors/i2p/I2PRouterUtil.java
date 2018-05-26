@@ -6,6 +6,7 @@ import net.i2p.router.RouterContext;
 
 import java.io.File;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -13,6 +14,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class I2PRouterUtil {
+
+    private final Logger LOG = Logger.getLogger(I2PRouterUtil.class.getName());
 
     public static Router getGlobalI2PRouter(Properties properties, boolean autoStart) {
         Router globalRouter = null;

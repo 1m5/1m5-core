@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 /**
  * Thread pool for WorkerThreads.
@@ -18,6 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author objectorange
  */
 final class WorkerThreadPool extends AppThread {
+
+    private final Logger LOG = Logger.getLogger(WorkerThreadPool.class.getName());
 
     public enum Status {Starting, Running, Stopping, Stopped}
 

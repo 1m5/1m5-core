@@ -5,6 +5,8 @@ import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.data.*;
 
+import java.util.logging.Logger;
+
 /**
  *  This is the class called by the 1m5.sh script on linux.
  *
@@ -13,6 +15,8 @@ import io.onemfive.data.*;
  * @author objectorange
  */
 public class OneMFiveStandaloneLauncher {
+
+    private final Logger LOG = Logger.getLogger(OneMFiveStandaloneLauncher.class.getName());
 
     private static OneMFiveStandaloneLauncher launcher;
 

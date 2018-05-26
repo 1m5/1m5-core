@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Abstracts IPFS as an internal Service.
@@ -22,6 +23,8 @@ import java.util.*;
  * @author objectorange
  */
 public class IPFSService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(IPFSService.class.getName());
 
     // Gateways
     public static final String OPERATION_GATEWAY_LIST = "GATEWAY_LIST";

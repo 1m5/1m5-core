@@ -1,11 +1,15 @@
 package io.onemfive.core.sensors.wifi.util;
 
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
  * @author objectorange
  */
 public class WiFiUtil {
+
+    private final Logger LOG = Logger.getLogger(WiFiUtil.class.getName());
 
     /**
      * distance = 10 ^ ((27.55 - (20 * log10(frequency)) + signalLevel)/20)

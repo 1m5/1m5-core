@@ -3,12 +3,16 @@ package io.onemfive.core.contract.ethreum;
 import io.onemfive.core.contract.Contract;
 import io.onemfive.data.Envelope;
 
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
  * @author objectorange
  */
 public class EthereumContract implements Contract {
+
+    private final Logger LOG = Logger.getLogger(EthereumContract.class.getName());
 
     public EthereumContract() {
 

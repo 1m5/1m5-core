@@ -4,6 +4,7 @@ import io.onemfive.core.sensors.Sensor;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Provides an API for Tor Router.
@@ -15,6 +16,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class TorSensor implements Sensor {
+
+    private final Logger LOG = Logger.getLogger(TorSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

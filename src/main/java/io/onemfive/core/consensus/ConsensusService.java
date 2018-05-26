@@ -4,6 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -11,6 +12,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class ConsensusService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(ConsensusService.class.getName());
 
     public ConsensusService(MessageProducer producer) {
         super(producer);

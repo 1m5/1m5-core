@@ -9,6 +9,7 @@ import io.onemfive.core.util.stat.StatManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * <p>Provide a scope for accessing services that SC provides.  Rather than
@@ -37,6 +38,9 @@ import java.util.*;
  * @author I2P, objectorange
  */
 public class OneMFiveAppContext {
+
+    private final Logger LOG = Logger.getLogger(OneMFiveAppContext.class.getName());
+
     /** the context that components without explicit root are bound */
     protected static OneMFiveAppContext globalAppContext;
 

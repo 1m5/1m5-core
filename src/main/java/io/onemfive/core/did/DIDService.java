@@ -9,6 +9,7 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Decentralized IDentifier Service
@@ -18,6 +19,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class DIDService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(DIDService.class.getName());
 
     public static final String OPERATION_VERIFY = "Verify";
     public static final String OPERATION_AUTHENTICATE = "Authenticate";

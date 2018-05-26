@@ -3,6 +3,9 @@ package io.onemfive.core.sensors.wifi.direct;
 //import android.content.Context;
 //import android.net.wifi.p2p.WifiP2pManager;
 //import android.util.Log;
+
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
@@ -12,6 +15,7 @@ public class WiFiDirectDiscoveryListener
 //        implements
 //        WifiP2pManager.ActionListener
 {
+    private final Logger LOG = Logger.getLogger(WiFiDirectDiscoveryListener.class.getName());
 
 //    private Context context;
 //

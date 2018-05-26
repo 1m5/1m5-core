@@ -3,6 +3,8 @@ package io.onemfive.core.contract.omni;
 import io.onemfive.core.contract.Contract;
 import io.onemfive.data.Envelope;
 
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
@@ -12,6 +14,8 @@ import io.onemfive.data.Envelope;
  * @author objectorange
  */
 public class OmniContract implements Contract {
+
+    private final Logger LOG = Logger.getLogger(OmniContract.class.getName());
 
     @Override
     public void createContract(Envelope envelope) {

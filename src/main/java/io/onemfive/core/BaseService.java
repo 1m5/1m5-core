@@ -4,6 +4,7 @@ import io.onemfive.core.infovault.InfoVault;
 import io.onemfive.data.*;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -11,6 +12,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public abstract class BaseService implements MessageConsumer, Service, LifeCycle {
+
+    private final Logger LOG = Logger.getLogger(BaseService.class.getName());
 
     protected boolean orchestrator = false;
     private MessageProducer producer;
@@ -57,27 +60,27 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     }
 
     protected final void endRoute(Envelope envelope) {
-        System.out.println("End of route and no client to return to:"+envelope);
+        LOG.info("End of route and no client to return to:"+envelope);
     }
 
     @Override
-    public void handleDocument(Envelope envelope) {System.out.println(this.getClass().getName()+" has not implemented handleDocument().");}
+    public void handleDocument(Envelope envelope) {LOG.warning(this.getClass().getName()+" has not implemented handleDocument().");}
 
     @Override
-    public void handleEvent(Envelope envelope) {System.out.println(this.getClass().getName()+" has not implemented handleEvent().");}
+    public void handleEvent(Envelope envelope) {LOG.warning(this.getClass().getName()+" has not implemented handleEvent().");}
 
     @Override
-    public void handleCommand(Envelope envelope) {System.out.println(this.getClass().getName()+" has not implemented handleCommand().");}
+    public void handleCommand(Envelope envelope) {LOG.warning(this.getClass().getName()+" has not implemented handleCommand().");}
 
     @Override
-    public void handleHeaders(Envelope envelope) {System.out.println(this.getClass().getName()+" has not implemented handleHeaders().");}
+    public void handleHeaders(Envelope envelope) {LOG.warning(this.getClass().getName()+" has not implemented handleHeaders().");}
 
     /**
      * Supports synchronous high-priority calls from ServiceBus and asynchronous low-priority calls from receive()
      * @param envelope
      */
     final void runCommand(Envelope envelope) {
-        System.out.println("Running command by service...");
+        LOG.info("Running command by service...");
         CommandMessage m = (CommandMessage)envelope.getMessage();
         switch(m.getCommand()) {
             case Shutdown: {shutdown();break;}
@@ -90,7 +93,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     }
 
     protected final void reply(Envelope envelope) {
-        System.out.println(BaseService.class.getSimpleName()+": Sending reply to service bus...");
+        LOG.info("Sending reply to service bus...");
         int maxAttempts = 30;
         int attempts = 0;
         // Create new Envelope instance with same ID, Headers, and Message so that Message Channel sees it as a different envelope.

@@ -17,6 +17,7 @@ import java.nio.ByteBuffer;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -24,6 +25,8 @@ import java.util.*;
  * @author objectorange
  */
 public final class ClearnetSensor implements Sensor {
+
+    private final Logger LOG = Logger.getLogger(ClearnetSensor.class.getName());
 
     private static final Set<String> trustedHosts = new HashSet<>();
 

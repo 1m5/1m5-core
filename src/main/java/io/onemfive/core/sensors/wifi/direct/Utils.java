@@ -8,12 +8,16 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
  * @author objectorange
  */
 public class Utils {
+
+    private final Logger LOG = Logger.getLogger(Utils.class.getName());
 
     private final static String p2pInt = "p2p-p2p0";
 

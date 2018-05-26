@@ -7,6 +7,7 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -14,6 +15,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class RepositoryService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(RepositoryService.class.getName());
 
     public RepositoryService(MessageProducer producer) {
         super(producer);

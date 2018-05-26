@@ -13,6 +13,7 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * This is the main entry point into the application by supported networks.
@@ -21,6 +22,8 @@ import java.util.*;
  *  @author ObjectOrange
  */
 public class SensorsService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(SensorsService.class.getName());
 
     public static final String OPERATION_SEND = "SEND";
 

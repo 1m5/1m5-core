@@ -16,6 +16,7 @@ import io.onemfive.core.sensors.Sensor;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -28,6 +29,8 @@ public class WiFiDirectSensor
 //        WifiP2pManager.ChannelListener,
 //        DeviceActionListener
 {
+
+    private final Logger LOG = Logger.getLogger(WiFiDirectSensor.class.getName());
 
 //    private WifiP2pManager manager;
     private boolean isWifiP2pEnabled = false;

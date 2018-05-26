@@ -14,6 +14,7 @@ import io.onemfive.data.Route;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -21,6 +22,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class AdminService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(AdminService.class.getName());
 
     public static final String OPERATION_REGISTER_SERVICES = "REGISTER_SERVICES";
 

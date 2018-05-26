@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Provides an API for I2P Bote Router.
@@ -36,6 +37,8 @@ import java.util.*;
  * @author objectorange
  */
 public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailListener {
+
+    private final Logger LOG = Logger.getLogger(I2PBoteSensor.class.getName());
 
     public enum Status {
         // These states persist even if it died.

@@ -7,6 +7,7 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -14,6 +15,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class ContractService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(ContractService.class.getName());
 
     // Bounties
     public static final String OPERATION_CREATE_BOUNTY = "CREATE_BOUNTY";

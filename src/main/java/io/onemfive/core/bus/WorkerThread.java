@@ -9,6 +9,7 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Worker Thread for moving messages from clients to the message channel and then to services and back.
@@ -16,6 +17,8 @@ import java.util.Map;
  * @author objectorange
  */
 final class WorkerThread extends AppThread {
+
+    private final Logger LOG = Logger.getLogger(WorkerThread.class.getName());
 
     private MessageChannel channel;
     private ClientAppManager clientAppManager;

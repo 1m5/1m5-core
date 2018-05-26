@@ -4,6 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * User Utility Token for measuring and managing resource usage.
@@ -11,6 +12,8 @@ import java.util.Properties;
  * @author ObjectOrange
  */
 public class PranaService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(PranaService.class.getName());
 
     public PranaService(MessageProducer producer) {
         super(producer);

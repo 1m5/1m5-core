@@ -2,6 +2,7 @@ package io.onemfive.core.bus;
 
 import java.util.Collection;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.logging.Logger;
 
 /**
  * Provides persistence to ArrayBlockingQueue
@@ -11,6 +12,8 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @author objectorange
  */
 final class PersistentMessageQueue<E> extends ArrayBlockingQueue<E> {
+
+    private final Logger LOG = Logger.getLogger(PersistentMessageQueue.class.getName());
 
     public PersistentMessageQueue(int capacity) {
         super(capacity);

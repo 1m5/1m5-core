@@ -1,5 +1,7 @@
 package io.onemfive.core.sensors.wifi.direct;
 
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
@@ -8,6 +10,8 @@ package io.onemfive.core.sensors.wifi.direct;
 public class WiFiDirectBroadcastReceiver
 //        extends BroadcastReceiver
 {
+
+    private final Logger LOG = Logger.getLogger(WiFiDirectBroadcastReceiver.class.getName());
 
 //    private WifiP2pManager manager;
 //    private Channel channel;

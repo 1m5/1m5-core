@@ -1,5 +1,7 @@
 package io.onemfive.core.sensors.wifi.direct;
 
+import java.util.logging.Logger;
+
 /**
  * A service that process each file transfer request i.e Intent by opening a
  * socket connection with the WiFi Direct Group Owner and writing the file
@@ -7,6 +9,8 @@ package io.onemfive.core.sensors.wifi.direct;
  * @author objectorange
  */
 public class WiFiDirectFileTransferService {
+
+    private final Logger LOG = Logger.getLogger(WiFiDirectFileTransferService.class.getName());
 
     private static final int SOCKET_TIMEOUT = 5000;
     public static final String ACTION_SEND_FILE = "com.example.android.wifidirect.SEND_FILE";

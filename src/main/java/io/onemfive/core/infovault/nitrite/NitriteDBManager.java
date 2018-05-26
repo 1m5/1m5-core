@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -21,6 +22,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class NitriteDBManager implements LifeCycle {
+
+    private final Logger LOG = Logger.getLogger(NitriteDBManager.class.getName());
 
     private Nitrite db = null;
 

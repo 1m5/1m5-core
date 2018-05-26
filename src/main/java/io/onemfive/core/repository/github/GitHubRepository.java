@@ -3,6 +3,8 @@ package io.onemfive.core.repository.github;
 import io.onemfive.core.repository.Repository;
 import io.onemfive.data.Envelope;
 
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
@@ -11,6 +13,8 @@ import io.onemfive.data.Envelope;
  * @author objectorange
  */
 public class GitHubRepository implements Repository {
+
+    private final Logger LOG = Logger.getLogger(GitHubRepository.class.getName());
 
     @Override
     public void provideAccess(Envelope envelope) {

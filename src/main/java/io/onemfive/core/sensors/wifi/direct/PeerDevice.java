@@ -10,6 +10,9 @@ package io.onemfive.core.sensors.wifi.direct;
 //import android.os.Environment;
 //import android.util.Log;
 //import android.view.View;
+
+import java.util.logging.Logger;
+
 /**
  * A fragment that manages a particular peer and allows interaction with device
  * i.e. setting up network connection and transferring data.
@@ -19,6 +22,8 @@ package io.onemfive.core.sensors.wifi.direct;
 public class PeerDevice
 //        implements ConnectionInfoListener
 {
+
+    private final Logger LOG = Logger.getLogger(PeerDevice.class.getName());
 
     public static final String IP_PEER = "192.168.49.1";
     public static int PORT = 8988;

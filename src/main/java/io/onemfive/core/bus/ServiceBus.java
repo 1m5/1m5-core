@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 /**
  * Encompasses all functionality needed to support messaging between
@@ -37,6 +38,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author objectorange
  */
 public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegistrar {
+
+    private final Logger LOG = Logger.getLogger(ServiceBus.class.getName());
 
     public enum Status {Starting, Running, Stopping, Stopped}
 

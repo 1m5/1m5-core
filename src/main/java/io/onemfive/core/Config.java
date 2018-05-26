@@ -3,6 +3,7 @@ package io.onemfive.core;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -10,6 +11,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class Config {
+
+    private final Logger LOG = Logger.getLogger(Config.class.getName());
 
     public static Properties loadFromClasspath(String name, Properties scProps) throws Exception {
         System.out.println("Loading properties file "+name+"...");

@@ -4,6 +4,7 @@ import io.onemfive.core.sensors.Sensor;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Manages WiFi Aware for establishing available peers.
@@ -13,6 +14,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class WiFiAwareSensor implements Sensor {
+
+    private final Logger LOG = Logger.getLogger(WiFiAwareSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

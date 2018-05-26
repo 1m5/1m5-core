@@ -5,6 +5,8 @@ package io.onemfive.core.sensors.wifi.direct;
 //import android.net.wifi.p2p.WifiP2pManager;
 //import android.util.Log;
 
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
@@ -13,6 +15,8 @@ package io.onemfive.core.sensors.wifi.direct;
 public class PeerDeviceList
 //        implements WifiP2pManager.PeerListListener
 {
+
+    private final Logger LOG = Logger.getLogger(PeerDeviceList.class.getName());
 
 //    private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
 //    private WifiP2pDevice device;

@@ -8,6 +8,7 @@ import net.i2p.router.Router;
 
 import java.io.File;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Embeds I2P
@@ -15,6 +16,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class I2PSensor implements Sensor {
+
+    private final Logger LOG = Logger.getLogger(I2PSensor.class.getName());
 
     public enum Status {
         // These states persist even if it died.

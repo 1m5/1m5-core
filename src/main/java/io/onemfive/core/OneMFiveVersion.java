@@ -1,11 +1,16 @@
 package io.onemfive.core;
 
+import java.util.logging.Logger;
+
 /**
  * TODO: Add Description
  *
  * @author objectorange
  */
 public class OneMFiveVersion {
+
+    private final Logger LOG = Logger.getLogger(OneMFiveVersion.class.getName());
+
     /** deprecated */
     public final static String ID = "io.synapticcelerity.core";
     public final static String VERSION = "0.3.2";

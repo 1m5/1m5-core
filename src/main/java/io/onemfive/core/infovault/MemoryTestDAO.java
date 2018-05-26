@@ -10,6 +10,7 @@ import org.dizitart.no2.objects.filters.ObjectFilters;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -17,6 +18,8 @@ import java.util.List;
  * @author objectorange
  */
 public class MemoryTestDAO {
+
+    private final Logger LOG = Logger.getLogger(MemoryTestDAO.class.getName());
 
     private NitriteDBManager dbMgr;
     private SecureRandom random = new SecureRandom(new byte[2398]);

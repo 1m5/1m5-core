@@ -4,6 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -11,6 +12,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class PaymentService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(PaymentService.class.getName());
 
     public PaymentService(MessageProducer producer) {
         super(producer);

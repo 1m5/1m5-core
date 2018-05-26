@@ -5,6 +5,7 @@ import io.onemfive.core.LifeCycle;
 import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * InfoVault
@@ -19,6 +20,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class InfoVault implements LifeCycle {
+
+    private final Logger LOG = Logger.getLogger(InfoVault.class.getName());
 
     private static InfoVault instance;
     private static Object lock = new Object();

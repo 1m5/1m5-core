@@ -4,6 +4,7 @@ import io.onemfive.core.sensors.Sensor;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -11,6 +12,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class NFCSensor implements Sensor {
+
+    private final Logger LOG = Logger.getLogger(NFCSensor.class.getName());
 
     @Override
     public boolean send(Envelope envelope) {

@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -14,6 +15,8 @@ import java.util.concurrent.TimeUnit;
  * @author objectorange
  */
 final class MessageChannel implements MessageProducer {
+
+    private final Logger LOG = Logger.getLogger(MessageChannel.class.getName());
 
     private boolean accepting = false;
     private BlockingQueue<Envelope> queue;

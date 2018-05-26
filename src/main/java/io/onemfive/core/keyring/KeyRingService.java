@@ -4,6 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Manages and secures keys.
@@ -11,6 +12,8 @@ import java.util.Properties;
  * @author ObjectOrange
  */
 public class KeyRingService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(KeyRingService.class.getName());
 
     public KeyRingService(MessageProducer producer) {
         super(producer);

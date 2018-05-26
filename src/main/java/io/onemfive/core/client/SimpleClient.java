@@ -6,6 +6,7 @@ import io.onemfive.data.Envelope;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * A simple client for making requests to SC services.
@@ -13,6 +14,8 @@ import java.util.Map;
  * @author objectorange
  */
 final class SimpleClient implements Client {
+
+    private final Logger LOG = Logger.getLogger(SimpleClient.class.getName());
 
     private Map<Long,ServiceCallback> claimCheck;
     private Long id;

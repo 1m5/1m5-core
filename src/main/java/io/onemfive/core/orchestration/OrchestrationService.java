@@ -5,6 +5,7 @@ import io.onemfive.core.MessageProducer;
 import io.onemfive.data.*;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Orchestrating services based on configurable route patterns.
@@ -12,6 +13,8 @@ import java.util.Properties;
  * @author objectorange
  */
 public class OrchestrationService extends BaseService {
+
+    private final Logger LOG = Logger.getLogger(OrchestrationService.class.getName());
 
     private boolean starting = false;
     private boolean running = false;

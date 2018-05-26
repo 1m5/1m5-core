@@ -5,6 +5,7 @@ import io.onemfive.data.DID;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
 import java.security.SecureRandom;
+import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -12,6 +13,8 @@ import java.security.SecureRandom;
  * @author objectorange
  */
 public class DIDDAO {
+
+    private final Logger LOG = Logger.getLogger(DIDDAO.class.getName());
 
     private NitriteDBManager dbMgr;
     private SecureRandom random = new SecureRandom(new byte[2398]);
