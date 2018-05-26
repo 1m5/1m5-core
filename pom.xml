@@ -83,6 +83,12 @@
 			<artifactId>nitrite</artifactId>
 			<version>3.0.0</version>
 			<!--<license>Apache 2.0</license>-->
+			<exclusions>
+				<exclusion>
+					<groupId>com.squareup.okhttp3</groupId>
+					<artifactId>okhttp</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- Sensors: I2P -->
 		<dependency>
@@ -120,13 +126,14 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/libs/flexi-gmss-1.7p1.jar</systemPath>
 		</dependency>
-		<!-- Contract -->
+		<!-- Sensors: Clearnet -->
 		<dependency>
-			<groupId>org.web3j</groupId>
-			<artifactId>core</artifactId>
-			<version>3.3.1-android</version>
-			<!--<license>Apache 2.0</license>-->
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>3.10.0</version>
 		</dependency>
+		<!-- Contract -->
+
 		<!-- Test -->
 		<dependency>
 			<groupId>junit</groupId>
