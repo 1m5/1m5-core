@@ -154,11 +154,13 @@ public class IPFSService extends BaseService {
             operation = request.requestedOperation;
             isRequest = false;
             contentBytes = (byte[])DLC.getContent(e);
-            contentStr = new String(contentBytes);
+            if(contentBytes != null)
+                contentStr = new String(contentBytes);
             response = new IPFSResponse();
             DLC.addData(IPFSResponse.class, response, e);
         } else {
             LOG.info("Handling IPFSRequest: "+request);
+            request.requestedOperation = operation;
         }
         String urlStr = "";
 //        Boolean snapshot = (Boolean)((DocumentMessage)e.getMessage()).data.get(0).get(DLC.SNAPSHOT);
@@ -190,6 +192,7 @@ public class IPFSService extends BaseService {
             case OPERATION_GATEWAY_ADD: {
                 if(isRequest) {
                     urlStr = getActiveGateway().replace(":hash", "");
+                    e.setAction(Envelope.Action.ADD);
                     Multipart m = new Multipart(encoding);
                     if (request.files == null) {
                         request.files = new ArrayList<>();
@@ -223,6 +226,7 @@ public class IPFSService extends BaseService {
             case OPERATION_GATEWAY_GET: {
                 if(isRequest) {
                     urlStr = getActiveGateway().replace(":hash", request.hash.toString());
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultBytes = contentBytes;
                 }
@@ -239,6 +243,7 @@ public class IPFSService extends BaseService {
             case OPERATION_ADD: {
                 if(isRequest) {
                     urlStr = local + version + "add?stream-channels=true";
+                    e.setAction(Envelope.Action.ADD);
                     Multipart m = new Multipart(encoding);
                     if (request.files == null) {
                         request.files = new ArrayList<>();
@@ -272,6 +277,7 @@ public class IPFSService extends BaseService {
             case OPERATION_LIST: {
                 if(isRequest) {
                     urlStr = local + version + "ls/" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     Map res = (Map)JSONParser.parse(contentStr);
                     List<MerkleNode> merkleNodes = new ArrayList<>();
@@ -287,6 +293,7 @@ public class IPFSService extends BaseService {
                 if(isRequest) {
                     if (request.subPath == null) {
                         urlStr = local + version + "cat/" + request.hash;
+                        e.setAction(Envelope.Action.VIEW);
                     } else {
                         try {
                             urlStr = local + version + "cat?arg=" + request.hash.toString() + URLEncoder.encode(request.subPath, encoding);
@@ -303,6 +310,7 @@ public class IPFSService extends BaseService {
             case OPERATION_GET: {
                 if(isRequest) {
                     urlStr = local + version + "get/" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultBytes = contentBytes;
                 }
@@ -313,6 +321,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version
                             + "refs?arg=" + request.hash.toString()
                             + "&r=" + request.recursive.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -322,6 +331,7 @@ public class IPFSService extends BaseService {
             case OPERATION_REFS_LOCAL: {
                 if(isRequest) {
                     urlStr = local + version + "refs/local";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     List<Multihash> multihashs = new ArrayList<>();
                     List<Object> objects = JSONParser.parseStream(contentStr);
@@ -337,6 +347,7 @@ public class IPFSService extends BaseService {
                             + "resolve?arg=/" + request.scheme
                             + "/" + request.hash.toString()
                             + "&r=" + request.recursive.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -345,6 +356,7 @@ public class IPFSService extends BaseService {
             case OPERATION_DNS: {
                 if(isRequest) {
                     urlStr = local + version + "dns?arg=" + request.domain;
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultString = (String)((Map)JSONParser.parse(contentStr)).get("Path");
                 }
@@ -362,6 +374,7 @@ public class IPFSService extends BaseService {
                             (request.ipfsRoot != null ? request.ipfsRoot.getPath() : "/ipfs")
                             + "&arg=" +
                             (request.ipnsRoot != null ? request.ipnsRoot.getPath() : "/ipns");
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -373,6 +386,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version
                             + "pin/add?stream-channels=true&arg="
                             + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     List<Object> objects = (List<Object>)((Map)JSONParser.parse(contentStr)).get("Pins");
                     List<Multihash> pins = new ArrayList<>();
@@ -388,6 +402,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version
                             + "pin/ls?stream-channels=true&t="
                             + request.pinType.name();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     Map<Multihash, Object> pins = new HashMap<>();
                     Map<String,Object> objMap = (Map<String,Object>)((Map)JSONParser.parse(contentStr)).get("Keys");
@@ -403,6 +418,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version
                             + "pin/ls?stream-channels=true&t="
                             + IPFSRequest.PinType.direct;
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     Map<Multihash, Object> pins = new HashMap<>();
                     Map<String,Object> objMap = (Map<String,Object>)((Map)JSONParser.parse(contentStr)).get("Keys");
@@ -418,6 +434,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version
                             + "pin/rm?stream-channels=true&r=" + request.recursive.toString()
                             + "&arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     List<Multihash> pins = new ArrayList<>();
                     List<Object> objects = (List<Object>)((Map)JSONParser.parse(contentStr)).get("Pins");
@@ -433,6 +450,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version
                             + "pin/rm?stream-channels=true&r=true"
                             + "&arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     List<Multihash> pins = new ArrayList<>();
                     List<Object> objects = (List<Object>)((Map)JSONParser.parse(contentStr)).get("Pins");
@@ -447,6 +465,7 @@ public class IPFSService extends BaseService {
             case OPERATION_BLOCK_GET: {
                 if(isRequest) {
                     urlStr = local + version + "block/get?stream-channels=true&arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultBytes = contentBytes;
                 }
@@ -455,6 +474,7 @@ public class IPFSService extends BaseService {
             case OPERATION_BLOCK_PUT: {
                 if(isRequest) {
                     urlStr = local + version + "block/put?stream-channels=true";
+                    e.setAction(Envelope.Action.UPDATE);
                     Multipart m = new Multipart(encoding);
                     for (byte[] f : request.dataBytesList) {
                         try {
@@ -478,6 +498,7 @@ public class IPFSService extends BaseService {
             case OPERATION_BLOCK_STAT: {
                 if(isRequest) {
                     urlStr = local + version + "block/stat?stream-channels=true&arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -487,6 +508,7 @@ public class IPFSService extends BaseService {
             case OPERATION_OBJECT_PUT: {
                 if(isRequest) {
                     urlStr = local + version + "object/put?stream-channels=true";
+                    e.setAction(Envelope.Action.UPDATE);
                     Multipart m = new Multipart(encoding);
                     for (byte[] f : request.dataBytesList) {
                         try {
@@ -510,6 +532,7 @@ public class IPFSService extends BaseService {
             case OPERATION_OBJECT_PUT_ENCODED: {
                 if(isRequest) {
                     urlStr = local + version + "object/put?stream-channels=true&encoding=" + request.encoding;
+                    e.setAction(Envelope.Action.UPDATE);
                     Multipart m = new Multipart(encoding);
                     for (byte[] f : request.dataBytesList) {
                         try {
@@ -533,6 +556,7 @@ public class IPFSService extends BaseService {
             case OPERATION_OBJECT_GET: {
                 if(isRequest) {
                     urlStr = local + version + "object/get?stream-channels=true&arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     Map json  = (Map)JSONParser.parse(contentStr);
                     json.put("Hash",request.hash.toString());
@@ -543,6 +567,7 @@ public class IPFSService extends BaseService {
             case OPERATION_OBJECT_LINKS: {
                 if(isRequest) {
                     urlStr = local + version + "object/links?stream-channels=true&arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.merkleNode = MerkleNode.fromJSON(JSONParser.parse(contentStr));
                 }
@@ -551,6 +576,7 @@ public class IPFSService extends BaseService {
             case OPERATION_OBJECT_STAT: {
                 if(isRequest) {
                     urlStr = local + version + "object/stat?stream-channels=true&arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -559,6 +585,7 @@ public class IPFSService extends BaseService {
             case OPERATION_OBJECT_DATA: {
                 if(isRequest) {
                     urlStr = local + version + "object/data?stream-channels=true&arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultBytes = contentBytes;
                 }
@@ -573,6 +600,7 @@ public class IPFSService extends BaseService {
                     }
                     urlStr = local + version + "object/new?stream-channels=true"
                             + (request.template != null ? "&arg=" + request.template : "");
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.merkleNode = MerkleNode.fromJSON(JSONParser.parse(contentStr));
                 }
@@ -595,12 +623,14 @@ public class IPFSService extends BaseService {
                                 // TODO: Return error report instead
                                 return;
                             }
+                            e.setAction(Envelope.Action.VIEW);
                         case "rm-link":
                             if (request.name == null) {
                                 LOG.warning("link name is required!");
                                 // TODO: Return error report instead
                                 return;
                             }
+                            e.setAction(Envelope.Action.VIEW);
                         case "set-data":
                         case "append-data":
                             if (request.dataBytes == null) {
@@ -610,6 +640,7 @@ public class IPFSService extends BaseService {
                                 return;
                             }
                             urlStr += "&stream-channels=true";
+                            e.setAction(Envelope.Action.ADD);
                             Multipart m = new Multipart(encoding);
                             try {
                                 m.addFilePart("file", new ByteArrayWrapper(request.dataBytes));
@@ -633,6 +664,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version + "name/publish?arg="
                             + (request.id == null ? "" : request.id + "&arg=")
                             + "/ipfs/" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -641,6 +673,7 @@ public class IPFSService extends BaseService {
             case OPERATION_NAME_RESOLVE: {
                 if(isRequest) {
                     urlStr = local + version + "name/resolve?arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultString = (String)((Map)JSONParser.parse(contentStr)).get("Path");
                 }
@@ -649,6 +682,7 @@ public class IPFSService extends BaseService {
             case OPERATION_DHT_FINDPROVS: {
                 if(isRequest) {
                     urlStr = local + version + "dht/findprovs?arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -657,6 +691,7 @@ public class IPFSService extends BaseService {
             case OPERATION_DHT_QUERY: {
                 if(isRequest) {
                     urlStr = local + version + "dht/query?arg=" + request.addr.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -665,6 +700,7 @@ public class IPFSService extends BaseService {
             case OPERATION_DHT_FINDPEER: {
                 if(isRequest) {
                     urlStr = local + version + "dht/findpeer?arg=" + request.addr.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -673,6 +709,7 @@ public class IPFSService extends BaseService {
             case OPERATION_DHT_GET: {
                 if(isRequest) {
                     urlStr = local + version + "dht/get?arg=" + request.hash.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -681,6 +718,7 @@ public class IPFSService extends BaseService {
             case OPERATION_DHT_PUT: {
                 if(isRequest) {
                     urlStr = local + version + "dht/put?arg=" + request.key + "&arg=" + request.value;
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -689,6 +727,7 @@ public class IPFSService extends BaseService {
             case OPERATION_FILE_LIST: {
                 if(isRequest) {
                     urlStr = local + version + "file/ls?arg=" + request.path;
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -698,6 +737,7 @@ public class IPFSService extends BaseService {
             case OPERATION_BOOTSTRAP_LIST_PEERS: {
                 if(isRequest) {
                     urlStr = local + version + "bootstrap/";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     List<MultiAddress> multiAddresses = new ArrayList<>();
                     List<Object> peers = (List<Object>)((Map)JSONParser.parse(contentStr)).get("Peers");
@@ -711,6 +751,7 @@ public class IPFSService extends BaseService {
             case OPERATION_ADD_PEER: {
                 if(isRequest) {
                     urlStr = local + version + "bootstrap/add?arg="+request.addr.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     List<MultiAddress> multiAddresses = new ArrayList<>();
                     List<Object> peers = (List<Object>)((Map)JSONParser.parse(contentStr)).get("Peers");
@@ -726,6 +767,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version + "boostrap/rm?"
                             + (request.all ? "all=true":"")
                             + "&arg=" + request.addr.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     List<MultiAddress> multiAddresses = new ArrayList<>();
                     List<Object> peers = (List<Object>)((Map)JSONParser.parse(contentStr)).get("Peers");
@@ -742,6 +784,7 @@ public class IPFSService extends BaseService {
             case OPERATION_SWARM_LIST_PEERS: {
                 if(isRequest) {
                     urlStr = local + version + "swarm/peers?stream-channels=true";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     List<MultiAddress> multiAddresses = new ArrayList<>();
                     List<Object> peers = (List<Object>)((Map)JSONParser.parse(contentStr)).get("Strings");
@@ -755,6 +798,7 @@ public class IPFSService extends BaseService {
             case OPERATION_SWARM_ADDRS: {
                 if(isRequest) {
                     urlStr = local + version + "swarm/addres?stream-channels=true";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)((Map)JSONParser.parse(contentStr)).get("Addrs");
                 }
@@ -763,6 +807,7 @@ public class IPFSService extends BaseService {
             case OPERATION_SWARM_CONNECT: {
                 if(isRequest) {
                     urlStr = local + version + "swarm/connect?arg="+request.multiAddr.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -771,6 +816,7 @@ public class IPFSService extends BaseService {
             case OPERATION_SWARM_DISCONNECT: {
                 if(isRequest) {
                     urlStr = local + version + "swarm/disconnect?arg="+request.multiAddr.toString();
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -779,6 +825,7 @@ public class IPFSService extends BaseService {
             case OPERATION_DIAG_NET: {
                 if(isRequest) {
                     urlStr = local + version + "diag/net?stream-channels=true";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultString = contentStr;
                 }
@@ -787,6 +834,7 @@ public class IPFSService extends BaseService {
             case OPERATION_PING: {
                 if(isRequest) {
                     urlStr = local + version + "ping/" + request.targetStr;
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -795,6 +843,7 @@ public class IPFSService extends BaseService {
             case OPERATION_ID: {
                 if(isRequest) {
                     urlStr = local + version + "id/" + request.targetStr;
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -803,6 +852,7 @@ public class IPFSService extends BaseService {
             case OPERATION_STATS_BW: {
                 if(isRequest) {
                     urlStr = local + version + "stats/bw";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -811,6 +861,7 @@ public class IPFSService extends BaseService {
             case OPERATION_VERSION: {
                 if(isRequest) {
                     urlStr = local + version + "version";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultString = (String)((Map)JSONParser.parse(contentStr)).get("Version");
                 }
@@ -819,6 +870,7 @@ public class IPFSService extends BaseService {
             case OPERATION_COMMANDS: {
                 if(isRequest) {
                     urlStr = local + version + "commands";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -827,6 +879,7 @@ public class IPFSService extends BaseService {
             case OPERATION_LOG_TAIL: {
                 if(isRequest) {
                     urlStr = local + version + "log/tail";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -835,6 +888,7 @@ public class IPFSService extends BaseService {
             case OPERATION_CONFIG_SHOW: {
                 if(isRequest) {
                     urlStr = local + version + "config/show";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -843,6 +897,7 @@ public class IPFSService extends BaseService {
             case OPERATION_CONFIG_REPLACE: {
                 if(isRequest) {
                     urlStr = local + version + "config/replace?stream-channels=true";
+                    e.setAction(Envelope.Action.UPDATE);
                     Multipart m = new Multipart(encoding);
                     try {
                         m.addFilePart("file",request.file);
@@ -862,6 +917,7 @@ public class IPFSService extends BaseService {
             case OPERATION_CONFIG_GET: {
                 if(isRequest) {
                     urlStr = local + version + "config?arg=" + request.key;
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultString = (String)((Map)JSONParser.parse(contentStr)).get("Value");
                 }
@@ -872,6 +928,7 @@ public class IPFSService extends BaseService {
                     urlStr = local + version
                             + "config?arg=" + request.key
                             + "&arg="+request.value;
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultMap = (Map)JSONParser.parse(contentStr);
                 }
@@ -880,6 +937,7 @@ public class IPFSService extends BaseService {
             case OPERATION_UPDATE: {
                 if(isRequest) {
                     urlStr = local + version + "update";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultObject = JSONParser.parse(contentStr);
                 }
@@ -888,6 +946,7 @@ public class IPFSService extends BaseService {
             case OPERATION_UPDATE_CHECK: {
                 if(isRequest) {
                     urlStr = local + version + "update/check";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultObject = JSONParser.parse(contentStr);
                 }
@@ -896,6 +955,7 @@ public class IPFSService extends BaseService {
             case OPERATION_UPDATE_LOG: {
                 if(isRequest) {
                     urlStr = local + version + "update/log";
+                    e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultObject = JSONParser.parse(contentStr);
                 }
@@ -903,19 +963,21 @@ public class IPFSService extends BaseService {
             }
             default: deadLetter(e);
         }
-        try {
-            e.setURL(new URL(urlStr));
-        } catch (MalformedURLException e1) {
-            e1.printStackTrace();
-            // TODO: return error message
-            LOG.warning("MalformedURLException caught while creating new URL: "+urlStr);
-            return;
+        if(isRequest){
+            try {
+                e.setURL(new URL(urlStr));
+                if(request.multipart != null) {
+                    e.setMultipart(request.multipart);
+                }
+                DLC.addRoute(IPFSService.class, IPFSService.OPERATION_PACK,e);
+                DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND,e);
+            } catch (MalformedURLException e1) {
+                e1.printStackTrace();
+                // TODO: return error message
+                LOG.warning("MalformedURLException caught while creating new URL: "+urlStr);
+                return;
+            }
         }
-        if(isRequest && request.multipart != null) {
-            e.setMultipart(request.multipart);
-        }
-        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_PACK,e);
-        DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND,e);
     }
 
     private String getActiveGateway() {

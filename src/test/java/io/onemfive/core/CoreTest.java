@@ -51,7 +51,7 @@ public class CoreTest {
 
     }
 
-    @Test
+//    @Test
     public void testIPFSGatewayListService() {
         Envelope e;
         try {
@@ -77,29 +77,29 @@ public class CoreTest {
         }
     }
 
-//    @Test
-//    public void testIPFSGatewayPublishService() {
-//        Envelope e;
-//        try {
-//            ServiceCallback cb = new ServiceCallback() {
-//                @Override
-//                public void reply(Envelope envelope) {
-//                    IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-//                    assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
-//                    lock.countDown();
-//                }
-//            };
-//            e = Envelope.documentFactory();
-//            IPFSRequest ipfsRequest = new IPFSRequest();
-//            File testFile = new File("ipfsTest.txt");
-//            ipfsRequest.file = new FileWrapper(testFile);
-//            DLC.addData(IPFSRequest.class, ipfsRequest, e);
-//            DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
-//            client.request(e, cb);
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
-//    }
+    @Test
+    public void testIPFSGatewayPublishService() {
+        Envelope e;
+        try {
+            ServiceCallback cb = new ServiceCallback() {
+                @Override
+                public void reply(Envelope envelope) {
+                    IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+                    assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
+                    lock.countDown();
+                }
+            };
+            e = Envelope.documentFactory();
+            IPFSRequest ipfsRequest = new IPFSRequest();
+            File testFile = new File("ipfsTest.txt");
+            ipfsRequest.file = new FileWrapper(testFile);
+            DLC.addData(IPFSRequest.class, ipfsRequest, e);
+            DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
+            client.request(e, cb);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
 //    @Test
     public void testDIDCreate() {

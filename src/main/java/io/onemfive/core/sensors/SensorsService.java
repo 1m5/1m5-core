@@ -13,6 +13,7 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -90,6 +91,7 @@ public class SensorsService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
+        LOG.setLevel(Level.INFO);
         LOG.info("Starting...");
         try {
             config = Config.loadFromClasspath("sensors.config", properties);

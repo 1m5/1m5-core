@@ -5,6 +5,8 @@ import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.data.*;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
@@ -15,10 +17,6 @@ import java.util.logging.Logger;
  * @author objectorange
  */
 public class OneMFiveStandaloneLauncher {
-
-    static {
-        System.setProperty("java.util.logging.config.file","logging.config");
-    }
 
     private static final Logger LOG = Logger.getLogger(OneMFiveStandaloneLauncher.class.getName());
 

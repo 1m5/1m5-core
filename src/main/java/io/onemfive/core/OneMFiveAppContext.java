@@ -7,6 +7,7 @@ import io.onemfive.core.util.*;
 import io.onemfive.core.util.stat.StatManager;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
@@ -38,10 +39,6 @@ import java.util.logging.Logger;
  * @author I2P, objectorange
  */
 public class OneMFiveAppContext {
-
-    static {
-        System.setProperty("java.util.logging.config.file","logging.config");
-    }
 
     private static final Logger LOG = Logger.getLogger(OneMFiveAppContext.class.getName());
 
@@ -152,6 +149,11 @@ public class OneMFiveAppContext {
         if (envProps != null)
             overrideProps.putAll(envProps);
         shutdownTasks = new ConcurrentHashSet<>(10);
+        try {
+            java.util.logging.LogManager.getLogManager().readConfiguration(OneMFiveAppContext.class.getResourceAsStream("/logging.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     /*
     *  Directories. These are all set at instantiation and will not be changed by
     *  subsequent property changes.

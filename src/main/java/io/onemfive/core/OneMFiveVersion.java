@@ -1,5 +1,7 @@
 package io.onemfive.core;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
@@ -8,10 +10,6 @@ import java.util.logging.Logger;
  * @author objectorange
  */
 public class OneMFiveVersion {
-
-    static {
-        System.setProperty("java.util.logging.config.file","logging.config");
-    }
 
     private static final Logger LOG = Logger.getLogger(OneMFiveVersion.class.getName());
 
