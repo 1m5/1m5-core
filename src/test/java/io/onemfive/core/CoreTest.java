@@ -9,6 +9,7 @@ import io.onemfive.core.ipfs.IPFSResponse;
 import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 import io.onemfive.data.health.mental.memory.MemoryTest;
+import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.FileWrapper;
 import org.junit.AfterClass;
@@ -41,6 +42,12 @@ public class CoreTest {
         client = clientAppManager.getClient(true);
         // NOTE: Don't forget to increase latch number for each asynchronous assertion
         lock = new CountDownLatch(1);
+        // Allow startup
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+
+        }
     }
 
     public void testBus() {
@@ -53,52 +60,62 @@ public class CoreTest {
 
 //    @Test
     public void testIPFSGatewayListService() {
-        Envelope e;
-        try {
-            ServiceCallback cb = new ServiceCallback() {
-                @Override
-                public void reply(Envelope envelope) {
-                    IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-                    assert(response != null && response.gateways != null && response.gateways.size() > 0);
-                    for(String gateway : response.gateways.keySet()) {
-                        System.out.println("Gateways:");
-                        System.out.println(gateway +":"+response.gateways.get(gateway));
-                    }
-                    lock.countDown();
+        ServiceCallback cb = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+                assert(response != null && response.gateways != null && response.gateways.size() > 0);
+                for(String gateway : response.gateways.keySet()) {
+                    System.out.println("Gateways:");
+                    System.out.println(gateway +":"+response.gateways.get(gateway));
                 }
-            };
-            e = Envelope.documentFactory();
-            IPFSRequest ipfsRequest = new IPFSRequest();
-            assert(DLC.addData(IPFSRequest.class, ipfsRequest, e));
-            DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_LIST, e);
-            client.request(e, cb);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+                lock.countDown();
+            }
+        };
+        Envelope e = Envelope.documentFactory();
+        assert(DLC.addData(IPFSRequest.class, new IPFSRequest(), e));
+        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_LIST, e);
+        client.request(e, cb);
     }
 
     @Test
-    public void testIPFSGatewayPublishService() {
-        Envelope e;
-        try {
-            ServiceCallback cb = new ServiceCallback() {
-                @Override
-                public void reply(Envelope envelope) {
-                    IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-                    assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
-                    lock.countDown();
+    public void testIPFSGatewayPublishServiceDirectory() {
+        ServiceCallback cb = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+                if(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0) {
+                    System.out.println(response.merkleNodes.get(0).hash.toString());
                 }
-            };
-            e = Envelope.documentFactory();
-            IPFSRequest ipfsRequest = new IPFSRequest();
-            File testFile = new File("ipfsTest.txt");
-            ipfsRequest.file = new FileWrapper(testFile);
-            DLC.addData(IPFSRequest.class, ipfsRequest, e);
-            DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
-            client.request(e, cb);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+                lock.countDown();
+            }
+        };
+        // Test Directory Persisting
+        Envelope e = Envelope.documentFactory();
+        IPFSRequest ipfsRequest = new IPFSRequest();
+        ipfsRequest.file = new ByteArrayWrapper("TestDirectory");
+        DLC.addData(IPFSRequest.class, ipfsRequest, e);
+        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
+        client.request(e, cb);
+    }
+
+//    @Test
+    public void testIPFSGatewayPublishServiceFile() {
+        ServiceCallback cb = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+                assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
+                lock.countDown();
+            }
+        };
+        // Test File Persisting
+        Envelope e = Envelope.documentFactory();
+        IPFSRequest ipfsRequest = new IPFSRequest();
+        ipfsRequest.file = new ByteArrayWrapper("TestFile","Hello World!".getBytes());
+        DLC.addData(IPFSRequest.class, ipfsRequest, e);
+        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
+        client.request(e, cb);
     }
 
 //    @Test
@@ -106,23 +123,18 @@ public class CoreTest {
         DID did = new DID();
         did.setAlias("Alice");
         did.setPassphrase("1234");
-        Envelope e;
-        try {
-            ServiceCallback cb = new ServiceCallback() {
-                @Override
-                public void reply(Envelope envelope) {
-                    DID did = envelope.getDID();
-                    assert(did.getStatus() == DID.Status.ACTIVE);
-                    lock.countDown();
-                }
-            };
-            e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            e.setDID(did);
-            DLC.addRoute(DIDService.class, DIDService.OPERATION_CREATE, e);
-            client.request(e, cb);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        ServiceCallback cb = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+                DID did = envelope.getDID();
+                assert(did.getStatus() == DID.Status.ACTIVE);
+                lock.countDown();
+            }
+        };
+        Envelope e = Envelope.messageFactory(Envelope.MessageType.NONE);
+        e.setDID(did);
+        DLC.addRoute(DIDService.class, DIDService.OPERATION_CREATE, e);
+        client.request(e, cb);
     }
 
 //    @Test
@@ -130,23 +142,18 @@ public class CoreTest {
         DID did = new DID();
         did.setAlias("Alice");
         did.setPassphrase("1234");
-        Envelope e;
-        try {
-            ServiceCallback cb = new ServiceCallback() {
-                @Override
-                public void reply(Envelope envelope) {
-                    DID did = envelope.getDID();
-                    assert(did != null && did.getAuthenticated());
-                    lock.countDown();
-                }
-            };
-            e = Envelope.messageFactory(Envelope.MessageType.NONE);
-            e.setDID(did);
-            DLC.addRoute(DIDService.class, DIDService.OPERATION_AUTHENTICATE,e);
-            client.request(e, cb);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        ServiceCallback cb = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+                DID did = envelope.getDID();
+                assert(did != null && did.getAuthenticated());
+                lock.countDown();
+            }
+        };
+        Envelope e = Envelope.messageFactory(Envelope.MessageType.NONE);
+        e.setDID(did);
+        DLC.addRoute(DIDService.class, DIDService.OPERATION_AUTHENTICATE,e);
+        client.request(e, cb);
     }
 
     public void testAten() {

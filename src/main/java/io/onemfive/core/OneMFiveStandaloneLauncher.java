@@ -3,7 +3,12 @@ package io.onemfive.core;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
+import io.onemfive.core.ipfs.IPFSRequest;
+import io.onemfive.core.ipfs.IPFSResponse;
+import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
+import io.onemfive.data.util.ByteArrayWrapper;
+import io.onemfive.data.util.DLC;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,28 +45,22 @@ public class OneMFiveStandaloneLauncher {
         DID did = new DID();
         did.setAlias("Alice");
         did.setPassphrase("1234");
-        // Test
-        int numMessages = 4;
-        int failsafe = numMessages * 2; // prevent runaway loop
-        Envelope e;
-        for(long i=0; i<numMessages; i++) {
-            try {
-                ServiceCallback cb = new ServiceCallback() {
-                    @Override
-                    public void reply(Envelope e) {
-                        Route route = e.getRoute();
-                        LOG.info("CB: id="+e.getId()+", service="+route.getService()+", operation="+route.getOperation()+", message="+e.getMessage());
-                    }
-                };
-                e = Envelope.messageFactory(i+1, Envelope.MessageType.NONE);
-                e.getDRG().addRoute(new SimpleRoute(DIDService.class.getName(),DIDService.OPERATION_CREATE));
-                e.setDID(did);
-                c.request(e, cb);
-            } catch (Exception ex) {
-                ex.printStackTrace();
+        ServiceCallback cb = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+                if(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0) {
+                    System.out.println(response.merkleNodes.get(0).hash.toString());
+                }
             }
-            if(failsafe-- == 0) break;
-        }
+        };
+        // Test Directory Persisting
+        Envelope e = Envelope.documentFactory();
+        IPFSRequest ipfsRequest = new IPFSRequest();
+        ipfsRequest.file = new ByteArrayWrapper("TestDirectory");
+        DLC.addData(IPFSRequest.class, ipfsRequest, e);
+        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
+        c.request(e, cb);
         waitABit(10 * 1000);
         manager.stop();
     }

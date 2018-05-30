@@ -7,6 +7,7 @@ import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.*;
 import io.onemfive.data.util.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -190,9 +191,10 @@ public class IPFSService extends BaseService {
                 break;
             }
             case OPERATION_GATEWAY_ADD: {
+                LOG.info("Gateway ADD...");
                 if(isRequest) {
                     urlStr = getActiveGateway().replace(":hash", "");
-                    e.setAction(Envelope.Action.ADD);
+                    e.setAction(Envelope.Action.UPDATE);
                     Multipart m = new Multipart(encoding);
                     if (request.files == null) {
                         request.files = new ArrayList<>();
@@ -201,17 +203,26 @@ public class IPFSService extends BaseService {
                         request.files.add(request.file);
                     }
                     for (NamedStreamable file : request.files) {
+                        LOG.info("file: name="+file.getName());
                         try {
                             if (file.isDirectory()) {
-                                m.addSubtree("", ((FileWrapper) file).getFile());
+                                if(file instanceof ByteArrayWrapper) {
+                                    LOG.info("File is directory using ByteArrayWrapper: name="+file.getName());
+                                    m.addDirectoryPart(file.getName());
+                                } else {
+                                    m.addSubtree("", ((FileWrapper) file).getFile());
+                                }
                             } else {
-                                m.addFilePart(file.getName(), file);
+                                LOG.info("File is real file: path="+request.path+", name="+file.getName());
+                                m.addDirectoryPart(request.path);
+                                m.addFilePart("file", file);
                             }
                         } catch (IOException e1) {
                             e1.printStackTrace(); // TODO: Return error report instead
-                            LOG.warning("IOException caught adding to Multipart: "+e1.getLocalizedMessage());
+                            LOG.info("IOException caught adding to Multipart: "+e1.getLocalizedMessage());
                         }
                     }
+                    LOG.info("Setting Multipart");
                     request.multipart = m;
                 } else {
                     List<MerkleNode> merkleNodes = new ArrayList<>();
@@ -963,8 +974,10 @@ public class IPFSService extends BaseService {
             }
             default: deadLetter(e);
         }
+        LOG.info("isRequest="+isRequest);
         if(isRequest){
             try {
+                LOG.info("Making request to SensorsService...");
                 e.setURL(new URL(urlStr));
                 if(request.multipart != null) {
                     e.setMultipart(request.multipart);
