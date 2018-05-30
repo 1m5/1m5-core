@@ -237,6 +237,9 @@ public class IPFSService extends BaseService {
             case OPERATION_GATEWAY_GET: {
                 if(isRequest) {
                     urlStr = getActiveGateway().replace(":hash", request.hash.toString());
+                    if(request.path != null) {
+                        urlStr += request.path;
+                    }
                     e.setAction(Envelope.Action.VIEW);
                 } else {
                     response.resultBytes = contentBytes;
@@ -988,7 +991,6 @@ public class IPFSService extends BaseService {
                 e1.printStackTrace();
                 // TODO: return error message
                 LOG.warning("MalformedURLException caught while creating new URL: "+urlStr);
-                return;
             }
         }
     }

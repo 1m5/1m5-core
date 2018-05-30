@@ -9,6 +9,7 @@ import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
+import io.onemfive.data.util.Multihash;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,6 +46,34 @@ public class OneMFiveStandaloneLauncher {
         DID did = new DID();
         did.setAlias("Alice");
         did.setPassphrase("1234");
+
+        testViewFile(c);
+
+        waitABit(10 * 1000);
+        manager.stop();
+    }
+
+    private void testViewFile(Client c) {
+        // https://ipfs.io/ipfs/QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC/readme.md
+        ServiceCallback cb = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+                if(response != null && response.resultBytes != null && response.resultBytes.length > 0) {
+                    System.out.println(new String(response.resultBytes));
+                }
+            }
+        };
+        Envelope e = Envelope.documentFactory();
+        IPFSRequest ipfsRequest = new IPFSRequest();
+        ipfsRequest.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
+        ipfsRequest.path = "/readme.md";
+        DLC.addData(IPFSRequest.class, ipfsRequest, e);
+        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_GET, e);
+        c.request(e, cb);
+    }
+
+    private void testMakeDirectory(Client c) {
         ServiceCallback cb = new ServiceCallback() {
             @Override
             public void reply(Envelope envelope) {
@@ -54,15 +83,12 @@ public class OneMFiveStandaloneLauncher {
                 }
             }
         };
-        // Test Directory Persisting
         Envelope e = Envelope.documentFactory();
         IPFSRequest ipfsRequest = new IPFSRequest();
         ipfsRequest.file = new ByteArrayWrapper("TestDirectory");
         DLC.addData(IPFSRequest.class, ipfsRequest, e);
         DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
         c.request(e, cb);
-        waitABit(10 * 1000);
-        manager.stop();
     }
 
     private void waitABit(long waitTime) {
