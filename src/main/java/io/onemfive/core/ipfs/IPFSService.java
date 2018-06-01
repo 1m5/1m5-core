@@ -4,6 +4,7 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.sensors.SensorsService;
+import io.onemfive.core.sensors.clearnet.ClearnetSensor;
 import io.onemfive.data.*;
 import io.onemfive.data.util.*;
 
@@ -28,6 +29,7 @@ public class IPFSService extends BaseService {
     private static final Logger LOG = Logger.getLogger(IPFSService.class.getName());
 
     // Gateways
+    public static final String OPERATION_GATEWAY_UPDATE = "GATEWAY_UPDATE";
     public static final String OPERATION_GATEWAY_LIST = "GATEWAY_LIST";
     public static final String OPERATION_GATEWAY_ADD = "GATEWAY_ADD";
 //    public static final String OPERATION_GATEWAY_RM = "GATEWAY_RM";
@@ -109,7 +111,7 @@ public class IPFSService extends BaseService {
     private static final String PROP_IPFS_ENCODING = "1m5.ipfs.encoding";
     private static final String PROP_IPFS_VERSION = "1m5.ipfs.version";
 
-    private static final String PROP_GATEWAYS_LIST = "1m5.ipfs.gateways.checker";
+    private static final String PROP_GATEWAYS_CLEARNET_LIST = "1m5.ipfs.gateways.clearnet.checker";
 
     private static final String PROP_USE_TOR = "1m5.ipfs.gateways.useTor";
     private static final String PROP_TOR_GATEWAYS = "1m5.ipfs.gateways.tor";
@@ -125,11 +127,12 @@ public class IPFSService extends BaseService {
     private String local;
     private String encoding = "UTF-8";
 
-    private String gatewaysListUrl;
+    private String clearnetGatewaysListUrl;
     private boolean useTor = false;
     private enum GatewayStatus {Active, Inactive, Unknown}
     private Map<String,GatewayStatus> torGateways = new HashMap<>();
     private Map<String,GatewayStatus> clearnetGateways = new HashMap<>();
+    private String activeGateway;
 
     public IPFSService() {
         super();
@@ -152,13 +155,40 @@ public class IPFSService extends BaseService {
         IPFSResponse response = null;
         if(operation.equals(OPERATION_PACK)) {
             LOG.info("Handling IPFSResponse...");
+            List<String> errors = DLC.getErrorMessages(e);
             operation = request.requestedOperation;
-            isRequest = false;
-            contentBytes = (byte[])DLC.getContent(e);
-            if(contentBytes != null)
-                contentStr = new String(contentBytes);
-            response = new IPFSResponse();
-            DLC.addData(IPFSResponse.class, response, e);
+            if(errors.size() == 0) {
+                isRequest = false;
+                response = new IPFSResponse();
+                contentBytes = (byte[]) DLC.getContent(e);
+                response.resultBytes = contentBytes;
+                if (contentBytes != null)
+                    contentStr = new String(contentBytes);
+                DLC.addData(IPFSResponse.class, response, e);
+            } else {
+                for(String error : errors) {
+                    switch(error) {
+                        case "405": {
+                            // Method not supported error. Likely a read-only gateway.
+                            // Set current active gateway as inactive so that
+                            // another gateway if available will be tried.
+                            // Try again
+                            LOG.warning(activeGateway+": apparently a read-only gateway; trying new request with new gateway...");
+                            break;
+                        }
+                        default: {
+                            LOG.warning(activeGateway+": Error: "+error+"; trying    request with new gateway...");
+                        }
+                    }
+                    if(useTor){
+                        torGateways.put(activeGateway, GatewayStatus.Inactive);
+                    } else {
+                        clearnetGateways.put(activeGateway, GatewayStatus.Inactive);
+                    }
+                    activeGateway = getActiveGateway();
+                    isRequest = true;
+                }
+            }
         } else {
             LOG.info("Handling IPFSRequest: "+request);
             request.requestedOperation = operation;
@@ -169,10 +199,40 @@ public class IPFSService extends BaseService {
 //            urlStr += gateway.replace("/ipfs/","/ipfn/");
 //        }
         switch(operation){
+            case OPERATION_GATEWAY_UPDATE: {
+                if(isRequest) {
+                    LOG.info("Sending Gateway List request...");
+                    urlStr = clearnetGatewaysListUrl;
+                    e.setAction(Envelope.Action.VIEW);
+                } else {
+                    LOG.info("Received Gateway List response: ");
+                    Map<String, String> gateways = new HashMap<>();
+                    List<Object> objects = (List<Object>)JSONParser.parse(contentStr);
+                    String gateway;
+                    GatewayStatus status;
+                    // Clear out Inactives
+                    for(String g : clearnetGateways.keySet()) {
+                        if(clearnetGateways.get(g) == GatewayStatus.Inactive) {
+                            clearnetGateways.remove(g);
+                        }
+                    }
+                    // Check for new ones
+                    for(Object obj : objects) {
+                        gateway = (String) obj;
+                        status = clearnetGateways.get(gateway);
+                        if (status == null) {
+                            // new gateway picked up
+                            clearnetGateways.put(gateway, GatewayStatus.Unknown);
+                        }
+                    }
+                    response.gateways = gateways;
+                }
+                break;
+            }
             case OPERATION_GATEWAY_LIST: {
                 if(isRequest) {
                     LOG.info("Sending Gateway List request...");
-                    urlStr = gatewaysListUrl;
+                    urlStr = clearnetGatewaysListUrl;
                     e.setAction(Envelope.Action.VIEW);
                 } else {
                     LOG.info("Received Gateway List response: ");
@@ -183,8 +243,13 @@ public class IPFSService extends BaseService {
                     for(Object obj : objects){
                         gateway = (String)obj;
                         status = clearnetGateways.get(gateway);
-                        gateways.put(gateway,status.name());
-                        LOG.info(gateway+":"+status.name());
+                        if(status == null) {
+                            // new gateway picked up
+                            gateways.put(gateway, GatewayStatus.Unknown.name());
+                        } else {
+                            gateways.put(gateway, status.name());
+                            LOG.info(gateway + ":" + status.name());
+                        }
                     }
                     response.gateways = gateways;
                 }
@@ -193,8 +258,21 @@ public class IPFSService extends BaseService {
             case OPERATION_GATEWAY_ADD: {
                 LOG.info("Gateway ADD...");
                 if(isRequest) {
-                    urlStr = getActiveGateway().replace(":hash", "");
-                    e.setAction(Envelope.Action.UPDATE);
+                    if(activeGateway == null){
+                        String error = "Active gateways exhausted. Unable to make gateway add request.";
+                        LOG.warning(error);
+                        DLC.addErrorMessage(error, e);
+                        return;
+                    }
+                    if(request.hash != null) {
+                        urlStr = activeGateway.replace(":hash", request.hash.toString());
+                    } else {
+                        urlStr = activeGateway.replace(":hash", "");
+                    }
+                    if(request.path != null) {
+                        urlStr += request.path;
+                    }
+                    e.setAction(Envelope.Action.ADD);
                     Multipart m = new Multipart(encoding);
                     if (request.files == null) {
                         request.files = new ArrayList<>();
@@ -213,8 +291,8 @@ public class IPFSService extends BaseService {
                                     m.addSubtree("", ((FileWrapper) file).getFile());
                                 }
                             } else {
-                                LOG.info("File is real file: path="+request.path+", name="+file.getName());
-                                m.addDirectoryPart(request.path);
+                                LOG.info("File is real file: name="+file.getName());
+//                                m.addDirectoryPart(request.path);
                                 m.addFilePart("file", file);
                             }
                         } catch (IOException e1) {
@@ -236,9 +314,21 @@ public class IPFSService extends BaseService {
             }
             case OPERATION_GATEWAY_GET: {
                 if(isRequest) {
-                    urlStr = getActiveGateway().replace(":hash", request.hash.toString());
+                    if(activeGateway == null){
+                        String error = "Active gateways exhausted. Unable to make gateway get request.";
+                        LOG.warning(error);
+                        DLC.addErrorMessage(error, e);
+                        return;
+                    }
+                    urlStr = activeGateway.replace(":hash", request.hash.toString());
                     if(request.path != null) {
                         urlStr += request.path;
+                    }
+                    if(request.file != null) {
+                        if(request.file.getName().startsWith("/"))
+                            urlStr += request.file.getName();
+                        else
+                            urlStr += "/" + request.file.getName();
                     }
                     e.setAction(Envelope.Action.VIEW);
                 } else {
@@ -248,7 +338,14 @@ public class IPFSService extends BaseService {
             }
 //            case OPERATION_GATEWAY_RM: {
 //                if(isRequest) {
-//                    urlStr = getActiveGateway().replace(":hash", request.hash.toString());
+//                    String activeGateway = getActiveGateway();
+//                    if(activeGateway == null){
+//                        String error = "Active gateways exhausted. Unable to make gateway get request.";
+//                        LOG.warning(error);
+//                        DLC.addErrorMessage(error, e);
+//                        return;
+//                    }
+//                    urlStr = activeGateway.replace(":hash", request.hash.toString());
 //                } else {
 //
 //                }
@@ -996,23 +1093,22 @@ public class IPFSService extends BaseService {
     }
 
     private String getActiveGateway() {
-        // TODO: ClearnetSensor only works with this URL and HTTP for now
-        // TODO: need to update SSL support before adding other HTTPS urls
-        String activeGateway = "https://ipfs.io/ipfs/:hash";
-//        if(useTor) {
-//            for (String torGateway : torGateways.keySet()) {
-//                if (torGateways.get(torGateway) == GatewayStatus.Active) {
-//                    activeGateway = torGateway;break;
-//                }
-//            }
-//        } else {
-//            for (String clearnetGateway : clearnetGateways.keySet()) {
-//                if (clearnetGateways.get(clearnetGateway) == GatewayStatus.Active) {
-//                    activeGateway = clearnetGateway;break;
-//                }
-//            }
-//        }
-        return activeGateway; // default
+        if(useTor) {
+            for (String torGateway : torGateways.keySet()) {
+                if (torGateways.get(torGateway) == GatewayStatus.Active
+                        || torGateways.get(torGateway) == GatewayStatus.Unknown) {
+                    return torGateway;
+                }
+            }
+        } else {
+            for (String clearnetGateway : clearnetGateways.keySet()) {
+                if (clearnetGateways.get(clearnetGateway) == GatewayStatus.Active
+                        || clearnetGateways.get(clearnetGateway) == GatewayStatus.Unknown) {
+                    return clearnetGateway;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
@@ -1033,9 +1129,9 @@ public class IPFSService extends BaseService {
                 this.version = version;
             }
 
-            String gatewaysListUrl = config.getProperty(PROP_GATEWAYS_LIST);
-            if(gatewaysListUrl != null)
-                this.gatewaysListUrl = gatewaysListUrl;
+            String clearnetGatewaysListUrl = config.getProperty(PROP_GATEWAYS_CLEARNET_LIST);
+            if(clearnetGatewaysListUrl != null)
+                this.clearnetGatewaysListUrl = clearnetGatewaysListUrl;
 
             String useTorString = config.getProperty(PROP_USE_TOR);
             if(useTorString != null) {
@@ -1052,12 +1148,14 @@ public class IPFSService extends BaseService {
 
             String clearnetGatewaysString = config.getProperty(PROP_CLEARNET_GATEWAYS);
             if(clearnetGatewaysString != null) {
-                List<String> clearGateways = Arrays.asList(clearnetGatewaysString.split(","));
-                for(String gateway : clearGateways) {
+                List<String> clearnetGateways = Arrays.asList(clearnetGatewaysString.split(","));
+                for(String gateway : clearnetGateways) {
                     this.clearnetGateways.put(gateway, GatewayStatus.Unknown);
+                    URL url = new URL(gateway);
+                    ClearnetSensor.addTrustedHost(url.getHost());
                 }
             }
-
+            activeGateway = getActiveGateway();
         } catch (Exception e) {
             e.printStackTrace();
             LOG.warning("Exception caught while starting: "+e.getLocalizedMessage());
@@ -1071,13 +1169,27 @@ public class IPFSService extends BaseService {
     @Override
     public boolean shutdown() {
         LOG.info("Shutting down...");
-
+        // Persist clearnetGateways list
+        String clearnetGatewaysString = "";
+        for(String g : clearnetGateways.keySet()) {
+            clearnetGatewaysString += g + ",";
+        }
+        // Remove last comma
+        clearnetGatewaysString = clearnetGatewaysString.substring(0,clearnetGatewaysString.length()-1);
+        config.setProperty(PROP_CLEARNET_GATEWAYS, clearnetGatewaysString);
+        try {
+            Config.saveToClasspath("ipfs.config", config);
+        } catch (IOException e) {
+            LOG.warning("IOException caught during IPFSService shutdown attempting to save property file ipfs.config: "+e.getLocalizedMessage());
+        }
         LOG.info("Shutdown.");
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
+        // TODO: Add graceful shutdown by tracking outstanding requests while rejecting new requests.
         return shutdown();
     }
+
 }

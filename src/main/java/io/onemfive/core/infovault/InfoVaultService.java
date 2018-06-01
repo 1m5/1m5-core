@@ -4,8 +4,8 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.data.*;
 import io.onemfive.data.health.HealthRecord;
-import io.onemfive.data.health.mental.memory.MemortyTestPopScores;
 import io.onemfive.data.health.mental.memory.MemoryTest;
+import io.onemfive.data.health.mental.memory.MemoryTestPopScores;
 import io.onemfive.data.util.DLC;
 
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public class InfoVaultService extends BaseService {
                         double borderline = infoVault.getMemoryTestDAO().minBorderlineImpairedScore(test.getDifficulty());
                         double impaired = infoVault.getMemoryTestDAO().minImpairedScore(test.getDifficulty());
                         double gross = infoVault.getMemoryTestDAO().minGrosslyImpairedScore(test.getDifficulty());
-                        MemortyTestPopScores popScores = new MemortyTestPopScores(borderline, impaired, gross);
+                        MemoryTestPopScores popScores = new MemoryTestPopScores(borderline, impaired, gross);
                         test.setPopScores(popScores);
                     }
                 } else {

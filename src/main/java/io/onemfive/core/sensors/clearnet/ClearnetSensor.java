@@ -5,6 +5,7 @@ import io.onemfive.data.Message;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.util.JSONParser;
 import io.onemfive.data.util.Multipart;
 import okhttp3.*;
 
@@ -30,64 +31,43 @@ public final class ClearnetSensor implements Sensor {
 
     private static final Set<String> trustedHosts = new HashSet<>();
 
+    static {
+        trustedHosts.add("1m5.io");
+    }
+
     private static final HostnameVerifier hostnameVerifier = new HostnameVerifier() {
 
         @Override
         public boolean verify(String hostname, SSLSession session) {
-            if(trustedHosts.contains(hostname)) {
-                LOG.info("Trusted Host :" + hostname);
-                return true;
-            } else {
-                LOG.warning("Untrusted Host :" + hostname);
-                return false;
-            }
+            return true;
+//            return trustedHosts.contains(hostname);
         }
     };
 
-    static {
-        trustedHosts.add("ipfs.io");
-        trustedHosts.add("ipfs.github.io");
-        trustedHosts.add("1m5.io");
-    }
+    private X509TrustManager x509TrustManager = new X509TrustManager() {
 
-    private final ConnectionSpec httpSpec = new ConnectionSpec
-            .Builder(ConnectionSpec.CLEARTEXT)
-            .build();
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[]{};
+        }
 
-    private final ConnectionSpec httpsCompatibleSpec = new ConnectionSpec
-            .Builder(ConnectionSpec.COMPATIBLE_TLS)
-            .supportsTlsExtensions(true)
-            .allEnabledTlsVersions()
-            .allEnabledCipherSuites()
-            .build();
+        public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+        }
 
-    private final ConnectionSpec httpsStrongSpec = new ConnectionSpec
-            .Builder(ConnectionSpec.MODERN_TLS)
-            .tlsVersions(TlsVersion.TLS_1_2, TlsVersion.TLS_1_3)
-            .cipherSuites(
-                    CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-                    CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-                    CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256)
-            .build();
+        public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+        }
+    };
 
-    private final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .connectionSpecs(Collections.singletonList(httpSpec))
-            .retryOnConnectionFailure(true)
-            .followRedirects(true)
-            .build();
+    // Create a trust manager that does not validate certificate chains
+    private TrustManager[] trustAllCerts = new TrustManager[]{ x509TrustManager};
 
-    private final OkHttpClient httpsCompatibleClient = new OkHttpClient.Builder()
-            .connectionSpecs(Collections.singletonList(httpsCompatibleSpec))
-            .retryOnConnectionFailure(true)
-            .followSslRedirects(true)
-            .hostnameVerifier(hostnameVerifier)
-            .build();
+    private ConnectionSpec httpSpec;
+    private OkHttpClient httpClient;
 
-    private final OkHttpClient httpsStrongClient = new OkHttpClient.Builder()
-            .connectionSpecs(Collections.singletonList(httpsStrongSpec))
-            .retryOnConnectionFailure(true)
-            .followSslRedirects(true)
-            .build();
+    private ConnectionSpec httpsCompatibleSpec;
+    private OkHttpClient httpsCompatibleClient;
+
+    private ConnectionSpec httpsStrongSpec;
+    private OkHttpClient httpsStrongClient;
 
     @Override
     public boolean send(Envelope e) {
@@ -146,6 +126,7 @@ public final class ClearnetSensor implements Sensor {
             }
         } else {
             LOG.warning("Only DocumentMessages supported at this time.");
+            DLC.addErrorMessage("Only DocumentMessages supported at this time.",e);
             return false;
         }
 
@@ -177,23 +158,24 @@ public final class ClearnetSensor implements Sensor {
                     LOG.info("Trusted host, using compatible connection...");
                     response = httpsCompatibleClient.newCall(req).execute();
                     if(!response.isSuccessful()) {
-                        LOG.warning("Unexpected code " + response);
+                        m.addErrorMessage(response.code()+"");
                         return false;
                     }
                 } catch (IOException e1) {
-                    e1.printStackTrace();
-                    LOG.warning("Compatible connection attempt failed: "+e1.getLocalizedMessage());
+                    m.addErrorMessage(e1.getLocalizedMessage());
                     return false;
                 }
             } else {
                 try {
                     System.out.println(ClearnetSensor.class.getSimpleName() + ": using strong connection...");
                     response = httpsStrongClient.newCall(req).execute();
-                    if (!response.isSuccessful())
-                        throw new IOException("Unexpected code " + response);
+                    if (!response.isSuccessful()) {
+                        m.addErrorMessage(response.code()+"");
+                        return false;
+                    }
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    LOG.warning("Strong connection attempt failed: "+ex.getLocalizedMessage());
+                    m.addErrorMessage(ex.getLocalizedMessage());
                     return false;
                 }
             }
@@ -201,12 +183,12 @@ public final class ClearnetSensor implements Sensor {
             try {
                 response = httpClient.newCall(req).execute();
                 if(!response.isSuccessful()) {
-                    LOG.warning("Unexpected code " + response);
+                    m.addErrorMessage(response.code()+"");
                     return false;
                 }
             } catch (IOException e2) {
                 e2.printStackTrace();
-                LOG.warning("Light connection attempt failed. Giving up. "+e2.getLocalizedMessage());
+                m.addErrorMessage(e2.getLocalizedMessage());
                 return false;
             }
         }
@@ -230,12 +212,68 @@ public final class ClearnetSensor implements Sensor {
             LOG.info("Body was null.");
             DLC.addContent(null,e);
         }
+
         return true;
+    }
+
+    public static void addTrustedHost(String trustedHost) {
+        LOG.warning("Adding host as trusted: "+trustedHost);
+        trustedHosts.add(trustedHost);
     }
 
     @Override
     public boolean start(Properties properties) {
-        return false;
+        LOG.warning("Starting...");
+        System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2,TLSv1.3");
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+
+            httpSpec = new ConnectionSpec
+                    .Builder(ConnectionSpec.CLEARTEXT)
+                    .build();
+            httpClient = new OkHttpClient.Builder()
+                    .connectionSpecs(Collections.singletonList(httpSpec))
+                    .retryOnConnectionFailure(true)
+                    .followRedirects(true)
+                    .build();
+
+            httpsCompatibleSpec = new ConnectionSpec
+                    .Builder(ConnectionSpec.COMPATIBLE_TLS)
+//                    .supportsTlsExtensions(true)
+//                    .allEnabledTlsVersions()
+//                    .allEnabledCipherSuites()
+                    .build();
+            httpsCompatibleClient = new OkHttpClient.Builder()
+//                    .connectionSpecs(Collections.singletonList(httpsCompatibleSpec))
+//                    .retryOnConnectionFailure(false)
+//                    .followSslRedirects(false)
+                    .sslSocketFactory(sc.getSocketFactory(), x509TrustManager)
+                    .hostnameVerifier(hostnameVerifier)
+                    .build();
+
+            httpsStrongSpec = new ConnectionSpec
+                    .Builder(ConnectionSpec.MODERN_TLS)
+                    .tlsVersions(TlsVersion.TLS_1_2, TlsVersion.TLS_1_3)
+                    .cipherSuites(
+                            CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+                            CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+                            CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256)
+                    .build();
+            httpsStrongClient = new OkHttpClient.Builder()
+                    .connectionSpecs(Collections.singletonList(httpsStrongSpec))
+                    .retryOnConnectionFailure(true)
+                    .followSslRedirects(true)
+                    .hostnameVerifier(hostnameVerifier)
+                    .sslSocketFactory(sc.getSocketFactory(), x509TrustManager)
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOG.warning(e.getLocalizedMessage());
+        }
+        LOG.warning("Started.");
+        return true;
     }
 
     @Override
@@ -255,12 +293,12 @@ public final class ClearnetSensor implements Sensor {
 
     @Override
     public boolean shutdown() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        return false;
+        return shutdown();
     }
 
     public static void main(String[] args) {
@@ -276,12 +314,16 @@ public final class ClearnetSensor implements Sensor {
         String hash = "QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC/readme.md";
         try {
             if (snapshot) {
-                url = new URL("https", "ipfs.io", 443, "/ipfs/" + hash);
+//                url = new URL("https", "ipfs.io", 443, "/ipfs/" + hash);
+                url = new URL("https://ipfs.io/ipfs/" + hash);
             } else {
                 url = new URL("https", "ipfs.io", 443, "/ipfn/" + hash);
             }
             e.setURL(url);
-            new ClearnetSensor().send(e);
+            ClearnetSensor.addTrustedHost("ipfs.io");
+            ClearnetSensor sensor = new ClearnetSensor();
+            sensor.start(null);
+            sensor.send(e);
         } catch (MalformedURLException e1) {
             e1.printStackTrace();
         }

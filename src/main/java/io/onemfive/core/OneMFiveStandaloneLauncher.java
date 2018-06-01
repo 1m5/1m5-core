@@ -46,10 +46,14 @@ public class OneMFiveStandaloneLauncher {
         DID did = new DID();
         did.setAlias("Alice");
         did.setPassphrase("1234");
+        // wait for startup
+        waitABit(2 * 1000);
 
         testViewFile(c);
+//        testMakeDirectory(c);
+//        testMakeFile(c);
 
-        waitABit(10 * 1000);
+        waitABit(10000 * 1000);
         manager.stop();
     }
 
@@ -65,10 +69,10 @@ public class OneMFiveStandaloneLauncher {
             }
         };
         Envelope e = Envelope.documentFactory();
-        IPFSRequest ipfsRequest = new IPFSRequest();
-        ipfsRequest.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
-        ipfsRequest.path = "/readme.md";
-        DLC.addData(IPFSRequest.class, ipfsRequest, e);
+        IPFSRequest request = new IPFSRequest();
+        request.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
+        request.file = new ByteArrayWrapper("readme.md");
+        DLC.addData(IPFSRequest.class, request, e);
         DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_GET, e);
         c.request(e, cb);
     }
@@ -84,9 +88,30 @@ public class OneMFiveStandaloneLauncher {
             }
         };
         Envelope e = Envelope.documentFactory();
-        IPFSRequest ipfsRequest = new IPFSRequest();
-        ipfsRequest.file = new ByteArrayWrapper("TestDirectory");
-        DLC.addData(IPFSRequest.class, ipfsRequest, e);
+        IPFSRequest request = new IPFSRequest();
+        request.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
+
+        DLC.addData(IPFSRequest.class, request, e);
+        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
+        c.request(e, cb);
+    }
+
+    private void testMakeFile(Client c) {
+        ServiceCallback cb = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
+                if(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0) {
+                    System.out.println(response.merkleNodes.get(0).hash.toString());
+                }
+            }
+        };
+        Envelope e = Envelope.documentFactory();
+        IPFSRequest request = new IPFSRequest();
+        request.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
+        request.file = new ByteArrayWrapper("TestFileData".getBytes());
+
+        DLC.addData(IPFSRequest.class, request, e);
         DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
         c.request(e, cb);
     }

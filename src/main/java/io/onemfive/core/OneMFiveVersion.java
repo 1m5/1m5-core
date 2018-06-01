@@ -14,8 +14,8 @@ public class OneMFiveVersion {
     private static final Logger LOG = Logger.getLogger(OneMFiveVersion.class.getName());
 
     /** deprecated */
-    public final static String ID = "io.synapticcelerity.core";
-    public final static String VERSION = "0.3.2";
+    public final static String ID = "io.onemfive.core";
+    public final static String VERSION = "0.5.0-SNAPSHOT";
     public final static long BUILD = 1;
 
     // TODO: Change to Maven Driven
