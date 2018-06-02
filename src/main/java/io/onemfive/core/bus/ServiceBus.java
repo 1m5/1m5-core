@@ -32,7 +32,6 @@ import java.util.logging.Logger;
  * All bus threads come from one pool to help manage resource usage.
  *
  * TODO: Handles high priority commands to manage the services synchronously.
- * TODO: Replace System.out with Log
  * TODO: Add configurations
  *
  * @author objectorange
