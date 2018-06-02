@@ -7,8 +7,8 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class IMSIFilterCatcher {
+public class IMSICatcherFilter {
 
-    private static final Logger LOG = Logger.getLogger(IMSIFilterCatcher.class.getName());
+    private static final Logger LOG = Logger.getLogger(IMSICatcherFilter.class.getName());
 
 }

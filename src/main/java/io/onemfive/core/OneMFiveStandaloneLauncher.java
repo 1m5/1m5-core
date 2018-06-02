@@ -49,8 +49,8 @@ public class OneMFiveStandaloneLauncher {
         // wait for startup
         waitABit(2 * 1000);
 
-        testViewFile(c);
-//        testMakeDirectory(c);
+//        testViewFile(c);
+        testMakeDirectory(c);
 //        testMakeFile(c);
 
         waitABit(10000 * 1000);
@@ -89,7 +89,8 @@ public class OneMFiveStandaloneLauncher {
         };
         Envelope e = Envelope.documentFactory();
         IPFSRequest request = new IPFSRequest();
-        request.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
+//        request.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
+        request.file = new ByteArrayWrapper("Syria");
 
         DLC.addData(IPFSRequest.class, request, e);
         DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);

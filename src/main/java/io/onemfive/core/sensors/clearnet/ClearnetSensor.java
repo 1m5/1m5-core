@@ -158,6 +158,7 @@ public final class ClearnetSensor implements Sensor {
                     LOG.info("Trusted host, using compatible connection...");
                     response = httpsCompatibleClient.newCall(req).execute();
                     if(!response.isSuccessful()) {
+                        LOG.warning(response.toString());
                         m.addErrorMessage(response.code()+"");
                         return false;
                     }
