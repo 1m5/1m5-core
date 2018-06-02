@@ -4,19 +4,19 @@ An intelligent anonymous communications framework with popular general decentral
 Components consist of the bus framework, internal services, sensors, and utilities.
 Classes at this level include:
 
-- BaseService: An abstract class that implements the basic functionality for Message Consumer, Service, and Life Cycle interfaces. All registered services must extend this class otherwise a ServiceNotSupportedException will be thrown on attempt to register.
-- Config: Concrete class with static methods supports loading and saving property files as configurations from/to the classpath.
-- LifeCycle: Interface with lifecycle methods for components including: start, pause, unpause, restart, shutdown, gracefulShutdown. Components should at least implement start, shutdown, and gracefulShutdown.
-- MessageConsumer: Interface for components to receive Envelope messages. All services by extending BaseService are a MessageConsumer.
-- MessageProducer: Interface for components to send Envelop messages. The ServiceBus is a MessageProducer referenced by all Services through BaseService, by the ClientAppManager, and by the SimpleClient.
-- OneMFiveAppContext: A scope for using 1M5. Each application shares a 1M5 context through obtaining the global context instance using getInstance().
-- Service: Interface for all BaseService extensions to implement handling Envelopes contain Documents, Events, Commands, and Header-only messages. BaseService implements all messages with a warning log that it's not implemented yet.
-- ServiceRegistrar: Interface for registering and unregistering services. Currently implemented by ServiceBus.
+- **BaseService**: An abstract class that implements the basic functionality for Message Consumer, Service, and Life Cycle interfaces. All registered services must extend this class otherwise a ServiceNotSupportedException will be thrown on attempt to register.
+- **Config**: Concrete class with static methods supports loading and saving property files as configurations from/to the classpath.
+- **LifeCycle**: Interface with lifecycle methods for components including: start, pause, unpause, restart, shutdown, gracefulShutdown. Components should at least implement start, shutdown, and gracefulShutdown.
+- **MessageConsumer**: Interface for components to receive Envelope messages. All services by extending BaseService are a MessageConsumer.
+- **MessageProducer**: Interface for components to send Envelop messages. The ServiceBus is a MessageProducer referenced by all Services through BaseService, by the ClientAppManager, and by the SimpleClient.
+- **OneMFiveAppContext**: A scope for using 1M5. Each application shares a 1M5 context through obtaining the global context instance using getInstance().
+- **Service**: Interface for all BaseService extensions to implement handling Envelopes contain Documents, Events, Commands, and Header-only messages. BaseService implements all messages with a warning log that it's not implemented yet.
+- **ServiceRegistrar**: Interface for registering and unregistering services. Currently implemented by ServiceBus.
 
 ## Components
 1M5 is composed of a Service-Oriented Architecture (SOA) design using a service bus for micro-services, 
 a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
-a service registry, and number of Sensors for advanced intelligent interaction with other nodes.
+a service registry, and a number of Sensors for advanced intelligent interaction with other nodes.
 
 ### Admin Service
 It supports registration of services with the service bus. 
@@ -32,6 +32,9 @@ The framework implemented by the Service Bus, Message Channel, Worker Thread, an
 A Persistent Message Queue is expected in the future to ensure messages are persistent to aid in fault tolerance.
 
 #### Service Bus
+Encompasses all functionality needed to support messaging between all internal services and their life cycles.
+Provides a Staged Event-Driven Architecture (SEDA) by providing channels to/from all Services.
+All bus threads (Worker Thread) come from one pool to help manage resource usage.
 
 #### Message Channel
 
