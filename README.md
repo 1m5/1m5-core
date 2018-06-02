@@ -1,7 +1,42 @@
-# core
+# 1M5 Core
 Updated as of 0.5.0.
 An intelligent anonymous communications framework with popular general decentralized services.
 Components consist of the bus framework, internal services, sensors, and utilities.
+
+## Opportunities
+Censorship of communications on-line is growing world-wide.
+
+- https://internetfreedomwatch.org/timeline/
+- https://www.wired.com/2017/04/internet-censorship-is-advancing-under-trump/
+- https://rsf.org/en/news/more-100-websites-blocked-growing-wave-online-censorship
+
+Internet Service Providers (ISP) act as gateways to the internet providing governments control over speech by having the
+ability to restrict usage and track people's usage via their loaned IP addresses. In order to make tracking usage much more
+difficult, tools have come out that provide techniques called onion-/garlic-routing where the source and destinations of
+internet routes can not be determined without breaking encryption, a very expensive feat, sometimes impossible today when
+considering the encryption algorithms used. 
+
+Two primary tools today that support this are Tor and I2P. Tor provides a browser
+that makes it easier to use while I2P is much less known. Both are complementary in that Tor was designed for browsing
+today's current web sites anonymously. I2P was designed for peer-to-peer communications within I2P. Neither have good
+APIs for developers to embed in their products making uptake slow for many applications.
+
+A third tool on the horizon is one that completely circumvents ISPs by not using them. They're called direct wireless
+mesh networks and they can communicate directly phone-to-phone using technologies such as WiFi Direct. Firechat is an
+example used during the 2014 Hong Kong protests after the Chinese government threatened to shutdown the internet in that
+area. New mesh solutions are popping up including RightMesh that seek to improve on earlier designs. But the technology
+is still in its infancy and needs to be pulled into ever day applications more easily once they've matured.
+
+Even getting these technologies in wide use doesn't solve the problem of online censorship. People in governments, corporations, and
+other thieves are constantly finding ways to circumvent these technologies to censor and steal information.
+
+## Solution
+1M5 works to solve these issues by providing an intelligent router embedding Tor, I2P, Direct Wireless Mesh, and other
+networks, using them intelligently as one dynamic network, and providing easy to use APIs for developers to embed in their
+applications. In addition, it provides access to commonly desired decentralized services in an anonymous fashion including
+self-sovereign identities, IPFS, Ethereum, GitHub, and others in the future making integration a snap.
+
+## Common Classes
 Classes at this level include:
 
 - **BaseService**: An abstract class that implements the basic functionality for Message Consumer, Service, and Life Cycle interfaces. All registered services must extend this class otherwise a ServiceNotSupportedException will be thrown on attempt to register.
