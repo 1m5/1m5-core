@@ -1,5 +1,6 @@
 package io.onemfive.core.bus;
 
+import io.onemfive.core.LifeCycle;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.data.Envelope;
 
@@ -14,7 +15,7 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-final class MessageChannel implements MessageProducer {
+final class MessageChannel implements MessageProducer, LifeCycle {
 
     private static final Logger LOG = Logger.getLogger(MessageChannel.class.getName());
 
@@ -25,8 +26,6 @@ final class MessageChannel implements MessageProducer {
 
     MessageChannel(int capacity) {
         this.capacity = capacity;
-        queue = new ArrayBlockingQueue<>(capacity);
-        accepting = true;
     }
 
     BlockingQueue<Envelope> getQueue() {
@@ -91,27 +90,34 @@ final class MessageChannel implements MessageProducer {
         return next;
     }
 
-    boolean start(Properties properties) {
+    public boolean start(Properties properties) {
         queue = new ArrayBlockingQueue<>(capacity);
+        accepting = true;
         return true;
     }
 
-    boolean pause() {
+    public boolean pause() {
         return false;
     }
 
-    boolean resume() {
+    public boolean unpause() {
         return false;
     }
 
-    boolean restart() {
+    public boolean restart() {
         return false;
     }
 
-    boolean shutdown() {
+    public boolean shutdown() {
         accepting = false;
         // TODO: wait for all messages to process
         return true;
+    }
+
+    @Override
+    public boolean gracefulShutdown() {
+        // TODO: implement gracefulShutdown()
+        return false;
     }
 
     boolean forceShutdown() {

@@ -156,6 +156,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         }
 
         channel = new MessageChannel(maxMessagesCached);
+        channel.start(properties);
 
         registeredServices = new HashMap<>(13);
         runningServices = new HashMap<>(13);
