@@ -42,7 +42,7 @@ a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded
 a service registry, and a number of Sensors for advanced intelligent interaction with other nodes.
 
 ### Common Classes
-Classes at this level include:
+Classes used throughout all components are:
 
 - **BaseService**: An abstract class that implements the basic functionality for Message Consumer, Service, and Life Cycle interfaces. All registered services must extend this class otherwise a ServiceNotSupportedException will be thrown on attempt to register.
 - **Config**: Concrete class with static methods supports loading and saving property files as configurations from/to the classpath.
@@ -72,11 +72,34 @@ A Persistent Message Queue is expected in the future to ensure messages are pers
 ##### Service Bus
 Encompasses all functionality needed to support messaging between all internal services and their life cycles.
 Provides a Staged Event-Driven Architecture (SEDA) by providing channels to/from all Services.
-All bus threads (Worker Thread) come from one pool to help manage resource usage.
+All bus threads (Worker Thread) come from one pool (Worker Thread Pool) to help manage resource usage.
+
+###### Configuration (bus.config)
+- **1m5.bus.maxMessagesCachedMultiplier**: multiplies this value with the max threads to come up with the max number of messages 
+
+###### Start
+When the Service Bus starts, it currently performs the following actions:
+
+1. loads its configuration (bus.config)
+2. sets parameters, e.g. maxMessagesCached, maxThreads
+3. Message Channel is started
+4. following services are started in their own threads:
+    - Admin Service
+    - InfoVault Service
+    - Orchestration Service
+    - DID Service
+    - IPFS Service
+    - Sensors Service
+5. start Worker Thread Pool
 
 ##### Message Channel
+Backed by a Blocking Queue, it acts as a Message Producer sending Envelope messages to the blocking queue while
+also supporting Life Cycle methods to manage the queue. Graceful shutdown needs implemented to allow messages to
+complete their routes prior to shutting down. Message persistence will be added with development of the Persistent
+Message Queue.
 
 ##### Worker Thread
+
 
 ##### Worker Thread Pool
 
