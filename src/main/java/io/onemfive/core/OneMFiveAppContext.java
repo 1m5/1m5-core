@@ -113,33 +113,7 @@ public class OneMFiveAppContext {
     }
 
     /**
-     * Create a brand new context.
-     * WARNING: In almost all cases, you should use getGlobalContext() instead,
-     * to avoid creating additional contexts, which may spawn numerous
-     * additional resources and threads, and may be the cause of logging
-     * problems or hard-to-isolate bugs.
-     */
-    public OneMFiveAppContext() {
-        this(true, null);
-    }
-
-    /**
-     * Create a brand new context.
-     * WARNING: In almost all cases, you should use getGlobalContext() instead,
-     * to avoid creating additional contexts, which may spawn numerous
-     * additional resources and threads, and may be the cause of logging
-     * problems or hard-to-isolate bugs.
-     */
-    public OneMFiveAppContext(java.util.Properties envProps) {
-        this(true, envProps);
-    }
-
-    /**
-     * Create a brand new context.
-     * WARNING: In almost all cases, you should use getGlobalContext() instead,
-     * to avoid creating additional contexts, which may spawn numerous
-     * additional resources and threads, and may be the cause of logging
-     * problems or hard-to-isolate bugs.
+     * Create a new context.
      *
      * @param doInit should this context be used as the global one (if necessary)?
      *               Will only apply if there is no global context now.
@@ -155,46 +129,48 @@ public class OneMFiveAppContext {
             e.printStackTrace();
         }
     /*
-    *  Directories. These are all set at instantiation and will not be changed by
-    *  subsequent property changes.
-    *  All properties, if set, should be absolute paths.
+    *  Directories.
     *
-    *  Name	Property 	Method		Files
-    *  -----	-------- 	-----		-----
-    *  Base	1m5.dir.base	getBaseDir()	lib/, webapps/, docs/, geoip/, licenses/, ...
-    *  Temp	1m5.dir.temp	getTempDir()	Temporary files
-    *  Config 1m5.dir.config	getConfigDir()	*.config, hosts.txt, addressbook/, ...
+    *  These are all set at instantiation and will not be changed by subsequent property changes.
+    *
+    *  All properties, if set, should be relative paths.
+    *
+    *  All files that you wish to remain in the environment persisted should use absolute paths
+    *  and persisted outside of the base directory in a location considered safe from corruption
+    *  or accidental deletion.
+    *
+    *  Name	    Property 	    Method		    Files
+    *  -----	-------- 	    -----		    -----
+    *  Base	    1m5.dir.base	getBaseDir()	lib/, run-time files on classpath
+    *  Temp	    1m5.dir.temp	getTempDir()	Temporary files
+    *  Config   1m5.dir.config	getConfigDir()	*.config, hosts.txt, addressbook/, ...
     *
     *  (the following all default to the same as Config)
     *
-    *  PID	1m5.dir.pid	getPIDDir()	router.ping
+    *  PID	    1m5.dir.pid	g   etPIDDir()	    router.ping
     *  Router	1m5.dir.router	getRouterDir()	netDb/, peerProfiles/, router.*, keyBackup/, ...
-    *  Log	1m5.dir.log	getLogDir()	logs/
-    *  App	1m5.dir.app	getAppDir()	eepsite/, ...
+    *  Log	    1m5.dir.log	    getLogDir()	    logs/
+    *  App	    1m5.dir.app	    getAppDir()	    same as base
     *
     *  Note that we can't control where the wrapper puts its files.
     *
-    *  The app dir is where all data files should be. Apps should always read and write files here,
+    *  The app dir is where all transient data files should be maintained. Apps should always read and write files here,
     *  using a constructor such as:
     *
     *       String path = mypath;
     *       File f = new File(path);
     *       if (!f.isAbsolute())
-    *           f = new File(_context.geAppDir(), path);
+    *           f = new File(context.getAppDir(), path);
     *
-    *  and never attempt to access files in the CWD using
+    *  and never attempt to access files using
     *
     *       File f = new File("foo");
     *
-    *  An app should assume the CWD is not writable.
+    *  An app should assume the file system is not writable.
     *
-    *  Here in OneMFiveAppContext, all the dirs default to CWD.
+    *  Here in OneMFiveAppContext, all the dirs default to the base.
     *  However these will be different in ConsciousContext, as ConsciousService.java will set
     *  the properties in the ConsciousContext constructor.
-    *
-    *  Apps should never need to access the base dir, which is the location of the base SC install.
-    *  However this is provided for the Conscious' use, and for backward compatibility should an app
-    *  need to look there as well.
     *
     *  All dirs except the base are created if they don't exist, but the creation will fail silently.
     */
@@ -207,7 +183,6 @@ public class OneMFiveAppContext {
             baseDir.mkdir();
         }
 
-        // config defaults to base
         s = getProperty("1m5.dir.config");
         if (s != null) {
             configDir = new SecureFile(s);
@@ -217,24 +192,22 @@ public class OneMFiveAppContext {
             configDir = baseDir;
         }
 
-        // pid defaults to router directory (as of 0.8.12, was system temp dir previously)
         s = getProperty("1m5.dir.pid");
         if (s != null) {
             pidDir = new SecureFile(s);
             if (!pidDir.exists())
                 pidDir.mkdir();
         } else {
-            pidDir = configDir;
+            pidDir = baseDir;
         }
 
-        // these all default to router
         s = getProperty("1m5.dir.log");
         if (s != null) {
             logDir = new SecureFile(s);
             if (!logDir.exists())
                 logDir.mkdir();
         } else {
-            logDir = configDir;
+            logDir = baseDir;
         }
 
         s = getProperty("1m5.dir.app");
@@ -243,7 +216,7 @@ public class OneMFiveAppContext {
             if (!appDir.exists())
                 appDir.mkdir();
         } else {
-            appDir = configDir;
+            appDir = baseDir;
         }
 
         clientAppManager = new ClientAppManager(false);
