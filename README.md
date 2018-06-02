@@ -36,7 +36,9 @@ networks, using them intelligently as one dynamic network, and providing easy to
 applications. In addition, it provides access to commonly desired decentralized services in an anonymous fashion including
 self-sovereign identities, IPFS, Ethereum, GitHub, and others in the future making integration a snap.
 
-## Common Classes
+## Design
+
+### Common Classes
 Classes at this level include:
 
 - **BaseService**: An abstract class that implements the basic functionality for Message Consumer, Service, and Life Cycle interfaces. All registered services must extend this class otherwise a ServiceNotSupportedException will be thrown on attempt to register.
@@ -48,132 +50,132 @@ Classes at this level include:
 - **Service**: Interface for all BaseService extensions to implement handling Envelopes contain Documents, Events, Commands, and Header-only messages. BaseService implements all messages with a warning log that it's not implemented yet.
 - **ServiceRegistrar**: Interface for registering and unregistering services. Currently implemented by ServiceBus.
 
-## Components
+### Components
 1M5 is composed of a Service-Oriented Architecture (SOA) design using a service bus for micro-services, 
 a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
 a service registry, and a number of Sensors for advanced intelligent interaction with other nodes.
 
-### Admin Service
+#### Admin Service
 It supports registration of services with the service bus. 
 Long-term it will support additional administration operations for the entire framework.
 
-### Aten Service
+#### Aten Service
 Not implemented althogh it's expected to be implemented shortly. 
 Provides utility tokens for developers, both business and technical, 
 to determine Prana distribution ratios from transaction fees if/when present.
 
-### Bus
+#### Bus
 The framework implemented by the Service Bus, Message Channel, Worker Thread, and Worker Thread Pool.
 A Persistent Message Queue is expected in the future to ensure messages are persistent to aid in fault tolerance.
 
-#### Service Bus
+##### Service Bus
 Encompasses all functionality needed to support messaging between all internal services and their life cycles.
 Provides a Staged Event-Driven Architecture (SEDA) by providing channels to/from all Services.
 All bus threads (Worker Thread) come from one pool to help manage resource usage.
 
-#### Message Channel
+##### Message Channel
 
-#### Worker Thread
+##### Worker Thread
 
-#### Worker Thread Pool
+##### Worker Thread Pool
 
-### Client
+#### Client
 
-### Consensus Service
+#### Consensus Service
 
-### Content Service
+#### Content Service
 
-### Contract Service
+#### Contract Service
 
-### Decentralized EXchange (DEX) Service
+#### Decentralized EXchange (DEX) Service
 
-### Decentralized IDentity (DID) Service
+#### Decentralized IDentity (DID) Service
 
-### InfoVault Service
+#### InfoVault Service
 
-### IPFS Service
+#### IPFS Service
 
-### KeyRing Service
+#### KeyRing Service
 
-### Orchestration Service
+#### Orchestration Service
 
-### Payment Service
+#### Payment Service
 
-### Prana Service
+#### Prana Service
 
-### Repository Service
+#### Repository Service
 
-### SecureDrop Service
+#### SecureDrop Service
 
-### Sensors Service
+#### Sensors Service
 
-#### Aggression Filter
+##### Aggression Filter
 
-#### Bluetooth Sensor
+##### Bluetooth Sensor
 
-#### Bluetooth Low-Energy Sensor
+##### Bluetooth Low-Energy Sensor
 
-#### Cleaner Service
+##### Cleaner Service
 
-##### Amazon Cleaner
+###### Amazon Cleaner
 
-##### Facebook Cleaner
+###### Facebook Cleaner
 
-##### Google Cleaner
+###### Google Cleaner
 
-##### Keylogger Cleaner
+###### Keylogger Cleaner
 
-##### Surveillance Cleaner
+###### Surveillance Cleaner
 
-##### Twitter Cleaner
+###### Twitter Cleaner
 
-#### Clearnet Sensor
+##### Clearnet Sensor
 
-#### CSploit Counter-Measures
+##### CSploit Counter-Measures
 
-#### HAM Sensor
+##### HAM Sensor
 
-#### Honey Pot Counter-Measures
+##### Honey Pot Counter-Measures
 
-#### I2P Sensor
+##### I2P Sensor
 
-##### Attack Mitigation
+###### Attack Mitigation
 
 - https://www.irongeek.com/i.php?page=security/i2p-identify-service-hosts-eepsites
 
-#### I2P Bote Sensor
+##### I2P Bote Sensor
 
-#### IMSI Filter Catcher
+##### IMSI Filter Catcher
 
-##### Research
+###### Research
 
 - https://techcrunch.com/2017/06/02/who-catches-the-imsi-catchers-researchers-demonstrate-stingray-detection-kit/
 
-#### Mesh Sensor
+##### Mesh Sensor
 
-##### RightMesh
+###### RightMesh
 
-#### Nearby Sensor
+##### Nearby Sensor
 
-#### Near-Field Communications (NFC) Sensor
+##### Near-Field Communications (NFC) Sensor
 
-#### Redtooth Sensor
+##### Redtooth Sensor
 
-#### Rooting
+##### Rooting
 
-#### Tor Sensor
+##### Tor Sensor
 
-#### WiFi Aware Sensor
+##### WiFi Aware Sensor
 
-#### WiFi Direct Sensor
+##### WiFi Direct Sensor
 
-#### WiFi HaLow Sensor
+##### WiFi HaLow Sensor
 
-#### WiFi Internet Sensor
+##### WiFi Internet Sensor
 
-#### WiFi Utilities
+##### WiFi Utilities
 
-### Utilities
+#### Utilities
 
 Many of the current utilities are a collection of code that need to be placed in with the appropriate component unless
 truly general in utility.
