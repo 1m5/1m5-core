@@ -37,6 +37,9 @@ applications. In addition, it provides access to commonly desired decentralized 
 self-sovereign identities, IPFS, Ethereum, GitHub, and others in the future making integration a snap.
 
 ## Design
+1M5 is composed of a Service-Oriented Architecture (SOA) design using a service bus for micro-services, 
+a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
+a service registry, and a number of Sensors for advanced intelligent interaction with other nodes.
 
 ### Common Classes
 Classes at this level include:
@@ -51,9 +54,7 @@ Classes at this level include:
 - **ServiceRegistrar**: Interface for registering and unregistering services. Currently implemented by ServiceBus.
 
 ### Components
-1M5 is composed of a Service-Oriented Architecture (SOA) design using a service bus for micro-services, 
-a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
-a service registry, and a number of Sensors for advanced intelligent interaction with other nodes.
+Primary components are the bus, services, sensors, and utilities.
 
 #### Admin Service
 It supports registration of services with the service bus. 
