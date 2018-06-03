@@ -103,7 +103,7 @@ public final class ClientAppManager {
     }
 
     /**
-     * Builds an Client.
+     * Builds a Client.
      * Please call unregister() when finished using it
      * otherwise with excess creation, it can lead to
      * a memory 'leak'.
@@ -126,7 +126,7 @@ public final class ClientAppManager {
         if(e != null) {
             Long clientId = e.getClient();
             LOG.info("Client.id="+clientId);
-            Client client = getRegisteredApp(clientId);
+            Client client = getRegisteredClient(clientId);
             if (client != null) {
                 LOG.info("Found client; notifying...");
                 client.notify(e);
@@ -163,7 +163,7 @@ public final class ClientAppManager {
      *  @param id non-null
      *  @return client app or null if not found
      */
-    public Client getRegisteredApp(Long id) {
+    public Client getRegisteredClient(Long id) {
         if(id == null)
             return null;
         else
