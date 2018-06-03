@@ -207,20 +207,51 @@ creating an instance of the Worker Thread Pool and then calling its start method
 4. set status to Stopped
 
 #### Client
+A package containing classes for clients to make requests from the Bus and receive replies when embedding 1M5.
+
+- **Client**: An interface for clients to make requests and receive replies. Implemented by SimpleClient and received from Client App Manager's getClient method.
+- **ClientAppManager**: Best method to receive an instance of this class is to use OneMFiveAppContext's getClientAppManager method. This class will start the Service Bus if it's stopped. It also ensures a SimpleClient is available. When stopping it, it will also stop the Service Bus. When you receive a Client from this object, ensure that you unregister it with this object too.
+- **SimpleClient**: Returned from ClientAppManager as Client. Sends messages to Service Bus which releases the calling thread when the message reaches the Message Channel's queue. If a ServiceCallback is provided, SimpleClient uses an internal claim check using the Envelope's ID as the claim ID so that on notify the Envelope provided can be correlated with the requesting ServiceCallback which then calls its reply method.
 
 #### Consensus Service
+Not Implemented. 
+
+Expected to provide consensus among mobiles.
 
 #### Content Service
+Not Implemented. 
+
+Will basically provide dynamic content through NodeJS as a back-end service for providing HTML5/CSS3/JS apps in Java and static content through integration with IPFS.
 
 #### Contract Service
+Not Implemented. 
+
+Expected to initially support Ethereum smart contracts but long-term desired to run smart contracts directly in this app.
 
 #### Decentralized EXchange (DEX) Service
+Not Implemented. 
+
+Researching options.
 
 #### Decentralized IDentity (DID) Service
+Self-Sovereign Identity + RepBAC (Reputation Based Access Control) + Circles of Influence. Identity without claimed authority, 
+the best protection against abuse, overreach, and authoritarianism. The foundation for security, the DID is 
+decentralized and guarantees privacy for every life and automaton on the planet returning control and ownership 
+of personal information back to each of us while supporting access control based on reputation. 
+
+Only implementing username/passphrase functionality currently. 
+
+Needs to move towards embedding OpenPGP and then integrating additional decentralized identity services.
 
 #### InfoVault Service
+Vault of personal information to assist in building up your reputation and for additional services as you see fit. 
+Access revocable on your command.
+
+Currently uses Nitrite NoSQL embedded database used for persisting and loading into memory 1M5 data entities.
+Needs to be seriously redesigned towards a JanusGraph over Cassandra on 10 billion mobiles with response times < 500ms.
 
 #### IPFS Service
+
 
 #### KeyRing Service
 
