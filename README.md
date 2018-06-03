@@ -1,7 +1,12 @@
 # 1M5 Core
-Updated as of 0.5.0.
-An intelligent anonymous communications framework with popular general decentralized services.
-Components consist of the bus framework, internal services, sensors, and utilities.
+An intelligent anonymous communications framework with popular general decentralized services and easy to use APIs
+for embedding.
+
+## Version
+0.5.0
+
+## Authors
+- ObjectOrange - objectorange@protonmail.com
 
 ## Opportunities
 Censorship of communications on-line is growing world-wide.
