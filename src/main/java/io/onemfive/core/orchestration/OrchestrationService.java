@@ -62,12 +62,12 @@ public class OrchestrationService extends BaseService {
             // Select Next Route and send to channel
 
             if(!rs.inProgress()) {
-                // new dag
+                // new slip
                 remainingRoutes += rs.numberRemainingRoutes();
                 rs.start();
             }
             if(rs.peekAtNextRoute() != null) {
-                // dag has routes left, set next route
+                // slip has routes left, set next route
                 e.setRoute(rs.nextRoute());
                 reply(e);
                 activeRoutes++;
