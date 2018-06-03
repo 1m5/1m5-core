@@ -349,6 +349,7 @@ An embedded I2P Router.
 - https://www.irongeek.com/i.php?page=security/i2p-identify-service-hosts-eepsites
 
 ##### I2P Bote Sensor
+Uses embedded I2P Router adding storable DHT for delayed routing to battle timing attacks.
 
 ##### IMSI Filter Catcher
 
