@@ -39,7 +39,7 @@ self-sovereign identities, IPFS, Ethereum, GitHub, and others in the future maki
 ## Design
 1M5 is composed of a Service-Oriented Architecture (SOA) design using a service bus for micro-services, 
 a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
-a service registry, and a number of Sensors for advanced intelligent interaction with other nodes.
+a service registry, internal general services, and a number of Sensors for advanced intelligent interaction with other nodes.
 
 ## Implementation
 The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+.
