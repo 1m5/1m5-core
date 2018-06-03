@@ -25,7 +25,7 @@ communications on-line is growing world-wide.
 - https://www.wired.com/2017/04/internet-censorship-is-advancing-under-trump/
 - https://rsf.org/en/news/more-100-websites-blocked-growing-wave-online-censorship 
 
-On-line communications are censored at the point of entrance the Internet Service Providers (ISP). 
+On-line communications are censored at the point of entrance by Internet Service Providers (ISP). 
 They act as gateways to the internet providing governments control over speech by having the
 ability to restrict usage and track people's usage via their leased IP addresses. In order to make tracking usage much more
 difficult, tools have come out that provide techniques called onion-/garlic-routing where the source and destinations of
@@ -45,6 +45,16 @@ is still in its infancy and needs to be pulled into ever day applications more e
 
 Even getting these technologies in wide use doesn't solve the problem of online censorship. People in governments, corporations, and
 other thieves are constantly finding ways to circumvent these technologies to censor and steal information.
+
+In addition:
+
+- Most organizations today (e.g. Tech, Banks, Governments, Hospitals) track, persist, and use our behavior for their profit not ours.
+- Centralized organizations are major targets for theft.
+- Closed source software can easily contain hidden back doors for thieves to access our information without our knowledge and many open source applications have closed source libraries embedded in them.
+- Whistleblowers, the abused, visible minorities, and a myriad of other people could be emboldened by anonymity to speak out in a manner that would otherwise be unavailable if they were forced to identify themselves.
+- Blockchain based applications and cryptocurrencies like Bitcoin are helping to wrestle some control from centralized organizations although they are largely used on servers and distributed ledgers are still logically centralized and difficult to maintain anonymity at the network layer.
+- Smartphone ownership around the world is greater than PC ownership.
+- Smartphones, our primary means of global communication and collaboration, are weak in maintaining our anonymity and privacy - critical to ensuring individual freedom.
 
 ## Solution
 1M5 works to solve these issues by providing an intelligent router embedding Tor, I2P, Direct Wireless Mesh, and other
@@ -169,7 +179,7 @@ queue. When a message arrives, a reference to the Envelope is received and the f
 7. 3 failed attempts results in Logging a warning. Future work needs to move the entire message to a failed log so that it can be retried again later.
 
 ##### Worker Thread Pool
-When the Worker Thread Pool is instantiated, it takes as parameters:
+When the Worker Thread Pool is instantiated by the Service Bus, it takes as parameters:
 
 - Client App Manager
 - Map of running services
@@ -182,7 +192,19 @@ The Worker Thread Pool is started in a new Thread by the JVM calling its run met
 creating an instance of the Worker Thread Pool and then calling its start method.
 
 ###### Run
+1. status set to Starting
+2. a new fixed thread pool limited to max pool size created
+3. status set to Running
+4. while running, synchronously check if there are messages in the queue and if so, launch a Worker Thread to handle it
+5. when Worker Thread Pool's status is no longer Running, release thread
 
+###### Shutdown
+1. status set to Stopping
+2. shutdown fixed thread pool
+3. if fixed thread pool doesn't shutdown within 60 seconds
+    1. initiate shutdownNow on pool
+    2. if fixed thread pool doesn't shutdown within 60 seconds just continue
+4. set status to Stopped
 
 #### Client
 
