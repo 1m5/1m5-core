@@ -57,18 +57,18 @@ public class OrchestrationService extends BaseService {
 
     private void route(Envelope e) {
         if(running) {
-            DirectedRouteGraph drg = e.getDRG();
+            RoutingSlip rs = e.getDynamicRoutingSlip();
             Route route = e.getRoute();
             // Select Next Route and send to channel
 
-            if(!drg.inProgress()) {
+            if(!rs.inProgress()) {
                 // new dag
-                remainingRoutes += drg.numberRemainingRoutes();
-                drg.start();
+                remainingRoutes += rs.numberRemainingRoutes();
+                rs.start();
             }
-            if(drg.peekAtNextRoute() != null) {
+            if(rs.peekAtNextRoute() != null) {
                 // dag has routes left, set next route
-                e.setRoute(drg.nextRoute());
+                e.setRoute(rs.nextRoute());
                 reply(e);
                 activeRoutes++;
             } else if(route == null || route.routed() || OrchestrationService.class.getName().equals(route.getService())) {
