@@ -6,7 +6,7 @@ for embedding.
 0.5.0
 
 ## Authors
-- ObjectOrange - objectorange@protonmail.com
+- [ObjectOrange](https://github.com/objectorange) - objectorange@protonmail.com
 
 ## Opportunities
 Censorship of communications on-line is growing world-wide.
