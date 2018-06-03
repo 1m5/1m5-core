@@ -5,18 +5,29 @@ for embedding.
 ## Version
 0.5.0
 
-## Authors
+## Authors / Developers
 - [ObjectOrange](https://github.com/objectorange) - objectorange@protonmail.com
 
 ## Opportunities
-Censorship of communications on-line is growing world-wide.
+[**Freedom of Speech**](https://en.wikipedia.org/wiki/Freedom_of_speech) - a principle that supports the freedom of 
+an individual or a community to articulate their  opinions and ideas without fear of retaliation, censorship, 
+or sanction. The term "freedom of expression" is sometimes used synonymously but includes any act of seeking, 
+receiving, and imparting information or ideas, regardless of the medium used.
+
+[**Censorship**](https://en.wikipedia.org/wiki/Censorship) - the suppression of speech, public communication, 
+or other information, on the basis that such material is considered objectionable, harmful, sensitive, 
+politically incorrect or "inconvenient" as determined by government authorities or by community consensus.
+
+Constraining the free flow of information between people is a direct threat to our freedom and censorship of 
+communications on-line is growing world-wide.
 
 - https://internetfreedomwatch.org/timeline/
 - https://www.wired.com/2017/04/internet-censorship-is-advancing-under-trump/
-- https://rsf.org/en/news/more-100-websites-blocked-growing-wave-online-censorship
+- https://rsf.org/en/news/more-100-websites-blocked-growing-wave-online-censorship 
 
-Internet Service Providers (ISP) act as gateways to the internet providing governments control over speech by having the
-ability to restrict usage and track people's usage via their loaned IP addresses. In order to make tracking usage much more
+On-line communications are censored at the point of entrance the Internet Service Providers (ISP). 
+They act as gateways to the internet providing governments control over speech by having the
+ability to restrict usage and track people's usage via their leased IP addresses. In order to make tracking usage much more
 difficult, tools have come out that provide techniques called onion-/garlic-routing where the source and destinations of
 internet routes can not be determined without breaking encryption, a very expensive feat, sometimes impossible today when
 considering the encryption algorithms used. 
