@@ -214,24 +214,24 @@ A package containing classes for clients to make requests from the Bus and recei
 - **SimpleClient**: Returned from ClientAppManager as Client. Sends messages to Service Bus which releases the calling thread when the message reaches the Message Channel's queue. If a ServiceCallback is provided, SimpleClient uses an internal claim check using the Envelope's ID as the claim ID so that on notify the Envelope provided can be correlated with the requesting ServiceCallback which then calls its reply method.
 
 #### Consensus Service
-Not Implemented. 
-
 Expected to provide consensus among mobiles.
 
-#### Content Service
-Not Implemented. 
+Not Yet Implemented.
 
+#### Content Service
 Will basically provide dynamic content through NodeJS as a back-end service for providing HTML5/CSS3/JS apps in Java and static content through integration with IPFS.
 
-#### Contract Service
-Not Implemented. 
+Not Yet Implemented.
 
-Expected to initially support Ethereum smart contracts but long-term desired to run smart contracts directly in this app.
+#### Contract Service
+Expected to initially support Ethereum and Omni (Bitcoin) smart contracts but long-term desired to run smart contracts directly in this app.
+
+Not Yet Implemented. 
 
 #### Decentralized EXchange (DEX) Service
-Not Implemented. 
-
 Researching options.
+
+Not Yet Implemented. 
 
 #### Decentralized IDentity (DID) Service
 Self-Sovereign Identity + RepBAC (Reputation Based Access Control) + Circles of Influence. Identity without claimed authority, 
@@ -251,21 +251,67 @@ Currently uses Nitrite NoSQL embedded database used for persisting and loading i
 Needs to be seriously redesigned towards a JanusGraph over Cassandra on 10 billion mobiles with response times < 500ms.
 
 #### IPFS Service
+Acts as an API for IPFS. 
+Supports local IPFS nodes, making calls to remote gateways, and acting as a gateway.
 
+In development.
 
 #### KeyRing Service
+Key management for securing your keys on your mobile and off-line. 
+Supports sending keys to and receiving keys from off-line key vaults. 
+
+Not implemented.
 
 #### Orchestration Service
+Orchestrates service calls using Simple Routes and Dynamic Routing Slips.
+All Envelopes have a Dynamic Routing Slip but their current Route is nullable.
+Dynamic Routing Slip is backed by a Deque Stack of Routes.
+Routes can be added at any time, pushed to the stack (only supports Simple Routes for now).
+Routes are popped off the stack when the Orchestrations retrieves the next Route.
+
+Routes Envelopes accordingly:
+
+1. If slip is not in progress, remaining routes counter is incremented by the number of remaining routes in the slip, and the slip is flagged as in progress.
+2. If there's a Route ready to be popped off the stack, the Route is popped, set in the Envelope, and active routes counter is incremented.
+3. If there's no additional Routes, there was no Route set in the Envelope, or there was but it's already been routed, or there was and it hasn't routed but it's for the Orchestration Service, then if client id was set in Envelope, set Reply to client as true otherwise just end the route, but either way decrement the active routes counter and remaining routes counter. If the route is just a fire-and-forget, just send it on its way and increment both the active and remaining routes counters.
 
 #### Payment Service
+Expected to integrate with varies crypto-currencies for payments.
+
+Not Yet Implemented.
 
 #### Prana Service
+Utility tokens used in the platform as a method to manage resources (network, cpu, storage) to support it. 
+Prana can be acquired by sharing resources, selling personal information, and as rewards for using the system. 
+They can be used to acquire resources beyond what a user's mobile provides.
+
+Not Yet Implemented.
 
 #### Repository Service
+Provides access to various decentralized repository services.
+
+The first implementation is for GitHub using GitHub.com as a temporary hosting solution. Long-term it's expected to support Git fully decentralized.
+
+Started but not yet implemented.
 
 #### SecureDrop Service
+Simplifies submitting sensitive data to Secure Drop service via clearnet or Tor.
+
+Not Yet Implemented.
 
 #### Sensors Service
+Provides an intelligent router as an overlay network using I2P for a base level of anonymity P2P and Tor when accessing clearnet web services. 
+The module participates with the DID Service for self-sovereign identity and reputation based access. 
+The system survives even if the internet goes down or is cut off by supporting peer-to-peer direct wireless mesh networks. 
+As long as enough people still have their device, the network survives. 
+
+##### Configuration
+
+##### Start
+
+##### Shutdown
+
+##### Graceful Shutdown
 
 ##### Aggression Filter
 
@@ -296,6 +342,7 @@ Needs to be seriously redesigned towards a JanusGraph over Cassandra on 10 billi
 ##### Honey Pot Counter-Measures
 
 ##### I2P Sensor
+An embedded I2P Router.
 
 ###### Attack Mitigation
 
@@ -322,6 +369,7 @@ Needs to be seriously redesigned towards a JanusGraph over Cassandra on 10 billi
 ##### Rooting
 
 ##### Tor Sensor
+An embedded Tor Router.
 
 ##### WiFi Aware Sensor
 
