@@ -15,6 +15,7 @@ import io.onemfive.core.securedrop.SecureDropService;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.util.DLC;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,12 +68,14 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     }
 
     @Override
-    public boolean send(Envelope envelope) {
+    public boolean send(Envelope e) {
         LOG.info("Received envelope. Sending to channel...");
         if(pool != null && pool.getStatus() == WorkerThreadPool.Status.Running) {
-            return channel.send(envelope);
+            return channel.send(e);
         } else {
-            LOG.warning("Unable to send to channel: pool.status="+pool.getStatus().toString());
+            String errMsg = "Unable to send to channel: pool.status="+pool.getStatus().toString();
+            DLC.addErrorMessage(errMsg, e);
+            LOG.warning(errMsg);
             return false;
         }
     }

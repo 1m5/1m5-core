@@ -3,6 +3,7 @@ package io.onemfive.core.bus;
 import io.onemfive.core.LifeCycle;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.util.DLC;
 
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -40,28 +41,32 @@ final class MessageChannel implements MessageProducer, LifeCycle {
 
     /**
      * Send message on channel.
-     * @param envelope
+     * @param e Envelope
      */
-    public boolean send(Envelope envelope) {
+    public boolean send(Envelope e) {
         if(accepting) {
             try {
-                boolean success = queue.add(envelope);
+                boolean success = queue.add(e);
                 if(success)
-                    LOG.info(Thread.currentThread().getName()+": Envelope-"+envelope.getId()+"("+envelope+") added to message queue (size="+queue.size()+")");
+                    LOG.info(Thread.currentThread().getName()+": Envelope-"+e.getId()+"("+e+") added to message queue (size="+queue.size()+")");
                 return success;
-            } catch (IllegalStateException e) {
-                LOG.warning(Thread.currentThread().getName()+": Channel at capacity; rejected Envelope-"+envelope.getId()+"("+envelope+").");
+            } catch (IllegalStateException ex) {
+                String errMsg = Thread.currentThread().getName()+": Channel at capacity; rejected Envelope-"+e.getId()+"("+e+").";
+                DLC.addErrorMessage(errMsg, e);
+                LOG.warning(errMsg);
                 return false;
             }
         } else {
-            LOG.info(Thread.currentThread().getName()+": Not accepting envelopes yet.");
+            String errMsg = Thread.currentThread().getName()+": Not accepting envelopes yet.";
+            DLC.addErrorMessage(errMsg, e);
+            LOG.warning(errMsg);
             return false;
         }
     }
 
     /**
      * Receive envelope from channel with blocking.
-     * @return
+     * @return Envelope
      */
     public Envelope receive() {
         Envelope next = null;
@@ -78,7 +83,7 @@ final class MessageChannel implements MessageProducer, LifeCycle {
     /**
      * Receive envelope from channel with blocking until timeout.
      * @param timeout in milliseconds
-     * @return
+     * @return Envelope
      */
     public Envelope receive(int timeout) {
         Envelope next = null;

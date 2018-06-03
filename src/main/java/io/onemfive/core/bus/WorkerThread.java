@@ -74,6 +74,10 @@ final class WorkerThread extends AppThread {
                 }
                 sendAttempts++;
             }
+            if(!received) {
+                // TODO: Need to move the failed Envelope to a log where it can be retried later
+                LOG.warning("Failed 3 attempts to send Envelope (id="+e.getId()+") to Service: ");
+            }
         }
     }
 }

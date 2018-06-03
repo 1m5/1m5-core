@@ -73,18 +73,6 @@ final class WorkerThreadPool extends AppThread {
         return true;
     }
 
-    boolean pause() {
-        return false;
-    }
-
-    boolean unpause() {
-        return false;
-    }
-
-    boolean restart() {
-        return false;
-    }
-
     boolean shutdown() {
         status = Status.Stopping;
         spin.set(false);
