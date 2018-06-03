@@ -41,6 +41,9 @@ self-sovereign identities, IPFS, Ethereum, GitHub, and others in the future maki
 a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
 a service registry, and a number of Sensors for advanced intelligent interaction with other nodes.
 
+## Implementation
+The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+.
+
 ### Common Classes
 Classes used throughout all components are:
 
