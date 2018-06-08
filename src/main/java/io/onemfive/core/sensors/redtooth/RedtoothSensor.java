@@ -21,6 +21,11 @@ public class RedtoothSensor implements Sensor {
     }
 
     @Override
+    public boolean reply(Envelope envelope) {
+        return false;
+    }
+
+    @Override
     public boolean start(Properties properties) {
         return false;
     }

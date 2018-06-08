@@ -46,19 +46,19 @@
 		<profile>
 			<id>Development</id>
 			<properties>
-				<logfile>/1m5/logs/1m5.log</logfile>
+				<logfile>/1m5/logs/core.log</logfile>
 			</properties>
 		</profile>
 		<profile>
 			<id>QA</id>
 			<properties>
-				<logfile>/1m5/logs/1m5.log</logfile>
+				<logfile>/1m5/logs/core.log</logfile>
 			</properties>
 		</profile>
 		<profile>
 			<id>Production</id>
 			<properties>
-				<logfile>/1m5/logs/1m5.log</logfile>
+				<logfile>/1m5/logs/core.log</logfile>
 			</properties>
 		</profile>
 	</profiles>
@@ -76,6 +76,27 @@
 			<artifactId>data</artifactId>
 			<version>${project.version}</version>
 			<!--<license>Unlicense</license>-->
+		</dependency>
+		<!-- DID -->
+		<dependency>
+			<groupId>com.madgag.spongycastle</groupId>
+			<artifactId>core</artifactId>
+			<version>1.58.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.madgag.spongycastle</groupId>
+			<artifactId>prov</artifactId>
+			<version>1.58.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.madgag.spongycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+			<version>1.58.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.madgag.spongycastle</groupId>
+			<artifactId>bcpg-jdk15on</artifactId>
+			<version>1.58.0.0</version>
 		</dependency>
 		<!-- InfoVault -->
 		<dependency>
@@ -127,13 +148,18 @@
 			<systemPath>${project.basedir}/libs/flexi-gmss-1.7p1.jar</systemPath>
 		</dependency>
 		<!-- Sensors: Clearnet -->
+		<!-- Client -->
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
 			<version>3.10.0</version>
 		</dependency>
-		<!-- Contract -->
-
+		<!-- Server -->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.2.24.v20180105</version>
+		</dependency>
 		<!-- Test -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -174,14 +200,14 @@
 					<!--<artifactId>maven-antrun-plugin</artifactId>-->
 					<!--<version>1.8</version>-->
 				<!--</plugin>-->
-				<!--<plugin>-->
-					<!--<artifactId>maven-dependency-plugin</artifactId>-->
-					<!--<version>2.10</version>-->
-				<!--</plugin>-->
-				<!--<plugin>-->
-					<!--<artifactId>maven-release-plugin</artifactId>-->
-					<!--<version>2.5.2</version>-->
-				<!--</plugin>-->
+				<plugin>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>2.10</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5.2</version>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>

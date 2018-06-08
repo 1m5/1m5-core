@@ -127,6 +127,12 @@ public class WiFiDirectSensor
 //        }
 //    }
 
+
+    @Override
+    public boolean reply(Envelope envelope) {
+        return false;
+    }
+
     public PeerDeviceList getPeerDeviceList() {
         return peerDeviceList;
     }

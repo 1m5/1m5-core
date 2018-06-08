@@ -156,6 +156,11 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
     }
 
     @Override
+    public boolean reply(Envelope envelope) {
+        return false;
+    }
+
+    @Override
     public void networkStatusChanged() {
         String statusText;
         switch (I2PBote.getInstance().getNetworkStatus()) {

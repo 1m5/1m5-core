@@ -26,6 +26,11 @@ public class NearbySensor implements Sensor {
     }
 
     @Override
+    public boolean reply(Envelope envelope) {
+        return false;
+    }
+
+    @Override
     public boolean pause() {
         return false;
     }

@@ -10,4 +10,5 @@ import io.onemfive.data.Envelope;
  */
 public interface Sensor extends LifeCycle {
     boolean send(Envelope envelope);
+    boolean reply(Envelope envelope);
 }

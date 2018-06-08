@@ -29,6 +29,11 @@ public class MeshSensor implements Sensor {
     }
 
     @Override
+    public boolean reply(Envelope envelope) {
+        return false;
+    }
+
+    @Override
     public boolean pause() {
         return false;
     }

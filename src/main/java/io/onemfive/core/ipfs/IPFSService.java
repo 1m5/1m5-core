@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Abstracts IPFS as an internal Service.
+ * IPFS API as an internal service.
  *
  * https://discuss.ipfs.io/t/writeable-http-gateways/210
  *
@@ -1151,8 +1151,6 @@ public class IPFSService extends BaseService {
                 List<String> clearnetGateways = Arrays.asList(clearnetGatewaysString.split(","));
                 for(String gateway : clearnetGateways) {
                     this.clearnetGateways.put(gateway, GatewayStatus.Unknown);
-                    URL url = new URL(gateway);
-                    ClearnetSensor.addTrustedHost(url.getHost());
                 }
             }
             activeGateway = getActiveGateway();

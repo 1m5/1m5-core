@@ -16,7 +16,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     private static final Logger LOG = Logger.getLogger(BaseService.class.getName());
 
     protected boolean orchestrator = false;
-    private MessageProducer producer;
+    protected MessageProducer producer;
     protected InfoVault infoVault;
 
     public BaseService() {

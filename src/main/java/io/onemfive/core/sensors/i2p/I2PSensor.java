@@ -44,6 +44,11 @@ public class I2PSensor implements Sensor {
     }
 
     @Override
+    public boolean reply(Envelope envelope) {
+        return false;
+    }
+
+    @Override
     public boolean start(Properties properties) {
         LOG.info("Starting...");
         status = Status.STARTING;

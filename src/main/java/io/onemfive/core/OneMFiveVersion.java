@@ -27,7 +27,7 @@ public class OneMFiveVersion {
     }
 
     public static void print() {
-        LOG.info("SC ID: " + ID);
-        LOG.info("SC Version: " + FULL_VERSION);
+        LOG.info("1M5 ID: " + ID);
+        LOG.info("1M5 Version: " + VERSION);
     }
 }

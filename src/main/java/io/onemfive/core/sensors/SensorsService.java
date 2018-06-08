@@ -11,6 +11,7 @@ import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.mesh.MeshSensor;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
+import io.onemfive.data.util.DLC;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -27,6 +28,7 @@ public class SensorsService extends BaseService {
     private static final Logger LOG = Logger.getLogger(SensorsService.class.getName());
 
     public static final String OPERATION_SEND = "SEND";
+    public static final String OPERATION_REPLY_CLEARNET = "REPLY_CLEARNET";
 
     private Properties config;
     private Map<String, Sensor> registeredSensors;
@@ -78,7 +80,9 @@ public class SensorsService extends BaseService {
             // Use Mesh
             LOG.info("Using Mesh Sensor...");
             sensor = activeSensors.get(MeshSensor.class.getName());
-        } else if(r.getOperation().startsWith("http") || e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().startsWith("http")) {
+        } else if(r.getOperation().startsWith("http")
+                || r.getOperation().equals(OPERATION_REPLY_CLEARNET)
+                || e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().startsWith("http")) {
             // Use Clearnet
             LOG.info("Using Clearnet Sensor...");
             sensor = activeSensors.get(ClearnetSensor.class.getName());
@@ -87,6 +91,23 @@ public class SensorsService extends BaseService {
             deadLetter(e);
         }
         if(sensor != null) sensor.send(e);
+    }
+
+    public void sendToBus(Envelope envelope) {
+        LOG.info("Sending request to service bus from Sensors Service...");
+        int maxAttempts = 30;
+        int attempts = 0;
+        while(!producer.send(envelope) && ++attempts <= maxAttempts) {
+            synchronized (this) {
+                try {
+                    this.wait(100);
+                } catch (InterruptedException e) {}
+            }
+        }
+        if(attempts == maxAttempts) {
+            // failed
+            DLC.addErrorMessage("500",envelope);
+        }
     }
 
     @Override
@@ -156,7 +177,7 @@ public class SensorsService extends BaseService {
                 }
 
                 if (registered.contains("clearnet")) {
-                    registeredSensors.put(ClearnetSensor.class.getName(), new ClearnetSensor());
+                    registeredSensors.put(ClearnetSensor.class.getName(), new ClearnetSensor(this));
                     new AppThread(new Runnable() {
                         @Override
                         public void run() {
@@ -178,9 +199,8 @@ public class SensorsService extends BaseService {
         return true;
     }
 
-
     @Override
-    public boolean gracefulShutdown() {
+    public boolean shutdown() {
         if(registeredSensors.containsKey(ClearnetSensor.class.getName())) {
             new AppThread(new Runnable() {
                 @Override
@@ -227,5 +247,11 @@ public class SensorsService extends BaseService {
             }).start();
         }
         return true;
+    }
+
+    @Override
+    public boolean gracefulShutdown() {
+        // TODO: add wait/checks to ensure each sensor shutdowns
+        return shutdown();
     }
 }

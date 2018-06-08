@@ -78,7 +78,7 @@ public class CoreTest {
         client.request(e, cb);
     }
 
-    @Test
+//    @Test
     public void testIPFSGatewayPublishServiceDirectory() {
         ServiceCallback cb = new ServiceCallback() {
             @Override
@@ -187,7 +187,7 @@ public class CoreTest {
             System.out.println("MemoryTest: name="+t.getName()
                     +", ended="+new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(t.getTimeEnded())
                     +", bac="+t.getBloodAlcoholContent()
-                    +", avgResponseTime="+t.getAvgResponseTimeMs()
+                    +", avgResponseTime="+t.getAvgResponseTimeOverallMs()
                     +", difficulty="+t.getDifficulty()
                     +", impairment="+t.getImpairment().name());
         }

@@ -2,8 +2,10 @@ package io.onemfive.core.orchestration;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 
+import java.net.URL;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -68,7 +70,18 @@ public class OrchestrationService extends BaseService {
             }
             if(rs.peekAtNextRoute() != null) {
                 // slip has routes left, set next route
-                e.setRoute(rs.nextRoute());
+                route = rs.nextRoute();
+                if(OrchestrationService.class.getName().equals(route.getService())) {
+                    // need to determine what next route is
+                    URL url = e.getURL();
+                    if(url != null && url.getPath() != null) {
+                        String path = url.getPath();
+                        if(path.startsWith("/ipfs/")) {
+                            route = new SimpleRoute(IPFSService.class.getName(), null);
+                        }
+                    }
+                }
+                e.setRoute(route);
                 reply(e);
                 activeRoutes++;
             } else if(route == null || route.routed() || OrchestrationService.class.getName().equals(route.getService())) {

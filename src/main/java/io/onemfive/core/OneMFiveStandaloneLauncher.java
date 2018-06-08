@@ -13,6 +13,7 @@ import io.onemfive.data.util.Multihash;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
@@ -40,7 +41,16 @@ public class OneMFiveStandaloneLauncher {
     }
 
     private void launch(String args[]) {
-        OneMFiveAppContext context = OneMFiveAppContext.getInstance();
+        Properties config = new Properties();
+        //// Clearnet Sensor ////
+        // for local IPFS node calls
+        config.setProperty("1m5.sensors.clearnet.http.client", "true");
+        // for handling mobile calls to this gateway
+        config.setProperty("1m5.sensors.clearnet.http.server","true");
+        config.setProperty("1m5.sensors.clearnet.http.server.ip", "localhost");
+        config.setProperty("1m5.sensors.clearnet.http.server.port", "8080");
+        config.setProperty("1m5.sensors.clearnet.http.server.path", "/mj82jg857ky45oj8xykfj92y78958n72z9gx57yg2");
+        OneMFiveAppContext context = OneMFiveAppContext.getInstance(config);
         ClientAppManager manager = context.getClientAppManager();
         Client c = manager.getClient(true);
         DID did = new DID();
@@ -50,7 +60,7 @@ public class OneMFiveStandaloneLauncher {
         waitABit(2 * 1000);
 
 //        testViewFile(c);
-        testMakeDirectory(c);
+//        testMakeDirectory(c);
 //        testMakeFile(c);
 
         waitABit(10000 * 1000);
