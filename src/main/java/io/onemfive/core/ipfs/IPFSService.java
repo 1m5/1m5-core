@@ -1115,7 +1115,12 @@ public class IPFSService extends BaseService {
     public boolean start(Properties properties) {
         LOG.info("Starting...");
         try {
-            config = Config.loadFromClasspath("ipfs.config", properties);
+            // load from last saved configuration
+//            config = Config.loadFromBase("ipfs.config");
+//            if(config == null) {
+                // initial load from jar
+                config = Config.loadFromClasspath("ipfs.config", properties);
+//            }
 
             this.local = config.getProperty(PROP_IPFS_LOCAL);
 
@@ -1176,7 +1181,8 @@ public class IPFSService extends BaseService {
         clearnetGatewaysString = clearnetGatewaysString.substring(0,clearnetGatewaysString.length()-1);
         config.setProperty(PROP_CLEARNET_GATEWAYS, clearnetGatewaysString);
         try {
-            Config.saveToClasspath("ipfs.config", config);
+            // Save to base so that it can be manually locally changed if desired
+            Config.saveToBase("ipfs.config", config);
         } catch (IOException e) {
             LOG.warning("IOException caught during IPFSService shutdown attempting to save property file ipfs.config: "+e.getLocalizedMessage());
         }

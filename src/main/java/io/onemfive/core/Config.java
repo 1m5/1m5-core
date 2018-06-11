@@ -14,6 +14,10 @@ public class Config {
 
     private static final Logger LOG = Logger.getLogger(Config.class.getName());
 
+    public static Properties loadFromClasspath(String name) throws Exception {
+        return loadFromClasspath(name, null);
+    }
+
     public static Properties loadFromClasspath(String name, Properties scProps) throws Exception {
         LOG.info("Loading properties file "+name+"...");
         Properties p = new Properties();
@@ -85,13 +89,13 @@ public class Config {
 
     public static void saveToClasspath(String name, Properties props) throws IOException {
         LOG.info("Saving properties file "+name+"...");
-        props.store(new FileOutputStream(name), null);
+        props.store(new FileWriter(name), null);
     }
 
     public static void saveToBase(String name, Properties props) throws IOException {
         LOG.info("Saving properties file "+name+"...");
         String path = OneMFiveAppContext.getInstance().getBaseDir()+"/"+name;
-        props.store(new FileOutputStream(path), null);
+        props.store(new FileWriter(path), null);
     }
 
 }
