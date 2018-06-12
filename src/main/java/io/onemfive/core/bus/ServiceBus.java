@@ -161,25 +161,26 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         channel = new MessageChannel(maxMessagesCached);
         channel.start(properties);
 
-        registeredServices = new HashMap<>(13);
-        runningServices = new HashMap<>(13);
+        registeredServices = new HashMap<>(15);
+        runningServices = new HashMap<>(15);
 
         // Register Core Services
         AdminService adminService = new AdminService(this);
         registeredServices.put(AdminService.class.getName(), adminService);
 
-        // Start InfoVaultService first synchronously to ensure InfoVault is started prior to other services getting an instance
-        InfoVaultService infoVaultService = new InfoVaultService(this);
-        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
-
         OrchestrationService orchestrationService = new OrchestrationService(this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
-        DIDService didService = new DIDService(this);
-        registeredServices.put(DIDService.class.getName(), didService);
+        // Additional Services should be registered by client via Admin Service
 
-        IPFSService ipfsService = new IPFSService(this);
-        registeredServices.put(IPFSService.class.getName(), ipfsService);
+//        InfoVaultService infoVaultService = new InfoVaultService(this);
+//        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
+
+//        DIDService didService = new DIDService(this);
+//        registeredServices.put(DIDService.class.getName(), didService);
+
+//        IPFSService ipfsService = new IPFSService(this);
+//        registeredServices.put(IPFSService.class.getName(), ipfsService);
 
 //        PranaService pranaService = new PranaService(this);
 //        registeredServices.put(PranaService.class.getName(), pranaService);
@@ -202,8 +203,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 //        PaymentService paymentService = new PaymentService(this);
 //        registeredServices.put(PaymentService.class.getName(), paymentService);
 
-        SensorsService sensorsService = new SensorsService(this);
-        registeredServices.put(SensorsService.class.getName(), sensorsService);
+//        SensorsService sensorsService = new SensorsService(this);
+//        registeredServices.put(SensorsService.class.getName(), sensorsService);
 
 //        AtenService atenService = new AtenService(this);
 //        registeredServices.put(AtenService.class.getName(), atenService);
