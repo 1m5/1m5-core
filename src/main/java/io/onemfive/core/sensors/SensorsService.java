@@ -115,7 +115,7 @@ public class SensorsService extends BaseService {
         LOG.setLevel(Level.INFO);
         LOG.info("Starting...");
         try {
-            config = Config.loadFromClasspath("sensors.config", properties);
+            config = Config.loadFromClasspath("sensors.config", properties, false);
 
             String registeredSensorsString = config.getProperty("1m5.sensors.registered");
             if(registeredSensorsString != null) {

@@ -356,7 +356,7 @@ public final class ClearnetSensor extends BaseSensor {
             }
         }
 
-        LOG.warning("Started.");
+        LOG.info("Started.");
         return true;
     }
 

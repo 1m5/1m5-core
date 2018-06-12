@@ -148,7 +148,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         }
 
         try {
-            this.properties = Config.loadFromClasspath("bus.config", this.properties);
+            this.properties = Config.loadFromClasspath("bus.config", this.properties, false);
             String maxMessagesCachedMultiplierStr = this.properties.getProperty("1m5.bus.maxMessagesCachedMultiplier");
             if(maxMessagesCachedMultiplierStr != null){
                 maxMessagesCached = Integer.parseInt(maxMessagesCachedMultiplierStr) * maxThreads;
@@ -171,16 +171,19 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         OrchestrationService orchestrationService = new OrchestrationService(this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
+        SensorsService sensorsService = new SensorsService(this);
+        registeredServices.put(SensorsService.class.getName(), sensorsService);
+
+        InfoVaultService infoVaultService = new InfoVaultService(this);
+        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
+
+        DIDService didService = new DIDService(this);
+        registeredServices.put(DIDService.class.getName(), didService);
+
+        IPFSService ipfsService = new IPFSService(this);
+        registeredServices.put(IPFSService.class.getName(), ipfsService);
+
         // Additional Services should be registered by client via Admin Service
-
-//        InfoVaultService infoVaultService = new InfoVaultService(this);
-//        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
-
-//        DIDService didService = new DIDService(this);
-//        registeredServices.put(DIDService.class.getName(), didService);
-
-//        IPFSService ipfsService = new IPFSService(this);
-//        registeredServices.put(IPFSService.class.getName(), ipfsService);
 
 //        PranaService pranaService = new PranaService(this);
 //        registeredServices.put(PranaService.class.getName(), pranaService);
@@ -202,9 +205,6 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
 //        PaymentService paymentService = new PaymentService(this);
 //        registeredServices.put(PaymentService.class.getName(), paymentService);
-
-//        SensorsService sensorsService = new SensorsService(this);
-//        registeredServices.put(SensorsService.class.getName(), sensorsService);
 
 //        AtenService atenService = new AtenService(this);
 //        registeredServices.put(AtenService.class.getName(), atenService);

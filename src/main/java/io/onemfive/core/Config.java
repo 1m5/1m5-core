@@ -15,13 +15,13 @@ public class Config {
     private static final Logger LOG = Logger.getLogger(Config.class.getName());
 
     public static Properties loadFromClasspath(String name) throws Exception {
-        return loadFromClasspath(name, null);
+        return loadFromClasspath(name, null, false);
     }
 
-    public static Properties loadFromClasspath(String name, Properties scProps) throws Exception {
+    public static Properties loadFromClasspath(String name, Properties scProps, boolean overrideSupplied) throws Exception {
         LOG.info("Loading properties file "+name+"...");
         Properties p = new Properties();
-        if(scProps != null)
+        if(scProps != null && overrideSupplied)
             p.putAll(scProps);
         InputStream is = null;
         try {
@@ -40,7 +40,8 @@ public class Config {
             if(is!=null)
                 try { is.close();} catch (IOException e) {}
         }
-
+        if(scProps != null && !overrideSupplied)
+            p.putAll(scProps);
         return p;
     }
 

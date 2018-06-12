@@ -60,7 +60,7 @@ public class InfoVault implements LifeCycle {
     public boolean start(Properties properties) {
         LOG.info("Starting...");
         try {
-            props = Config.loadFromClasspath("infovault.config", properties);
+            props = Config.loadFromClasspath("infovault.config", properties, false);
             db = new NitriteDBManager();
             db.start(properties);
 

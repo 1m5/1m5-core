@@ -1119,7 +1119,7 @@ public class IPFSService extends BaseService {
 //            config = Config.loadFromBase("ipfs.config");
 //            if(config == null) {
                 // initial load from jar
-                config = Config.loadFromClasspath("ipfs.config", properties);
+                config = Config.loadFromClasspath("ipfs.config", properties, false);
 //            }
 
             this.local = config.getProperty(PROP_IPFS_LOCAL);
