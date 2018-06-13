@@ -45,22 +45,18 @@ public class AdminService extends BaseService {
 
     private void registerServices(Envelope e){
         List<Class> servicesToRegister = (List<Class>)DLC.getEntity(e);
-        List<Exception> exceptionList = new ArrayList<>();
-        int i = 0;
+        Properties p = (Properties)DLC.getData(Properties.class, e);
         for(Class c : servicesToRegister) {
             try {
-                serviceBus.register(c);
+                serviceBus.register(c, p);
             } catch (ServiceNotAccessibleException e1) {
-                exceptionList.add(i,e1);
+                DLC.addException(e1, e);
             } catch (ServiceNotSupportedException e1) {
-                exceptionList.add(i,e1);
+                DLC.addException(e1, e);
             } catch (ServiceRegisteredException e1) {
-                exceptionList.add(i,e1);
+                DLC.addException(e1, e);
             }
-            exceptionList.add(i,null);
-            i++;
         }
-        ((DocumentMessage)e.getMessage()).data.get(0).put(DLC.EXCEPTIONS,exceptionList);
     }
 
     @Override

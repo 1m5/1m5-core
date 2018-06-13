@@ -80,11 +80,13 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         }
     }
 
-    public void register(Class serviceClass) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
+    public void register(Class serviceClass, Properties p) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
         LOG.info("Registering service class: "+serviceClass.getName());
         if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
+        if(p != null && p.size() > 0)
+            properties.putAll(p);
         final String serviceName = serviceClass.getName();
         try {
             final BaseService service = (BaseService)serviceClass.newInstance();

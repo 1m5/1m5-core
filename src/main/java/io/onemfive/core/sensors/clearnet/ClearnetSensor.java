@@ -14,6 +14,7 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 
 import javax.net.ssl.*;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -307,38 +308,23 @@ public final class ClearnetSensor extends BaseSensor {
         }
 
         if("true".equals(properties.getProperty(PROP_HTTP_SERVER))) {
-            String host = "localhost";
-            String hostProp = properties.getProperty(PROP_HTTP_SERVER_IP);
-            if(hostProp != null)
-                host = hostProp;
+            String host = "127.0.0.1";
+//            String hostProp = properties.getProperty(PROP_HTTP_SERVER_IP);
+//            if(hostProp != null && !"".equals(hostProp)) {
+//                host = hostProp;
+//            }
+            LOG.info("HTTPS Server Host: "+host);
 
-            String portStr = properties.getProperty(PROP_HTTP_SERVER_PORT);
-            int port = 80;
-            if(portStr != null) {
-                port = Integer.parseInt(portStr);
-            }
+            int port = 8443;
+//            String portStr = properties.getProperty(PROP_HTTP_SERVER_PORT);
+//            if(portStr != null) {
+//                port = Integer.parseInt(portStr);
+//            }
+            LOG.info("HTTPS Server Port: "+port);
 
-            server = new Server();
-            ServerConnector connector = new ServerConnector(server);
-            connector.setHost(host);
-            connector.setPort(port);
-            server.addConnector(connector);
+            InetSocketAddress addr = new InetSocketAddress(host,port);
+            server = new Server(addr);
 
-            String path = "/";
-            String pathProp = properties.getProperty(PROP_HTTP_SERVER_PATH);
-            if(pathProp != null) {
-                if(pathProp.startsWith("/"))
-                    path = pathProp;
-                else
-                    path = path + pathProp;
-            }
-
-            ContextHandler contextHandler = new ContextHandler();
-            contextHandler.setContextPath(path);
-            httpHandler = new HttpEnvelopeHandler(this);
-            contextHandler.setHandler(httpHandler);
-
-            server.setHandler(contextHandler);
             try {
                 server.start();
             } catch (Exception e) {
