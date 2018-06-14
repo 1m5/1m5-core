@@ -161,12 +161,16 @@ public final class ClearnetSensor extends BaseSensor {
             }
         }
         Request req = b.build();
+        if(req == null) {
+            LOG.warning("okhttp3 builder didn't build request.");
+            return false;
+        }
         LOG.info("Sending http request, host="+url.getHost());
         Response response = null;
         if(url.toString().startsWith("https:")) {
-            if(trustedHosts.contains(url.getHost())) {
+//            if(trustedHosts.contains(url.getHost())) {
                 try {
-                    LOG.info("Trusted host, using compatible connection...");
+//                    LOG.info("Trusted host, using compatible connection...");
                     response = httpsCompatibleClient.newCall(req).execute();
                     if(!response.isSuccessful()) {
                         LOG.warning(response.toString());
@@ -177,21 +181,25 @@ public final class ClearnetSensor extends BaseSensor {
                     m.addErrorMessage(e1.getLocalizedMessage());
                     return false;
                 }
-            } else {
-                try {
-                    System.out.println(ClearnetSensor.class.getSimpleName() + ": using strong connection...");
-                    response = httpsStrongClient.newCall(req).execute();
-                    if (!response.isSuccessful()) {
-                        m.addErrorMessage(response.code()+"");
-                        return false;
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    m.addErrorMessage(ex.getLocalizedMessage());
-                    return false;
-                }
-            }
+//            } else {
+//                try {
+//                    System.out.println(ClearnetSensor.class.getSimpleName() + ": using strong connection...");
+//                    response = httpsStrongClient.newCall(req).execute();
+//                    if (!response.isSuccessful()) {
+//                        m.addErrorMessage(response.code()+"");
+//                        return false;
+//                    }
+//                } catch (IOException ex) {
+//                    ex.printStackTrace();
+//                    m.addErrorMessage(ex.getLocalizedMessage());
+//                    return false;
+//                }
+//            }
         } else {
+            if(httpClient == null) {
+                LOG.severe("httpClient was not set up.");
+                return false;
+            }
             try {
                 response = httpClient.newCall(req).execute();
                 if(!response.isSuccessful()) {
@@ -251,12 +259,11 @@ public final class ClearnetSensor extends BaseSensor {
                     .retryOnConnectionFailure(true)
                     .followRedirects(true)
                     .build();
-        }
 
-        if("true".equals(properties.getProperty(PROP_HTTP_CLIENT_TLS))) {
             System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2,TLSv1.3");
+            SSLContext sc = null;
             try {
-                SSLContext sc = SSLContext.getInstance("TLS");
+                sc = SSLContext.getInstance("TLS");
                 sc.init(null, trustAllCerts, new java.security.SecureRandom());
 
                 httpsCompatibleSpec = new ConnectionSpec
@@ -265,6 +272,7 @@ public final class ClearnetSensor extends BaseSensor {
 //                    .allEnabledTlsVersions()
 //                    .allEnabledCipherSuites()
                         .build();
+
                 httpsCompatibleClient = new OkHttpClient.Builder()
 //                    .connectionSpecs(Collections.singletonList(httpsCompatibleSpec))
 //                    .retryOnConnectionFailure(false)
@@ -272,18 +280,6 @@ public final class ClearnetSensor extends BaseSensor {
                         .sslSocketFactory(sc.getSocketFactory(), x509TrustManager)
                         .hostnameVerifier(hostnameVerifier)
                         .build();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOG.warning(e.getLocalizedMessage());
-            }
-        }
-
-        if("true".equals(properties.getProperty(PROP_HTTP_CLIENT_TLS_STRONG))) {
-            System.setProperty("https.protocols", "TLSv1.2,TLSv1.3");
-            try {
-                SSLContext sc = SSLContext.getInstance("TLS");
-                sc.init(null, trustAllCerts, new java.security.SecureRandom());
 
                 httpsStrongSpec = new ConnectionSpec
                         .Builder(ConnectionSpec.MODERN_TLS)
@@ -293,6 +289,7 @@ public final class ClearnetSensor extends BaseSensor {
                                 CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
                                 CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256)
                         .build();
+
                 httpsStrongClient = new OkHttpClient.Builder()
                         .connectionSpecs(Collections.singletonList(httpsStrongSpec))
                         .retryOnConnectionFailure(true)
@@ -315,7 +312,7 @@ public final class ClearnetSensor extends BaseSensor {
 //            }
             LOG.info("HTTPS Server Host: "+host);
 
-            int port = 8443;
+            int port = 8080;
 //            String portStr = properties.getProperty(PROP_HTTP_SERVER_PORT);
 //            if(portStr != null) {
 //                port = Integer.parseInt(portStr);

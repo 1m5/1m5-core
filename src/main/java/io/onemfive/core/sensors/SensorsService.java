@@ -12,6 +12,7 @@ import io.onemfive.core.sensors.mesh.MeshSensor;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
+import io.onemfive.data.util.JSONParser;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -87,7 +88,7 @@ public class SensorsService extends BaseService {
             LOG.info("Using Clearnet Sensor...");
             sensor = activeSensors.get(ClearnetSensor.class.getName());
         } else {
-            LOG.warning("No Sensor registered for Operation: "+r.getOperation()+" and URL: "+e.getURL().toString());
+            LOG.warning("No Sensor registered for Operation: "+r.getOperation()+" and URL: "+(e.getURL()==null?"null":e.getURL().toString()));
             deadLetter(e);
         }
         if(sensor != null) sensor.send(e);
