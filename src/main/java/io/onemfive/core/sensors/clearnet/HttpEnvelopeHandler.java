@@ -104,7 +104,13 @@ public class HttpEnvelopeHandler extends AbstractHandler {
      */
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        LOG.warning("HTTP Handler called; target="+target);
+        LOG.info("HTTP Handler called; target="+target);
+        if("/".equals(target) && "GET".equals(request.getMethod())) {
+            LOG.info("No path and GET request; returning 200 as verification we're up.");
+            response.setStatus(200);
+            baseRequest.setHandled(true);
+            return;
+        }
         Envelope envelope = parseEnvelope(target, request);
         ClientHold clientHold = new ClientHold(target, baseRequest, request, response, envelope);
         requests.put(envelope.getId(), clientHold);
