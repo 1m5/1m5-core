@@ -153,6 +153,36 @@ public class IPFSService extends BaseService {
         String contentStr = "";
         byte[] contentBytes = null;
         IPFSResponse response = null;
+
+        if(operation == null) {
+            if(e.getCommandPath() != null) {
+                // Strip IPFSService identifier
+                String command = e.getCommandPath().replace("/ipfs","");
+                // Let's see if we can determine the operation
+                if(e.getAction() != null) {
+                    switch (e.getAction()) {
+                        case VIEW: {
+                            if(command != null) {
+                                switch (command) {
+                                    case "/" : {
+                                        // For now just return
+                                        return;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(operation == null) {
+            LOG.warning("Unable to handled incoming IPFS request. Sent to Dead Letter queue.");
+            deadLetter(e);
+            return;
+        }
+
         if(operation.equals(OPERATION_PACK)) {
             LOG.info("Handling IPFSResponse...");
             List<String> errors = DLC.getErrorMessages(e);
