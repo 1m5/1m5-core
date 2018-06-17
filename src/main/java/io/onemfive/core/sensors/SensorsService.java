@@ -82,16 +82,23 @@ public class SensorsService extends BaseService {
             LOG.info("Using Mesh Sensor...");
             sensor = activeSensors.get(MeshSensor.class.getName());
         } else if(r.getOperation().startsWith("http")
-                || r.getOperation().equals(OPERATION_REPLY_CLEARNET)
                 || e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().startsWith("http")) {
             // Use Clearnet
             LOG.info("Using Clearnet Sensor...");
             sensor = activeSensors.get(ClearnetSensor.class.getName());
-        } else {
-            LOG.warning("No Sensor registered for Operation: "+r.getOperation()+" and URL: "+(e.getURL()==null?"null":e.getURL().toString()));
-            deadLetter(e);
         }
-        if(sensor != null) sensor.send(e);
+
+        if(sensor != null)
+            sensor.send(e);
+        else {
+            if (r.getOperation().equals(OPERATION_REPLY_CLEARNET)) {
+                sensor = activeSensors.get(ClearnetSensor.class.getName());
+                sensor.reply(e);
+            } else {
+                LOG.warning("Unable to determine sensor. Sending to Dead Letter queue.");
+                deadLetter(e);
+            }
+        }
     }
 
     public void sendToBus(Envelope envelope) {
