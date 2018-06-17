@@ -305,22 +305,28 @@ public final class ClearnetSensor extends BaseSensor {
         }
 
         if("true".equals(properties.getProperty(PROP_HTTP_SERVER))) {
+
+            ContextHandler context = new ContextHandler();
+            context.setContextPath( "/" );
+            context.setHandler( new HttpEnvelopeHandler(this) );
+
             String host = "127.0.0.1";
 //            String hostProp = properties.getProperty(PROP_HTTP_SERVER_IP);
 //            if(hostProp != null && !"".equals(hostProp)) {
 //                host = hostProp;
 //            }
-            LOG.info("HTTPS Server Host: "+host);
+            LOG.info("HTTP Server Host: "+host);
 
             int port = 8080;
 //            String portStr = properties.getProperty(PROP_HTTP_SERVER_PORT);
 //            if(portStr != null) {
 //                port = Integer.parseInt(portStr);
 //            }
-            LOG.info("HTTPS Server Port: "+port);
+            LOG.info("HTTP Server Port: "+port);
 
             InetSocketAddress addr = new InetSocketAddress(host,port);
             server = new Server(addr);
+            server.setHandler(context);
 
             try {
                 server.start();
