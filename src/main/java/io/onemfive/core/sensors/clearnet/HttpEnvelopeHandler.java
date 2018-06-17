@@ -144,12 +144,7 @@ public class HttpEnvelopeHandler extends AbstractHandler {
         Envelope e = Envelope.documentFactory();
 
         if(target != null) {
-            try {
-                e.setURL(new URL(target));
-                LOG.info("Incoming URL: "+target);
-            } catch (MalformedURLException e1) {
-                LOG.warning("target ("+target+") not a url: "+e1.getLocalizedMessage());
-            }
+            e.setCommandPath(target);
         }
 
         String method = request.getMethod();
@@ -237,7 +232,7 @@ public class HttpEnvelopeHandler extends AbstractHandler {
     }
 
     private void unpackEnvelope(Envelope envelope, HttpServletResponse response) {
-
+        response.setStatus(200);
     }
 
 }
