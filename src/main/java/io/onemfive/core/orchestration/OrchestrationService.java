@@ -72,11 +72,10 @@ public class OrchestrationService extends BaseService {
                 // slip has routes left, set next route
                 route = rs.nextRoute();
                 if(OrchestrationService.class.getName().equals(route.getService())) {
-                    // need to determine what next route is
-                    URL url = e.getURL();
-                    if(url != null && url.getPath() != null) {
-                        String path = url.getPath();
-                        if(path.startsWith("/ipfs/")) {
+                    // URL Router - need to determine what next route is
+                    String commandPath = e.getCommandPath();
+                    if(commandPath != null && !"".equals(commandPath)) {
+                        if(commandPath.startsWith("/ipfs")) {
                             route = new SimpleRoute(IPFSService.class.getName(), null);
                         }
                     }
