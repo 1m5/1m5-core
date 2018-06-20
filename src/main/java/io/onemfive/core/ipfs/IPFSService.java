@@ -107,6 +107,7 @@ public class IPFSService extends BaseService {
     public static final String OPERATION_PACK = "PACK";
 
     // Properties
+    private static final String PROP_IPFS_LOCAL_NODE = "1m5.ipfs.node.local";
     private static final String PROP_IPFS_LOCAL = "1m5.ipfs.local";
     private static final String PROP_IPFS_ENCODING = "1m5.ipfs.encoding";
     private static final String PROP_IPFS_VERSION = "1m5.ipfs.version";
@@ -124,6 +125,7 @@ public class IPFSService extends BaseService {
     private Properties config;
     private String version;
 
+    private Boolean localNode = false;
     private String local;
     private String encoding = "UTF-8";
 
@@ -1102,7 +1104,10 @@ public class IPFSService extends BaseService {
                 }
                 break;
             }
-            default: deadLetter(e);
+            default: {
+                LOG.warning("Operation not supported: "+ operation+"; envelope (id="+e.getId()+") to deadletter queue.");
+                deadLetter(e);
+            }
         }
         LOG.info("isRequest="+isRequest);
         if(isRequest){
@@ -1189,6 +1194,12 @@ public class IPFSService extends BaseService {
                 }
             }
             activeGateway = getActiveGateway();
+
+            String localNodeStr = config.getProperty(PROP_IPFS_LOCAL_NODE);
+            if(localNodeStr != null) {
+                localNode = Boolean.parseBoolean(localNodeStr);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             LOG.warning("Exception caught while starting: "+e.getLocalizedMessage());

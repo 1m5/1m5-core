@@ -56,7 +56,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     }
 
     protected final void deadLetter(Envelope envelope) {
-        System.out.println("Can't route envelope:"+envelope);
+        LOG.warning("Can't route envelope:"+envelope);
     }
 
     protected final void endRoute(Envelope envelope) {
