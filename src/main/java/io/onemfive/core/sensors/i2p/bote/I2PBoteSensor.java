@@ -1,19 +1,25 @@
 package io.onemfive.core.sensors.i2p.bote;
 
 import io.onemfive.core.OneMFiveAppContext;
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.sensors.i2p.I2PRouterUtil;
-import io.onemfive.core.sensors.i2p.bote.email.Attachment;
-import io.onemfive.core.sensors.i2p.bote.email.Email;
-import io.onemfive.core.sensors.i2p.bote.email.EmailIdentity;
+import io.onemfive.core.sensors.i2p.bote.crypto.PublicKeyPair;
+import io.onemfive.core.sensors.i2p.bote.email.*;
 import io.onemfive.core.sensors.i2p.bote.fileencryption.PasswordException;
 import io.onemfive.core.sensors.i2p.bote.folder.EmailFolder;
 import io.onemfive.core.sensors.i2p.bote.folder.NewEmailListener;
 import io.onemfive.core.sensors.i2p.bote.network.NetworkStatusListener;
+import io.onemfive.core.sensors.i2p.bote.status.ChangeIdentityStatus;
+import io.onemfive.core.sensors.i2p.bote.status.StatusListener;
 import io.onemfive.core.sensors.i2p.bote.util.BoteHelper;
+import io.onemfive.core.sensors.i2p.bote.util.GeneralHelper;
+import io.onemfive.data.DID;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
+import io.onemfive.data.util.DLC;
 import net.i2p.router.Router;
 import net.i2p.router.RouterContext;
 
@@ -24,19 +30,19 @@ import javax.mail.internet.InternetAddress;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Provides an API for I2P Bote Router.
- * By default, looks for a running I2P Bote instance.
- * If discovered and is configured appropriately, will use it.
- * If discovered and is not configured appropriately, will launch new configured instance.
- * If not found to be installed, will send a message to end user that they need to install I2P Bote.
+ * Provides an API for I2P Bote Router as a Sensor.
+ * I2P Bote in 1M5 can be used as Message-Oriented-Middleware (MOM).
  *
  * @author objectorange
  */
-public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailListener {
+public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, NewEmailListener {
 
     private static final Logger LOG = Logger.getLogger(I2PBoteSensor.class.getName());
 
@@ -59,15 +65,18 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
     private Status status = Status.INIT;
     private I2PBote i2PBote;
 
+    public I2PBoteSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
     @Override
     public boolean send(Envelope envelope) {
         DocumentMessage message = (DocumentMessage)envelope.getMessage();
         Map<String,Object> m = message.data.get(0);
         Email email = new Email(i2PBote.getConfiguration().getIncludeSentTime());
+
 //        try {
-            if(m.containsKey(io.onemfive.data.Email.class.getName())) {
-                // Only 1M5 Emails for now
-                io.onemfive.data.Email m5 = (io.onemfive.data.Email)m.get(io.onemfive.data.Email.class.getName());
+
                 // Set sender
 //                EmailIdentity sender = (EmailIdentity) mSpinner.getSelectedItem();
 //                InternetAddress ia = new InternetAddress(
@@ -133,7 +142,6 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
 //                if (!attachment.clean())
 //                    Log.e(Constants.ANDROID_LOG_TAG, "Can't clean up attachment: <" + attachment + ">");
 //            }
-            }
 
 //            return true;
 //        } catch (PasswordException e) {
@@ -160,6 +168,68 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
         return false;
     }
 
+    public void getKeys(Envelope e) {
+        DID did = e.getDID();
+        Identities identities = i2PBote.getIdentities();
+        EmailIdentity emailIdentity = null;
+        try {
+            emailIdentity = identities.getDefault();
+        } catch (PasswordException e1) {
+            LOG.warning(e1.getLocalizedMessage());
+        } catch (IOException e1) {
+            LOG.warning(e1.getLocalizedMessage());
+        } catch (GeneralSecurityException e1) {
+            LOG.warning(e1.getLocalizedMessage());
+        }
+        if(emailIdentity == null) {
+            // No Default Identity therefore create one
+            StatusListener<ChangeIdentityStatus> lsnr = new StatusListener<ChangeIdentityStatus>() {
+                @Override
+                public void updateStatus(ChangeIdentityStatus changeIdentityStatus, String... args) {
+                    LOG.info(changeIdentityStatus.toString());
+                }
+            };
+            try {
+                /**
+                 * Args:
+                 * 1 = new?
+                 * 2 = Crypto IDs:
+                 *      1 = ElGamal-2048 / DSA-1024
+                 *      2 = ECDH-256 / ECDSA-256
+                 *      3 = ECDH-521 / ECDSA-521
+                 *      4 = NTRUEncrypt-1087 / GMSS-512
+                 * 3,4 = null
+                 * 5 = Alias/Public Name
+                 * 6-9 = null
+                 * 10 = default?
+                 * 11 = StatusListener
+                 */
+                GeneralHelper.createOrModifyIdentity(true, 3, null, null, did.getAlias(), null, null, null, null, true, lsnr);
+                emailIdentity = identities.getDefault();
+                identities.save();
+            } catch (GeneralSecurityException e1) {
+                LOG.warning(e1.getLocalizedMessage());
+            } catch (PasswordException e1) {
+                LOG.warning(e1.getLocalizedMessage());
+            } catch (IOException e1) {
+                LOG.warning(e1.getLocalizedMessage());
+            } catch (IllegalDestinationParametersException e1) {
+                LOG.warning(e1.getLocalizedMessage());
+            }
+        }
+        if(emailIdentity != null && emailIdentity.getPublicName() != null && emailIdentity.getPublicName().equals(did.getAlias())) {
+            PublicKey publicEncryptionKey = emailIdentity.getPublicEncryptionKey();
+            PrivateKey privateEncryptionKey = emailIdentity.getPrivateEncryptionKey();
+            KeyPair encryptionKeyPair = new KeyPair(publicEncryptionKey, privateEncryptionKey);
+            did.addEncryptionKeys(DID.Provider.I2P, did.getAlias(), encryptionKeyPair);
+
+            PublicKey publicSigningKey = emailIdentity.getPublicSigningKey();
+            PrivateKey privateSigningKey = emailIdentity.getPrivateSigningKey();
+            KeyPair signingKeyPair = new KeyPair(publicSigningKey, privateSigningKey);
+            did.addIdentity(DID.Provider.I2P, did.getAlias(), signingKeyPair);
+        }
+    }
+
     @Override
     public void networkStatusChanged() {
         String statusText;
@@ -180,21 +250,13 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
             default:
                 statusText = "Not connected to I2P Network.";
         }
-        System.out.println(statusText);
+        LOG.info(statusText);
     }
 
     @Override
     public void emailReceived(String messageId) {
-//        NotificationManager nm = (NotificationManager) getSystemService(
-//                Context.NOTIFICATION_SERVICE);
-//
-//        NotificationCompat.Builder b = new NotificationCompat.Builder(this)
-//                .setAutoCancel(true)
-//                .setSmallIcon(R.drawable.ic_notif)
-//                .setDefaults(Notification.DEFAULT_ALL);
+        EmailFolder inbox = i2PBote.getInbox();
         try {
-            EmailFolder inbox = I2PBote.getInstance().getInbox();
-
             // Set the new email as \Recent
             inbox.setRecent(messageId, true);
 
@@ -202,14 +264,15 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
             List<Email> newEmails = BoteHelper.getRecentEmails(inbox);
             int numNew = newEmails.size();
             switch (numNew) {
-                case 0:
+                case 0: {
 //                    nm.cancel(NOTIF_ID_NEW_EMAIL);
                     return;
-
-                case 1:
+                }
+                case 1: {
                     Email email = newEmails.get(0);
-
-                    String fromAddress = email.getOneFromAddress();
+                    // TODO: Begin unpacking email into Envelope and forwarding onto Service Bus via Sensors Service
+//                    String fromAddress = email.getOneFromAddress();
+                    Envelope envelope = (Envelope)email.getContent();
 //                    Bitmap picture = BoteHelper.getPictureForAddress(fromAddress);
 //                    if (picture != null)
 //                        b.setLargeIcon(picture);
@@ -230,19 +293,21 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
 //                    vei.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //                    PendingIntent pvei = PendingIntent.getActivity(this, 0, vei, PendingIntent.FLAG_UPDATE_CURRENT);
 //                    b.setContentIntent(pvei);
+                    sensorsService.sendToBus(envelope);
                     break;
-
-                default:
+                }
+                default: {
 //                    b.setContentTitle(getResources().getQuantityString(
 //                            R.plurals.n_new_emails, numNew, numNew));
 
-                    HashSet<Address> recipients = new HashSet<>();
-                    String bigText = "";
+//                    HashSet<Address> recipients = new HashSet<>();
+//                    String bigText = "";
                     for (Email ne : newEmails) {
-                        recipients.add(BoteHelper.getOneLocalRecipient(ne));
-                        bigText += BoteHelper.getNameAndShortDestination(
-                                ne.getOneFromAddress());
-                        bigText += ": " + ne.getSubject() + "\n";
+//                        recipients.add(BoteHelper.getOneLocalRecipient(ne));
+//                        bigText += BoteHelper.getNameAndShortDestination(ne.getOneFromAddress());
+//                        bigText += ": " + ne.getSubject() + "\n";
+                        Envelope envelope = (Envelope)ne.getContent();
+                        sensorsService.sendToBus(envelope);
                     }
 //                    b.setContentText(BoteHelper.joinAddressNames(recipients));
 //                    b.setStyle(new NotificationCompat.BigTextStyle().bigText(bigText));
@@ -251,19 +316,16 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
 //                    eli.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //                    PendingIntent peli = PendingIntent.getActivity(this, 0, eli, PendingIntent.FLAG_UPDATE_CURRENT);
 //                    b.setContentIntent(peli);
+                }
             }
         } catch (PasswordException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.warning(e.getLocalizedMessage());
         } catch (MessagingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.warning(e.getLocalizedMessage());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.warning(e.getLocalizedMessage());
         } catch (GeneralSecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.warning(e.getLocalizedMessage());
         }
 
 //        nm.notify(NOTIF_ID_NEW_EMAIL, b.build());
@@ -271,7 +333,7 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
 
     @Override
     public boolean start(Properties properties) {
-        LOG.info("Starting...");
+        LOG.info("Starting I2P Bote version "+I2PBote.getAppVersion()+"...");
         status = Status.STARTING;
         router = I2PRouterUtil.getGlobalI2PRouter(properties, true);
         i2PBote = I2PBote.getInstance();
@@ -279,7 +341,7 @@ public class I2PBoteSensor implements Sensor, NetworkStatusListener, NewEmailLis
         i2PBote.addNewEmailListener(this);
         i2PBote.addNetworkStatusListener(this);
         status = Status.RUNNING;
-        LOG.info("Started.");
+        LOG.info("I2P Bote Started.");
         return true;
     }
 

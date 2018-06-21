@@ -28,6 +28,7 @@ public class SensorsService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(SensorsService.class.getName());
 
+    public static final String OPERATION_GET_KEYS = "GET_KEYS";
     public static final String OPERATION_SEND = "SEND";
     public static final String OPERATION_REPLY_CLEARNET = "REPLY_CLEARNET";
 
@@ -94,9 +95,12 @@ public class SensorsService extends BaseService {
             sensor = activeSensors.get(ClearnetSensor.class.getName());
         }
 
-        if(sensor != null)
-            sensor.send(e);
-        else {
+        if(sensor != null) {
+            if(OPERATION_SEND.equals(r.getOperation()))
+                sensor.send(e);
+            else if(OPERATION_GET_KEYS.equals(r.getOperation()) && sensor instanceof I2PBoteSensor)
+                ((I2PBoteSensor)sensor).getKeys(e);
+        } else {
             if (r.getOperation().equals(OPERATION_REPLY_CLEARNET)) {
                 sensor = activeSensors.get(ClearnetSensor.class.getName());
                 sensor.reply(e);
@@ -139,7 +143,7 @@ public class SensorsService extends BaseService {
                 activeSensors = new HashMap<>(registered.size());
 
                 if (registered.contains("bote")) {
-                    registeredSensors.put(I2PBoteSensor.class.getName(), new I2PBoteSensor());
+                    registeredSensors.put(I2PBoteSensor.class.getName(), new I2PBoteSensor(this));
                     new AppThread(new Runnable() {
                         @Override
                         public void run() {
