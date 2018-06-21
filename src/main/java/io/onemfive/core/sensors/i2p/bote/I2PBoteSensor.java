@@ -204,7 +204,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                  * 10 = default?
                  * 11 = StatusListener
                  */
-                GeneralHelper.createOrModifyIdentity(true, 3, null, null, did.getAlias(), null, null, null, null, true, lsnr);
+                GeneralHelper.createOrModifyIdentity(true, 1, null, null, did.getAlias(), null, null, null, null, true, lsnr);
                 emailIdentity = identities.getDefault();
                 identities.save();
             } catch (GeneralSecurityException e1) {
