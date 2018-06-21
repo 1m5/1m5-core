@@ -1214,19 +1214,19 @@ public class IPFSService extends BaseService {
     public boolean shutdown() {
         LOG.info("Shutting down...");
         // Persist clearnetGateways list
-        String clearnetGatewaysString = "";
-        for(String g : clearnetGateways.keySet()) {
-            clearnetGatewaysString += g + ",";
-        }
+//        String clearnetGatewaysString = "";
+//        for(String g : clearnetGateways.keySet()) {
+//            clearnetGatewaysString += g + ",";
+//        }
         // Remove last comma
-        clearnetGatewaysString = clearnetGatewaysString.substring(0,clearnetGatewaysString.length()-1);
-        config.setProperty(PROP_CLEARNET_GATEWAYS, clearnetGatewaysString);
-        try {
+//        clearnetGatewaysString = clearnetGatewaysString.substring(0,clearnetGatewaysString.length()-1);
+//        config.setProperty(PROP_CLEARNET_GATEWAYS, clearnetGatewaysString);
+//        try {
             // Save to base so that it can be manually locally changed if desired
-            Config.saveToBase("ipfs.config", config);
-        } catch (IOException e) {
-            LOG.warning("IOException caught during IPFSService shutdown attempting to save property file ipfs.config: "+e.getLocalizedMessage());
-        }
+//            Config.saveToBase("ipfs.config", config);
+//        } catch (IOException e) {
+//            LOG.warning("IOException caught during IPFSService shutdown attempting to save property file ipfs.config: "+e.getLocalizedMessage());
+//        }
         LOG.info("Shutdown.");
         return true;
     }
