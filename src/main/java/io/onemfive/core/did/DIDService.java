@@ -26,9 +26,6 @@ public class DIDService extends BaseService {
     public static final String OPERATION_AUTHENTICATE = "Authenticate";
     public static final String OPERATION_CREATE = "Create";
 
-    private static String dbFileName = ".did";
-    private static Properties db;
-
     public DIDService(MessageProducer producer) {
         super(producer);
     }
@@ -74,8 +71,7 @@ public class DIDService extends BaseService {
 
     /**
      * Creates and returns DID
-     * TODO: Option 1: connect to local Bote instance to create public/private keys
-     * TODO: Option 2: role your own crypto for generating keys that can be used in I2P
+     * TODO: Create PGP master keys if not present and I2P & Bote keys if not present
      * @param e
      */
     private void create(Envelope e) {
@@ -83,7 +79,7 @@ public class DIDService extends BaseService {
         DID did = e.getDID();
         DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
         e.setDID(didCreated);
-        // TODO: Implement I2PBote example by requesting from I2P Sensor
+        // TODO: Create PGP master keys if not present and I2P keys if not present
 //        boolean created = false;
         // Use passphrase to encrypt and cache it
 //        try {
@@ -98,7 +94,7 @@ public class DIDService extends BaseService {
 
         // Create a default Identity
 //        Boolean createNew = true;
-        // TODO: 2 and 3 not available
+        // TODO: Why are 2 and 3 not available when performing it with this code
 //        Integer cryptoImplId = 1; // 1 = ElGamal2048_DSA1024, 2 = ECDH256_ECDSA256, 3 = ECDH521_ECDSA521, 4 = NTRUEncrypt1087_GMSS512
 //        String vanityPrefix = "";
 //        String key = "";
@@ -150,8 +146,7 @@ public class DIDService extends BaseService {
 
     /**
      * Authenticates passphrase
-     * TODO: Option 1: connect to local I2P Bote instance to validate passphrase
-     * TODO: Option 2: role your own crypto for validating passphrases used in I2P Bote
+     * TODO: Use PGP for authentication of master keys
      * @param e
      */
     private void authenticate(Envelope e) {
@@ -182,13 +177,7 @@ public class DIDService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         LOG.info("Starting....");
-        try {
-            db = Config.loadFromBase(dbFileName);
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOG.warning("Start failed.");
-            return false;
-        }
+
         LOG.info("Started.");
         return true;
     }
