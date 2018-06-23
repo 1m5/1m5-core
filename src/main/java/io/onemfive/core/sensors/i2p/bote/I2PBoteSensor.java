@@ -7,6 +7,7 @@ import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.sensors.i2p.I2PRouterUtil;
 import io.onemfive.core.sensors.i2p.bote.crypto.PublicKeyPair;
 import io.onemfive.core.sensors.i2p.bote.email.*;
+import io.onemfive.core.sensors.i2p.bote.fileencryption.PasswordCacheListener;
 import io.onemfive.core.sensors.i2p.bote.fileencryption.PasswordException;
 import io.onemfive.core.sensors.i2p.bote.folder.EmailFolder;
 import io.onemfive.core.sensors.i2p.bote.folder.NewEmailListener;
@@ -227,6 +228,13 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             PrivateKey privateSigningKey = emailIdentity.getPrivateSigningKey();
             KeyPair signingKeyPair = new KeyPair(publicSigningKey, privateSigningKey);
             did.addIdentity(DID.Provider.I2P, did.getAlias(), signingKeyPair);
+
+            PublicKeyPair publicKeyPair = new PublicKeyPair(publicEncryptionKey, publicSigningKey);
+            try {
+                did.addEncodedKey(emailIdentity.getCryptoImpl().toBase64(publicKeyPair));
+            } catch (GeneralSecurityException e1) {
+                LOG.warning("GeneralSecurityException caught while converting public keys to base 64.");
+            }
         }
     }
 
@@ -335,7 +343,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
     public boolean start(Properties properties) {
         LOG.info("Starting I2P Bote version "+I2PBote.getAppVersion()+"...");
         status = Status.STARTING;
-        router = I2PRouterUtil.getGlobalI2PRouter(properties, true);
+//        router = I2PRouterUtil.getGlobalI2PRouter(properties, true);
         i2PBote = I2PBote.getInstance();
         i2PBote.startUp();
         i2PBote.addNewEmailListener(this);
