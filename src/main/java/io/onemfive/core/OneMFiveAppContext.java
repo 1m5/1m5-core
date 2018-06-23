@@ -175,48 +175,60 @@ public class OneMFiveAppContext {
     *  All dirs except the base are created if they don't exist, but the creation will fail silently.
     */
 
-        String s = getProperty("1m5.dir.base", System.getProperty("user.dir"));
-        s += "/.1m5";
-        LOG.info("Base Directory: "+s);
-        baseDir = new File(s);
+        String baseStr = getProperty("1m5.dir.base", System.getProperty("user.dir"));
+        baseStr += "/.1m5";
+        LOG.info("Base Directory: "+baseStr);
+        baseDir = new File(baseStr);
         if(!baseDir.exists()) {
             baseDir.mkdir();
         }
 
-        s = getProperty("1m5.dir.config");
-        if (s != null) {
-            configDir = new SecureFile(s);
+        String configStr = getProperty("1m5.dir.config");
+        if (configStr != null) {
+            configDir = new SecureFile(configStr);
             if (!configDir.exists())
                 configDir.mkdir();
         } else {
-            configDir = baseDir;
+            configStr = baseStr + "/config";
+            configDir = new SecureFile(configStr);
+            if(!configDir.exists())
+                configDir.mkdir();
         }
 
-        s = getProperty("1m5.dir.pid");
-        if (s != null) {
-            pidDir = new SecureFile(s);
+        String pidStr = getProperty("1m5.dir.pid");
+        if (pidStr != null) {
+            pidDir = new SecureFile(pidStr);
             if (!pidDir.exists())
                 pidDir.mkdir();
         } else {
-            pidDir = baseDir;
+            pidStr = baseStr + "/pid";
+            pidDir = new SecureFile(pidStr);
+            if (!pidDir.exists())
+                pidDir.mkdir();
         }
 
-        s = getProperty("1m5.dir.log");
-        if (s != null) {
-            logDir = new SecureFile(s);
+        String logStr = getProperty("1m5.dir.log");
+        if (logStr != null) {
+            logDir = new SecureFile(logStr);
             if (!logDir.exists())
                 logDir.mkdir();
         } else {
-            logDir = baseDir;
+            logStr = baseStr + "/log";
+            logDir = new SecureFile(logStr);
+            if (!logDir.exists())
+                logDir.mkdir();
         }
 
-        s = getProperty("1m5.dir.app");
-        if (s != null) {
-            appDir = new SecureFile(s);
+        String appStr = getProperty("1m5.dir.app");
+        if (appStr != null) {
+            appDir = new SecureFile(appStr);
             if (!appDir.exists())
                 appDir.mkdir();
         } else {
-            appDir = baseDir;
+            appStr = baseStr + "/app";
+            appDir = new SecureFile(appStr);
+            if (!appDir.exists())
+                appDir.mkdir();
         }
 
         clientAppManager = new ClientAppManager(false);
