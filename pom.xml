@@ -136,13 +136,11 @@
 			<artifactId>ntru</artifactId>
 			<version>1.2</version>
 		</dependency>
-		<!--<dependency>-->
-			<!--<groupId>flexi</groupId>-->
-			<!--<artifactId>gmss</artifactId>-->
-			<!--<version>1.7p1</version>-->
-			<!--<scope>system</scope>-->
-			<!--<systemPath>${project.basedir}/libs/flexi-gmss-1.7p1.jar</systemPath>-->
-		<!--</dependency>-->
+		<dependency>
+			<groupId>de.flexi</groupId>
+			<artifactId>gmss</artifactId>
+			<version>1.7p1</version>
+		</dependency>
 		<!-- Sensors: Clearnet -->
 		<!-- Client -->
 		<dependency>
@@ -151,11 +149,11 @@
 			<version>3.10.0</version>
 		</dependency>
 		<!-- Server -->
-		<!--<dependency>-->
-			<!--<groupId>org.eclipse.jetty</groupId>-->
-			<!--<artifactId>jetty-server</artifactId>-->
-			<!--<version>9.2.24.v20180105</version>-->
-		<!--</dependency>-->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.2.24.v20180105</version>
+		</dependency>
 		<!-- Test -->
 		<dependency>
 			<groupId>junit</groupId>
