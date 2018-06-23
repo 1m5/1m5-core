@@ -171,10 +171,16 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     public void getKeys(Envelope e) {
         DID did = e.getDID();
+        LOG.info("Creating new identities: is did null="+Boolean.toString(e.getDID() == null));
         Identities identities = i2PBote.getIdentities();
         EmailIdentity emailIdentity = null;
         try {
             emailIdentity = identities.getDefault();
+            if(emailIdentity != null) {
+                LOG.info("Default Identity found.");
+            } else {
+                LOG.info("Default Identity not found; must create.");
+            }
         } catch (PasswordException e1) {
             LOG.warning(e1.getLocalizedMessage());
         } catch (IOException e1) {
@@ -190,23 +196,26 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                     LOG.info(changeIdentityStatus.toString());
                 }
             };
+            /**
+             * Args:
+             * 1 = new?
+             * 2 = Crypto IDs:
+             *      1 = ElGamal-2048 / DSA-1024
+             *      2 = ECDH-256 / ECDSA-256
+             *      3 = ECDH-521 / ECDSA-521
+             *      4 = NTRUEncrypt-1087 / GMSS-512
+             * 3,4 = null
+             * 5 = Alias/Public Name
+             * 6-9 = null
+             * 10 = default?
+             * 11 = StatusListener
+             */
             try {
-                /**
-                 * Args:
-                 * 1 = new?
-                 * 2 = Crypto IDs:
-                 *      1 = ElGamal-2048 / DSA-1024
-                 *      2 = ECDH-256 / ECDSA-256
-                 *      3 = ECDH-521 / ECDSA-521
-                 *      4 = NTRUEncrypt-1087 / GMSS-512
-                 * 3,4 = null
-                 * 5 = Alias/Public Name
-                 * 6-9 = null
-                 * 10 = default?
-                 * 11 = StatusListener
-                 */
+                LOG.info("Creating default identities with alias: "+did.getAlias());
                 GeneralHelper.createOrModifyIdentity(true, 1, null, null, did.getAlias(), null, null, null, null, true, lsnr);
                 emailIdentity = identities.getDefault();
+                LOG.info("Was new default identity created: "+Boolean.toString(emailIdentity != null));
+                LOG.info("Saving Identities...");
                 identities.save();
             } catch (GeneralSecurityException e1) {
                 LOG.warning(e1.getLocalizedMessage());
@@ -219,6 +228,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             }
         }
         if(emailIdentity != null && emailIdentity.getPublicName() != null && emailIdentity.getPublicName().equals(did.getAlias())) {
+            LOG.info("Building up DID for alias "+did.getAlias()+"...");
             PublicKey publicEncryptionKey = emailIdentity.getPublicEncryptionKey();
             PrivateKey privateEncryptionKey = emailIdentity.getPrivateEncryptionKey();
             KeyPair encryptionKeyPair = new KeyPair(publicEncryptionKey, privateEncryptionKey);
@@ -232,6 +242,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             PublicKeyPair publicKeyPair = new PublicKeyPair(publicEncryptionKey, publicSigningKey);
             try {
                 did.addEncodedKey(emailIdentity.getCryptoImpl().toBase64(publicKeyPair));
+                LOG.info("Base64 public key pair: "+did.getEncodedKey());
             } catch (GeneralSecurityException e1) {
                 LOG.warning("GeneralSecurityException caught while converting public keys to base 64.");
             }

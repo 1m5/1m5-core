@@ -96,10 +96,13 @@ public class SensorsService extends BaseService {
         }
 
         if(sensor != null) {
-            if(OPERATION_SEND.equals(r.getOperation()))
+            if(OPERATION_SEND.equals(r.getOperation())) {
+                LOG.info("Sending Envelope to selected Sensor...");
                 sensor.send(e);
-            else if(OPERATION_GET_KEYS.equals(r.getOperation()) && sensor instanceof I2PBoteSensor)
-                ((I2PBoteSensor)sensor).getKeys(e);
+            } else if(OPERATION_GET_KEYS.equals(r.getOperation()) && sensor instanceof I2PBoteSensor) {
+                LOG.info("Retrieving keys fro I2PBoteSensor...");
+                ((I2PBoteSensor) sensor).getKeys(e);
+            }
         } else {
             if (r.getOperation().equals(OPERATION_REPLY_CLEARNET)) {
                 sensor = activeSensors.get(ClearnetSensor.class.getName());
