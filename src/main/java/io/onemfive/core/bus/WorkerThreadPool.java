@@ -56,18 +56,27 @@ final class WorkerThreadPool extends AppThread {
         status = Status.Starting;
         pool = Executors.newFixedThreadPool(maxPoolSize);
         status = Status.Running;
+        final long printPeriodMs = 5000; // print * every 5 seconds
+        final long waitPeriodMs = 500; // wait half a second
+        long currentWait = 0;
         while(spin.get()) {
             synchronized (this){
                 try {
-                    LOG.info("*");
+                    if(currentWait > printPeriodMs) {
+                        LOG.info("*");
+                        currentWait = 0;
+                    }
                     int queueSize = channel.getQueue().size();
                     if(queueSize > 0) {
                         LOG.info("Queue Size = "+queueSize+" : Launching thread...");
                         pool.execute(new WorkerThread(channel, clientAppManager, services));
                     } else {
-                        this.wait(500); // wait 500ms
+                        currentWait += waitPeriodMs;
+                        this.wait(waitPeriodMs); // wait 500ms
                     }
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+
+                }
             }
         }
         return true;
