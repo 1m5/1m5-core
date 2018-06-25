@@ -231,20 +231,21 @@ public class OneMFiveAppContext {
                 appDir.mkdir();
         }
 
+        String tmpStr = getProperty("1m5.dir.temp");
+        if (tmpStr != null) {
+            tmpDir = new SecureFile(appStr);
+            if (!tmpDir.exists())
+                tmpDir.mkdir();
+        } else {
+            tmpStr = baseStr + "/tmp";
+            tmpDir = new SecureFile(tmpStr);
+            if (!tmpDir.exists())
+                tmpDir.mkdir();
+        }
+
         clientAppManager = new ClientAppManager(false);
         // Instantiate Service Bus
         serviceBus = new ServiceBus(overrideProps, clientAppManager);
-
-        /******
-         (new Exception("Initialized by")).printStackTrace();
-         System.err.println("Base directory:   " + baseDir.getAbsolutePath());
-         System.err.println("Config directory: " + configDir.getAbsolutePath());
-         System.err.println("Conscious directory: " + consciousDir.getAbsolutePath());
-         System.err.println("App directory:    " + appDir.getAbsolutePath());
-         System.err.println("Log directory:    " + logDir.getAbsolutePath());
-         System.err.println("PID directory:    " + pidDir.getAbsolutePath());
-         System.err.println("Temp directory:   " + getTempDir().getAbsolutePath());
-         ******/
 
         if (doInit) {
             if (globalAppContext == null) {
@@ -273,8 +274,6 @@ public class OneMFiveAppContext {
      *  It may actually be read-only on a multi-user installation.
      *  The config files in this directory are templates for user
      *  installations and should not be accessed by applications.
-     *  The only thing that may be useful in here is the lib/ dir
-     *  containing the .jars.
      *
      *  @return dir constant for the life of the context
      */
@@ -283,14 +282,14 @@ public class OneMFiveAppContext {
     /**
      *  The base dir for config files.
      *  Applications may use this to access router configuration files if necessary.
-     *  Usually ~/.sc on Linux and %APPDIR%\SC on Windows.
+     *  Usually ~/.1m5/config on Linux and %APPDIR%\.1m5/config on Windows.
      *
      *  @return dir constant for the life of the context
      */
     public File getConfigDir() { return configDir; }
 
     /**
-     *  Where conscious.ping goes.
+     *  Where ping goes.
      *  Applications should not use this.
      *
      *  @return dir constant for the life of the context
@@ -298,9 +297,9 @@ public class OneMFiveAppContext {
     public File getPIDDir() { return pidDir; }
 
     /**
-     *  Where the conscious keeps its log directory.
+     *  Where the log directory is.
      *  Applications should not use this.
-     *  (i.e. ~/.sc, NOT ~/.sc/logs)
+     *  (i.e. ~/.1m5/log, NOT ~/.1m5/log)
      *
      *  @return dir constant for the life of the context
      */
@@ -308,8 +307,9 @@ public class OneMFiveAppContext {
 
     /**
      *  Where applications may store data.
-     *  The same as the config dir for now, but may change in the future.
-     *  Apps should be careful not to overwrite conscious files.
+     *  Applications should create their own directory inside this directory
+     *  to avoid collisions with other apps.
+     *  (i.e. ~/.1m5/app, NOT ~/.1m5/app)
      *
      *  @return dir constant for the life of the context
      */
@@ -321,6 +321,7 @@ public class OneMFiveAppContext {
      *  first call in this context, and is deleted on JVM exit.
      *  Applications should create their own directory inside this directory
      *  to avoid collisions with other apps.
+     *  (i.e. ~/.1m5/tmp, NOT ~/.1m5/tmp)
      *
      *  @return dir constant for the life of the context
      */
@@ -332,7 +333,7 @@ public class OneMFiveAppContext {
                 // our random() probably isn't warmed up yet
                 byte[] rand = new byte[6];
                 tmpDirRand.nextBytes(rand);
-                String f = "sc-" + Base64.encode(rand) + ".tmp";
+                String f = "1m5-" + Base64.encode(rand) + ".tmp";
                 tmpDir = new SecureFile(d, f);
                 if (tmpDir.exists()) {
                     // good or bad ? loop and try again?
