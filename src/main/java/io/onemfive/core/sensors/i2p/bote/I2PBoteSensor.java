@@ -23,6 +23,7 @@ import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
 import net.i2p.router.Router;
 import net.i2p.router.RouterContext;
+import net.i2p.router.RouterLaunch;
 
 import javax.mail.Address;
 import javax.mail.Message;
@@ -62,9 +63,13 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
         GRACEFUL_SHUTDOWN
     }
 
-    private static Router router;
-    private Status status = Status.INIT;
+    // I2P Router
+    private Router router;
+    private RouterContext routerContext;
+
     private I2PBote i2PBote;
+
+    private Status status = Status.INIT;
 
     public I2PBoteSensor(SensorsService sensorsService) {
         super(sensorsService);
@@ -274,6 +279,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     @Override
     public void emailReceived(String messageId) {
+        LOG.info("Received I2P Bote Email with messageId="+messageId);
         EmailFolder inbox = i2PBote.getInbox();
         try {
             // Set the new email as \Recent
@@ -289,9 +295,12 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                 }
                 case 1: {
                     Email email = newEmails.get(0);
+                    LOG.info("Email text: "+email.getText());
                     // TODO: Begin unpacking email into Envelope and forwarding onto Service Bus via Sensors Service
 //                    String fromAddress = email.getOneFromAddress();
-                    Envelope envelope = (Envelope)email.getContent();
+
+//                    Envelope envelope = (Envelope)email.getContent();
+
 //                    Bitmap picture = BoteHelper.getPictureForAddress(fromAddress);
 //                    if (picture != null)
 //                        b.setLargeIcon(picture);
@@ -312,7 +321,8 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 //                    vei.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //                    PendingIntent pvei = PendingIntent.getActivity(this, 0, vei, PendingIntent.FLAG_UPDATE_CURRENT);
 //                    b.setContentIntent(pvei);
-                    sensorsService.sendToBus(envelope);
+
+//                    sensorsService.sendToBus(envelope);
                     break;
                 }
                 default: {
@@ -325,8 +335,10 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 //                        recipients.add(BoteHelper.getOneLocalRecipient(ne));
 //                        bigText += BoteHelper.getNameAndShortDestination(ne.getOneFromAddress());
 //                        bigText += ": " + ne.getSubject() + "\n";
-                        Envelope envelope = (Envelope)ne.getContent();
-                        sensorsService.sendToBus(envelope);
+
+//                        Envelope envelope = (Envelope)ne.getContent();
+                        LOG.info("Email text: "+ne.getText());
+//                        sensorsService.sendToBus(envelope);
                     }
 //                    b.setContentText(BoteHelper.joinAddressNames(recipients));
 //                    b.setStyle(new NotificationCompat.BigTextStyle().bigText(bigText));
@@ -341,8 +353,8 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             LOG.warning(e.getLocalizedMessage());
         } catch (MessagingException e) {
             LOG.warning(e.getLocalizedMessage());
-        } catch (IOException e) {
-            LOG.warning(e.getLocalizedMessage());
+//        } catch (IOException e) {
+//            LOG.warning(e.getLocalizedMessage());
         } catch (GeneralSecurityException e) {
             LOG.warning(e.getLocalizedMessage());
         }
@@ -352,15 +364,40 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     @Override
     public boolean start(Properties properties) {
-        LOG.info("Starting I2P Bote version "+I2PBote.getAppVersion()+"...");
+        LOG.info("Starting I2P Bote Sensor...");
+        // I2P Bote Sensor Starting
         status = Status.STARTING;
-//        router = I2PRouterUtil.getGlobalI2PRouter(properties, true);
+        // Set up I2P Directories within 1M5 base directory
+        String i2pDirBase = properties.getProperty("1m5.dir.base") + "/.1m5/i2p";
+        System.setProperty("i2p.dir.base",i2pDirBase);
+        System.setProperty("i2p.dir.config",i2pDirBase + "/config");
+        System.setProperty("i2p.dir.router",i2pDirBase + "/router");
+        System.setProperty("i2p.dir.pid",i2pDirBase + "/pid");
+        System.setProperty("i2p.dir.log",i2pDirBase + "/log");
+        System.setProperty("i2p.dir.app",i2pDirBase + "/app");
+
+        // Start I2P Router
+        LOG.info("Starting I2P Router...");
+        RouterLaunch.main(null);
+        List<RouterContext> contexts = RouterContext.listContexts();
+        routerContext = contexts.get(0);
+        routerContext.router().setKillVMOnEnd(false);
+        router = routerContext.router();
+        if(router != null && router.isAlive()) {
+            LOG.info("I2P Router is running with capabilities: "+router.getRouterInfo().getCapabilities());
+        }
+
+        // Start I2P Bote
+        LOG.info("Starting I2P Bote version "+I2PBote.getAppVersion()+"...");
         i2PBote = I2PBote.getInstance();
+        i2PBote.addNetworkStatusListener(this);
         i2PBote.startUp();
         i2PBote.addNewEmailListener(this);
-        i2PBote.addNetworkStatusListener(this);
+        LOG.info("I2P Bote started.");
+
+        // I2P Bote Sensor Running
         status = Status.RUNNING;
-        LOG.info("I2P Bote Started.");
+        LOG.info("I2P Bote Sensor Started.");
         return true;
     }
 
@@ -376,13 +413,17 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     @Override
     public boolean restart() {
-        return false;
+        if(router != null) {
+            router.restart();
+        }
+        return true;
     }
 
     @Override
     public boolean shutdown() {
         LOG.info("Shutting down...");
-
+        i2PBote.shutDown();
+        routerContext.router().shutdown(Router.EXIT_HARD);
         LOG.info("Shutdown.");
         return true;
     }
@@ -390,7 +431,8 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
     @Override
     public boolean gracefulShutdown() {
         LOG.info("Gracefully shutting down...");
-
+        i2PBote.shutDown();
+        routerContext.router().shutdown(Router.EXIT_GRACEFUL);
         LOG.info("Gracefully shutdown.");
         return true;
     }
