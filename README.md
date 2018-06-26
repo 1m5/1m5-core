@@ -239,9 +239,18 @@ the best protection against abuse, overreach, and authoritarianism. The foundati
 decentralized and guarantees privacy for every life and automaton on the planet returning control and ownership 
 of personal information back to each of us while supporting access control based on reputation. 
 
-Only implementing username/passphrase functionality currently. 
+Only implementing username/passphrase functionality currently.
 
 Needs to move towards embedding OpenPGP and then integrating additional decentralized identity services.
+
+Currently working I2P Bote identities in by default for P2P communications.
+
+- **Verify**: The Verify Operation checks to see if a DID is available in the InfoVault by supplied alias.
+If so, it loads the whole DID into the supplied Envelope replacing the supplied DID and sets the DID's verified flag to true
+else it flags the supplied DID's verified flag to false.
+- **Authenticate**: The Authenticate Operations performs the same as Verify but includes passphrase checking setting authenticated flag instead.
+- **Create**: The Create Operation creates a new DID with supplied alias and passphrase saving to the InfoVault
+returning the resultant DID in the Envelope.
 
 #### InfoVault Service
 Vault of personal information to assist in building up your reputation and for additional services as you see fit. 
@@ -254,13 +263,11 @@ Needs to be seriously redesigned towards a JanusGraph over Cassandra on 10 billi
 Acts as an API for IPFS. 
 Supports local IPFS nodes, making calls to remote gateways, and acting as a gateway.
 
-In development.
-
 #### KeyRing Service
 Key management for securing your keys on your mobile and off-line. 
 Supports sending keys to and receiving keys from off-line key vaults. 
 
-Not implemented.
+Not Yet Implemented.
 
 #### Orchestration Service
 Orchestrates service calls using Simple Routes and Dynamic Routing Slips.
@@ -290,7 +297,7 @@ Not Yet Implemented.
 #### Repository Service
 Provides access to various decentralized repository services.
 
-The first implementation is for GitHub using GitHub.com as a temporary hosting solution. Long-term it's expected to support Git fully decentralized.
+The first implementation is for GitLab using GitLab.com as a temporary hosting solution. Long-term it's expected to support Git fully decentralized.
 
 Started but not yet implemented.
 
