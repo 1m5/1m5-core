@@ -63,12 +63,12 @@ final class WorkerThreadPool extends AppThread {
             synchronized (this){
                 try {
                     if(currentWait > printPeriodMs) {
-                        LOG.info("*");
+                        LOG.finest("*");
                         currentWait = 0;
                     }
                     int queueSize = channel.getQueue().size();
                     if(queueSize > 0) {
-                        LOG.info("Queue Size = "+queueSize+" : Launching thread...");
+                        LOG.finest("Queue Size = "+queueSize+" : Launching thread...");
                         pool.execute(new WorkerThread(channel, clientAppManager, services));
                     } else {
                         currentWait += waitPeriodMs;

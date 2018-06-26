@@ -64,12 +64,12 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     public ServiceBus(Properties properties, ClientAppManager clientAppManager) {
         this.properties = properties;
         this.clientAppManager = clientAppManager;
-        LOG.info("Instantiated with maxThreads="+maxThreads+" and maxMessagesCached="+maxMessagesCached);
+        LOG.finer("Instantiated with maxThreads="+maxThreads+" and maxMessagesCached="+maxMessagesCached);
     }
 
     @Override
     public boolean send(Envelope e) {
-        LOG.info("Received envelope. Sending to channel...");
+        LOG.finest("Received envelope. Sending to channel...");
         if(pool != null && pool.getStatus() == WorkerThreadPool.Status.Running) {
             return channel.send(e);
         } else {
@@ -81,7 +81,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     }
 
     public void register(Class serviceClass, Properties p) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
-        LOG.info("Registering service class: "+serviceClass.getName());
+        LOG.finer("Registering service class: "+serviceClass.getName());
         if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
@@ -93,14 +93,14 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             service.setProducer(this);
             // register service
             registeredServices.put(serviceClass.getName(), service);
-            LOG.info("Service registered successfully: "+serviceName);
+            LOG.finer("Service registered successfully: "+serviceName);
             // start registered service
             new AppThread(new Runnable() {
                 @Override
                 public void run() {
                     if(service.start(properties)) {
                         runningServices.put(serviceName, service);
-                        LOG.info("Service registered successfully as running: "+serviceName);
+                        LOG.finer("Service registered successfully as running: "+serviceName);
                     }
                 }
             }, serviceName+"-StartupThread").start();
@@ -121,7 +121,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
                     if(service.shutdown()) {
                         runningServices.remove(serviceName);
                         registeredServices.remove(serviceName);
-                        LOG.info("Service unregistered successfully: "+serviceName);
+                        LOG.finer("Service unregistered successfully: "+serviceName);
                     }
                 }
             }, serviceName+"-ShutdownThread").start();
@@ -259,7 +259,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
      */
     @Override
     public boolean shutdown() {
-        LOG.info("Shutting down...");
+        LOG.finer("Shutting down...");
         status = Status.Stopping;
         spin.set(false);
         pool.shutdown();
@@ -276,7 +276,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             }, serviceName+"-ShutdownThread").start();
         }
         status = Status.Stopped;
-        LOG.info("Shutdown.");
+        LOG.finer("Shutdown.");
         return true;
     }
 

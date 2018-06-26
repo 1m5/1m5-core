@@ -33,12 +33,12 @@ final class WorkerThread extends AppThread {
 
     @Override
     public void run() {
-        LOG.info(Thread.currentThread().getName() + "Waiting for channel to return message...");
+        LOG.finest(Thread.currentThread().getName() + "Waiting for channel to return message...");
         Envelope e = channel.receive();
-        LOG.info(Thread.currentThread().getName() + "Envelope received from channel");
+        LOG.finest(Thread.currentThread().getName() + "Envelope received from channel");
         if (e.replyToClient()) {
             // Service Reply to client
-            LOG.info(Thread.currentThread().getName() + "Requesting client notify...");
+            LOG.finer(Thread.currentThread().getName() + "Requesting client notify...");
             clientAppManager.notify(e);
         } else {
             MessageConsumer consumer = null;
@@ -59,9 +59,9 @@ final class WorkerThread extends AppThread {
             int waitBetweenMillis = 1000;
             while (!received && sendAttempts < maxSendAttempts) {
                 if (consumer.receive(e)) {
-                    LOG.info(Thread.currentThread().getName() + "Envelope received by service, acknowledging with channel...");
+                    LOG.finest(Thread.currentThread().getName() + "Envelope received by service, acknowledging with channel...");
                     channel.ack(e);
-                    LOG.info(Thread.currentThread().getName() + "Channel Acknowledged.");
+                    LOG.finest(Thread.currentThread().getName() + "Channel Acknowledged.");
                     received = true;
                 } else {
                     synchronized (this) {

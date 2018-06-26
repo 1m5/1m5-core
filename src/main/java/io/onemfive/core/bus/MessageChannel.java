@@ -5,6 +5,7 @@ import io.onemfive.core.MessageProducer;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.util.DLC;
 
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -34,9 +35,9 @@ final class MessageChannel implements MessageProducer, LifeCycle {
     }
 
     void ack(Envelope envelope) {
-        LOG.info(Thread.currentThread().getName()+": Removing Envelope-"+envelope.getId()+"("+envelope+") from message queue (size="+queue.size()+")");
+        LOG.finest(Thread.currentThread().getName()+": Removing Envelope-"+envelope.getId()+"("+envelope+") from message queue (size="+queue.size()+")");
         queue.remove(envelope);
-        LOG.info(Thread.currentThread().getName()+": Removed Envelope-"+envelope.getId()+"("+envelope+") from message queue (size="+queue.size()+")");
+        LOG.finest(Thread.currentThread().getName()+": Removed Envelope-"+envelope.getId()+"("+envelope+") from message queue (size="+queue.size()+")");
     }
 
     /**
@@ -48,7 +49,7 @@ final class MessageChannel implements MessageProducer, LifeCycle {
             try {
                 boolean success = queue.add(e);
                 if(success)
-                    LOG.info(Thread.currentThread().getName()+": Envelope-"+e.getId()+"("+e+") added to message queue (size="+queue.size()+")");
+                    LOG.finest(Thread.currentThread().getName()+": Envelope-"+e.getId()+"("+e+") added to message queue (size="+queue.size()+")");
                 return success;
             } catch (IllegalStateException ex) {
                 String errMsg = Thread.currentThread().getName()+": Channel at capacity; rejected Envelope-"+e.getId()+"("+e+").";
@@ -71,11 +72,11 @@ final class MessageChannel implements MessageProducer, LifeCycle {
     public Envelope receive() {
         Envelope next = null;
         try {
-            LOG.info(Thread.currentThread().getName()+": Requesting envelope from message queue, blocking...");
+            LOG.finest(Thread.currentThread().getName()+": Requesting envelope from message queue, blocking...");
             next = queue.take();
-            LOG.info(Thread.currentThread().getName()+": Got Envelope-"+next.getId()+"("+next+") (queue size="+queue.size()+")");
+            LOG.finest(Thread.currentThread().getName()+": Got Envelope-"+next.getId()+"("+next+") (queue size="+queue.size()+")");
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            // No need to log
         }
         return next;
     }
@@ -90,7 +91,7 @@ final class MessageChannel implements MessageProducer, LifeCycle {
         try {
             queue.poll(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            // No need to log
         }
         return next;
     }
@@ -115,17 +116,38 @@ final class MessageChannel implements MessageProducer, LifeCycle {
 
     public boolean shutdown() {
         accepting = false;
-        // TODO: wait for all messages to process
+        long begin = new Date().getTime();
+        long runningTime = begin;
+        long waitMs = 1000;
+        long maxWaitMs = 3 * 1000; // only 3 seconds
+        while(queue.size() > 0 && runningTime < maxWaitMs) {
+            waitABit(waitMs);
+            runningTime += waitMs;
+        }
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        // TODO: implement gracefulShutdown()
-        return false;
+        accepting = false;
+        long begin = new Date().getTime();
+        long runningTime = begin;
+        long waitMs = 1000;
+        long maxWaitMs = 30 * 1000; // up to 30 seconds
+        while(queue.size() > 0 && runningTime < maxWaitMs) {
+            waitABit(waitMs);
+            runningTime += waitMs;
+        }
+        return true;
     }
 
     boolean forceShutdown() {
         return shutdown();
+    }
+
+    private void waitABit(long waitTime) {
+        try {
+            Thread.sleep(waitTime);
+        } catch (InterruptedException e) {}
     }
 }

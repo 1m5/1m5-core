@@ -52,22 +52,21 @@ public final class ClientAppManager {
      * @return non-null
      */
     public boolean initialize() {
-        LOG.info("Requesting instance...");
+        LOG.finer("Requesting instance...");
         if(status == Status.STOPPED) {
-            LOG.info("initializing...");
+            LOG.finer("initializing...");
             status = Status.INITIALIZING;
             context = OneMFiveAppContext.getInstance();
             ServiceBus serviceBus = context.getServiceBus();
             if (serviceBus.getStatus() == ServiceBus.Status.Stopped) {
-                LOG.info("Starting Service Bus...");
+                LOG.info("Starting 1M5 Service Bus...");
                 serviceBus.start(null);
-                LOG.info("Service Bus started.");
+                LOG.info("1M5 Service Bus started.");
             }
-            LOG.info("Service Bus running.");
             // Assign service bus to producer for sending messages to service bus
             producer = serviceBus;
             status = Status.READY;
-            LOG.info("Ready");
+            LOG.info("1M5 Service Bus running ready for requests.");
         }
         client = buildClient();
         return true;
@@ -125,10 +124,10 @@ public final class ClientAppManager {
     public void notify(Envelope e) {
         if(e != null) {
             Long clientId = e.getClient();
-            LOG.info("Client.id="+clientId);
+            LOG.finer("Client.id="+clientId);
             Client client = getRegisteredClient(clientId);
             if (client != null) {
-                LOG.info("Found client; notifying...");
+                LOG.finer("Found client; notifying...");
                 client.notify(e);
             } else {
                 LOG.warning("Client not found. Number of registered clients: "+registered.size());
