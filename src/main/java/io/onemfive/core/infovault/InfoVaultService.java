@@ -56,15 +56,15 @@ public class InfoVaultService extends BaseService {
                 }
             } else if(entity instanceof MemoryTest) {
                 if(list == null) {
-                    MemoryTest test = (MemoryTest) entity;
-                    if (test.getPopScores() == null) {
-                        // New Test -> Load scores
-                        double borderline = infoVault.getMemoryTestDAO().minBorderlineImpairedScore(test.getDifficulty());
-                        double impaired = infoVault.getMemoryTestDAO().minImpairedScore(test.getDifficulty());
-                        double gross = infoVault.getMemoryTestDAO().minGrosslyImpairedScore(test.getDifficulty());
-                        MemoryTestPopScores popScores = new MemoryTestPopScores(borderline, impaired, gross);
-                        test.setPopScores(popScores);
-                    }
+//                    MemoryTest test = (MemoryTest) entity;
+//                    if (test.getPopScores() == null) {
+//                        // New Test -> Load scores
+//                        double borderline = infoVault.getMemoryTestDAO().minBorderlineImpairedScore(test.getDifficulty());
+//                        double impaired = infoVault.getMemoryTestDAO().minImpairedScore(test.getDifficulty());
+//                        double gross = infoVault.getMemoryTestDAO().minGrosslyImpairedScore(test.getDifficulty());
+//                        MemoryTestPopScores popScores = new MemoryTestPopScores(borderline, impaired, gross);
+//                        test.setPopScores(popScores);
+//                    }
                 } else {
                     DLC.addEntity(infoVault.getMemoryTestDAO().loadListByDID(e.getDID().getId(), 0, 10), e);
                 }

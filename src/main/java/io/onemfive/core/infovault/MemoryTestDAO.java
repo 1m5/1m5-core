@@ -48,10 +48,10 @@ public class MemoryTestDAO {
         double currentScore;
         for(MemoryTest memoryTest : memoryTests) {
             // Look for only training scores with a BAC and Borderline Impairment
-            if(memoryTest.getBloodAlcoholContent() > 0 && memoryTest.getImpairment().equals(MemoryTest.Impairment.Borderline)) {
-                currentScore = memoryTest.getScore();
-                if(minScore == 0.0 || currentScore < minScore) minScore = currentScore;
-            }
+//            if(memoryTest.getBloodAlcoholContent() > 0 && memoryTest.getImpairment().equals(MemoryTest.Impairment.Borderline)) {
+//                currentScore = memoryTest.getScore();
+//                if(minScore == 0.0 || currentScore < minScore) minScore = currentScore;
+//            }
         }
         return minScore;
     }
@@ -64,10 +64,10 @@ public class MemoryTestDAO {
         double currentScore;
         for(MemoryTest memoryTest : memoryTests) {
             // Look for only training scores with a BAC and Borderline Impairment
-            if(memoryTest.getBloodAlcoholContent() > 0 && memoryTest.getImpairment().equals(MemoryTest.Impairment.Impaired)) {
-                currentScore = memoryTest.getScore();
-                if(minScore == 0.0 || currentScore < minScore) minScore = currentScore;
-            }
+//            if(memoryTest.getBloodAlcoholContent() > 0 && memoryTest.getImpairment().equals(MemoryTest.Impairment.Impaired)) {
+//                currentScore = memoryTest.getScore();
+//                if(minScore == 0.0 || currentScore < minScore) minScore = currentScore;
+//            }
         }
         return minScore;
     }
@@ -80,10 +80,10 @@ public class MemoryTestDAO {
         double currentScore;
         for(MemoryTest memoryTest : memoryTests) {
             // Look for only training scores with a BAC and Borderline Impairment
-            if(memoryTest.getBloodAlcoholContent() > 0 && memoryTest.getImpairment().equals(MemoryTest.Impairment.Gross)) {
-                currentScore = memoryTest.getScore();
-                if(minScore == 0.0 || currentScore < minScore) minScore = currentScore;
-            }
+//            if(memoryTest.getBloodAlcoholContent() > 0 && memoryTest.getImpairment().equals(MemoryTest.Impairment.Gross)) {
+//                currentScore = memoryTest.getScore();
+//                if(minScore == 0.0 || currentScore < minScore) minScore = currentScore;
+//            }
         }
         return minScore;
     }
