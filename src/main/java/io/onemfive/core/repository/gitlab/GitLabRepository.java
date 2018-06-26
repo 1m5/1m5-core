@@ -1,20 +1,14 @@
-package io.onemfive.core.repository.github;
+package io.onemfive.core.repository.gitlab;
 
 import io.onemfive.core.repository.Repository;
 import io.onemfive.data.Envelope;
 
-import java.util.logging.Logger;
-
 /**
  * TODO: Add Description
  *
- * https://developer.github.com/v3/
- *
  * @author objectorange
  */
-public class GitHubRepository implements Repository {
-
-    private static final Logger LOG = Logger.getLogger(GitHubRepository.class.getName());
+public class GitLabRepository implements Repository {
 
     @Override
     public void provideAccess(Envelope envelope) {
