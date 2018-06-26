@@ -2,7 +2,7 @@ package io.onemfive.core.repository;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
-import io.onemfive.core.repository.github.GitHubRepository;
+import io.onemfive.core.repository.gitlab.GitLabRepository;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
@@ -45,7 +45,7 @@ public class RepositoryService extends BaseService {
     private Repository selectRepository(Envelope e) {
         Repository repository = null;
         // Only GitHub for now
-        repository = new GitHubRepository();
+        repository = new GitLabRepository();
 
         return repository;
     }
