@@ -38,7 +38,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public final boolean receive(Envelope envelope) {
-        LOG.info("Envelope received by service. Handling...");
+        LOG.finer("Envelope received by service. Handling...");
         if(envelope.getMessage() instanceof DocumentMessage)
             handleDocument(envelope);
         else if(envelope.getMessage() instanceof EventMessage)
@@ -60,7 +60,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     }
 
     protected final void endRoute(Envelope envelope) {
-        LOG.info("End of route and no client to return to:"+envelope);
+        LOG.fine("End of route and no client to return to:"+envelope);
     }
 
     @Override
@@ -80,7 +80,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
      * @param envelope
      */
     final void runCommand(Envelope envelope) {
-        LOG.info("Running command by service...");
+        LOG.finer("Running command by service...");
         CommandMessage m = (CommandMessage)envelope.getMessage();
         switch(m.getCommand()) {
             case Shutdown: {shutdown();break;}
@@ -93,7 +93,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     }
 
     protected final void reply(Envelope envelope) {
-        LOG.info("Sending reply to service bus...");
+        LOG.finest("Sending reply to service bus...");
         int maxAttempts = 30;
         int attempts = 0;
         // Create new Envelope instance with same ID, Headers, and Message so that Message Channel sees it as a different envelope.
