@@ -187,9 +187,7 @@ public class CoreTest {
             System.out.println("MemoryTest: name="+t.getName()
                     +", ended="+new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(t.getTimeEnded())
                     +", bac="+t.getBloodAlcoholContent()
-                    +", avgResponseTime="+t.getAvgResponseTimeOverallMs()
-                    +", difficulty="+t.getDifficulty()
-                    +", impairment="+t.getImpairment().name());
+                    +", difficulty="+t.getDifficulty());
         }
         infoVault.shutdown();
         System.out.println("InfoVault test finished.");
