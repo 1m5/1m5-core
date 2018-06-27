@@ -27,7 +27,7 @@ public class NitriteDBManager implements LifeCycle {
 
     private Nitrite db = null;
 
-    private static String dbFolder = "/.ndb/";
+    private static String dbFolder = "/ndb/";
     private static String dbName = "info.db";
     private static String dbFullPath;
     // TODO: Externalize username and passwords with user supplied
@@ -131,7 +131,11 @@ public class NitriteDBManager implements LifeCycle {
         LOG.info("Starting...");
         dbFullPath = OneMFiveAppContext.getInstance().getBaseDir()+dbFolder;
         File f = new File(dbFullPath);
-        if(!f.exists()) f.mkdir();
+        if(!f.exists())
+            if(!f.mkdir()) {
+                LOG.severe("Unable to create base directory for NitriteDB: "+dbFullPath+"; exiting...");
+                return false;
+            }
         db = Nitrite.builder()
                 .compressed()
                 .filePath(dbFullPath+dbName)
