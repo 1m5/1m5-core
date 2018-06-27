@@ -175,6 +175,7 @@
 					<include>**/*.yml</include>
 					<include>**/*.properties</include>
 					<include>**/*.config</include>
+					<include>**/*.txt</include>
 				</includes>
 			</resource>
 		</resources>
