@@ -9,6 +9,7 @@ import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.mesh.MeshSensor;
+import io.onemfive.core.util.Wait;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
@@ -63,44 +64,52 @@ public class SensorsService extends BaseService {
                 || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".onion"))
                 && activeSensors.containsKey(TorSensor.class.getName())) {
             // Use Tor
-            LOG.info("Using Tor Sensor...");
+            LOG.fine("Using Tor Sensor...");
             sensor = activeSensors.get(TorSensor.class.getName());
         } else if(Envelope.Sensitivity.HIGH.equals(e.getSensitivity())
                 || r.getOperation().endsWith(".i2p")
                 || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".i2p"))
                 && activeSensors.containsKey(I2PSensor.class.getName())) {
             // Use I2P
-            LOG.info("Using I2P Sensor...");
+            LOG.fine("Using I2P Sensor...");
             sensor = activeSensors.get(I2PSensor.class.getName());
         } else if(Envelope.Sensitivity.VERYHIGH.equals(e.getSensitivity())
                 || r.getOperation().endsWith(".bote")
                 || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".bote"))
                 && activeSensors.containsKey(I2PBoteSensor.class.getName())) {
             // Use I2P Bote
-            LOG.info("Using I2P Bote Sensor...");
-            sensor = activeSensors.get(I2PBoteSensor.class.getName());
+            LOG.fine("Using I2P Bote Sensor...");
+            long maxWaitMs = 30 * 1000;
+            long waitTimeMs = 3 * 1000;
+            long currentWaitMs = 0L;
+            do {
+                sensor = activeSensors.get(I2PBoteSensor.class.getName());
+                if(sensor == null) {
+                    Wait.waitABit(waitTimeMs); // wait 3 seconds
+                    currentWaitMs += waitTimeMs;
+                }
+            } while(sensor == null && currentWaitMs < maxWaitMs);
         } else if(Envelope.Sensitivity.EXTREME.equals(e.getSensitivity())
                 || r.getOperation().endsWith(".mesh")
                 || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".mesh"))
                 && activeSensors.containsKey(MeshSensor.class.getName())) {
             // Use Mesh
-            LOG.info("Using Mesh Sensor...");
+            LOG.fine("Using Mesh Sensor...");
             sensor = activeSensors.get(MeshSensor.class.getName());
         } else if(Envelope.Sensitivity.NONE.equals(e.getSensitivity())
                 || Envelope.Sensitivity.LOW.equals(e.getSensitivity())
                 || r.getOperation().startsWith("http")
                 || e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().startsWith("http")) {
             // Use Clearnet
-            LOG.info("Using Clearnet Sensor...");
+            LOG.fine("Using Clearnet Sensor...");
             sensor = activeSensors.get(ClearnetSensor.class.getName());
         }
-
         if(sensor != null) {
             if(OPERATION_SEND.equals(r.getOperation())) {
-                LOG.info("Sending Envelope to selected Sensor...");
+                LOG.fine("Sending Envelope to selected Sensor...");
                 sensor.send(e);
             } else if(OPERATION_GET_KEYS.equals(r.getOperation()) && sensor instanceof I2PBoteSensor) {
-                LOG.info("Retrieving keys fro I2PBoteSensor...");
+                LOG.fine("Retrieving keys from I2PBoteSensor...");
                 ((I2PBoteSensor) sensor).getKeys(e);
             }
         } else {
@@ -145,19 +154,6 @@ public class SensorsService extends BaseService {
                 registeredSensors = new HashMap<>(registered.size());
                 activeSensors = new HashMap<>(registered.size());
 
-                if (registered.contains("bote")) {
-                    registeredSensors.put(I2PBoteSensor.class.getName(), new I2PBoteSensor(this));
-                    new AppThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            I2PBoteSensor i2PBoteSensor = (I2PBoteSensor) registeredSensors.get(I2PBoteSensor.class.getName());
-                            i2PBoteSensor.start(config);
-                            activeSensors.put(I2PBoteSensor.class.getName(), i2PBoteSensor);
-                            LOG.info("I2PBoteSensor registered as active.");
-                        }
-                    }, SensorsService.class.getSimpleName()+":I2PBoteSensorStartThread").start();
-                }
-
                 if (registered.contains("i2p")) {
                     registeredSensors.put(I2PSensor.class.getName(), new I2PSensor());
                     new AppThread(new Runnable() {
@@ -169,6 +165,19 @@ public class SensorsService extends BaseService {
                             LOG.info("I2PSensor registered as active.");
                         }
                     }, SensorsService.class.getSimpleName()+":I2PSensorStartThread").start();
+                }
+
+                if (registered.contains("bote")) {
+                    registeredSensors.put(I2PBoteSensor.class.getName(), new I2PBoteSensor(this));
+                    new AppThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            I2PBoteSensor i2PBoteSensor = (I2PBoteSensor) registeredSensors.get(I2PBoteSensor.class.getName());
+                            i2PBoteSensor.start(config);
+                            activeSensors.put(I2PBoteSensor.class.getName(), i2PBoteSensor);
+                            LOG.info("I2PBoteSensor registered as active.");
+                        }
+                    }, SensorsService.class.getSimpleName()+":I2PBoteSensorStartThread").start();
                 }
 
                 if (registered.contains("tor")) {
