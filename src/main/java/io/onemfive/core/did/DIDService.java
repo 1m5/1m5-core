@@ -3,10 +3,12 @@ package io.onemfive.core.did;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.Config;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.DID;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
+import io.onemfive.data.util.DLC;
 
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -25,6 +27,7 @@ public class DIDService extends BaseService {
     public static final String OPERATION_VERIFY = "Verify";
     public static final String OPERATION_AUTHENTICATE = "Authenticate";
     public static final String OPERATION_CREATE = "Create";
+    public static final String OPERATION_LOAD = "Load";
 
     public DIDService(MessageProducer producer) {
         super(producer);
@@ -51,6 +54,7 @@ public class DIDService extends BaseService {
             case OPERATION_VERIFY: {verify(e);break;}
             case OPERATION_AUTHENTICATE: {authenticate(e);break;}
             case OPERATION_CREATE: {create(e);break;}
+            case OPERATION_LOAD: {load(e);break;}
             default: deadLetter(e); // Operation not supported
         }
     }
@@ -92,56 +96,6 @@ public class DIDService extends BaseService {
 //            e.printStackTrace();
 //        }
 
-        // Create a default Identity
-//        Boolean createNew = true;
-        // TODO: Why are 2 and 3 not available when performing it with this code
-//        Integer cryptoImplId = 1; // 1 = ElGamal2048_DSA1024, 2 = ECDH256_ECDSA256, 3 = ECDH521_ECDSA521, 4 = NTRUEncrypt1087_GMSS512
-//        String vanityPrefix = "";
-//        String key = "";
-//        String publicName = "";
-//        String description = "";
-//        String pictureBase64 = "";
-//        String emailAddress = "";
-//        Boolean setDefault = true;
-//        StatusListener<ChangeIdentityStatus> lsnr = new StatusListener<ChangeIdentityStatus>() {
-//            public void updateStatus(ChangeIdentityStatus status, String... args) {
-//                Log.i(LID.class.getName(),"Creating default identity; status="+status.name());
-//                ArrayList<String> tmp = new ArrayList<>(Arrays.asList(args));
-//                tmp.add(0, status.name());
-//                publishProgress(tmp.toArray(new String[tmp.size()]));
-//            }
-//        };
-
-//        try {
-//            BoteHelper.createOrModifyIdentity(
-//                    createNew,
-//                    cryptoImplId,
-//                    vanityPrefix,
-//                    key,
-//                    publicName,
-//                    description,
-//                    pictureBase64,
-//                    emailAddress,
-//                    new Properties(),
-//                    setDefault,
-//                    lsnr);
-//
-//            lsnr.updateStatus(ChangeIdentityStatus.SAVING_IDENTITY);
-//
-//            I2PBote.getInstance().getIdentities().save();
-//
-//            this.alias = alias;
-//            this.passphrase = passphrase;
-//
-//        } catch (GeneralSecurityException e) {
-//            e.printStackTrace();
-//        } catch (PasswordException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (IllegalDestinationParametersException e) {
-//            e.printStackTrace();
-//        }
     }
 
     /**
@@ -172,6 +126,13 @@ public class DIDService extends BaseService {
 //        } catch (PasswordException e) {
 //            e.printStackTrace();
 //        }
+    }
+
+    private void load(Envelope e) {
+        LOG.info("Ensure I2P identities are present in DID. Request them from Sensor Service using Very High Sensitivity.");
+        // Very High Sensitivity selects I2P by default
+        e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
+        DLC.addRoute(SensorsService.class, SensorsService.OPERATION_GET_KEYS,e);
     }
 
     @Override
