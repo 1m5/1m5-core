@@ -176,7 +176,6 @@ public class OneMFiveAppContext {
     */
 
         String baseStr = getProperty("1m5.dir.base", System.getProperty("user.dir"));
-        baseStr += "/.1m5";
         LOG.info("Base Directory: "+baseStr);
         baseDir = new File(baseStr);
         if(!baseDir.exists()) {
