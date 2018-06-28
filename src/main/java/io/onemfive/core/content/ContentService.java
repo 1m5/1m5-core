@@ -7,7 +7,8 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * TODO: Add Description
+ * Provides HTML5/CSS3/Node.js apps as a service using J2V8.
+ * https://github.com/eclipsesource/j2v8
  *
  * @author objectorange
  */
