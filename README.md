@@ -358,6 +358,14 @@ An embedded I2P Router.
 ##### I2P Bote Sensor
 Uses embedded I2P Router adding storable DHT for delayed routing to battle timing attacks.
 
+###### Build Notes
+- Required flex-gmss-1.7p1.jar in libs folder to be added to local Maven .m2 directory:
+mvn install:install-file -Dfile=flexi-gmss-1.7p1.jar -DgroupId=de.flexi -DartifactId=gmss -Dversion=1.7p1 -Dpackaging=jar
+- Required certificates.zip to be manually created by zipping up the following two directories in the i2p.i2p project (I2P Router core)
+and placing in resources/io/onemfive/core/sensors/i2p/bote:
+    - /installer/resources/certificates/reseed
+    - /installer/resources/certificates/ssl
+
 ##### IMSI Filter Catcher
 
 ###### Research

@@ -176,6 +176,7 @@
 					<include>**/*.properties</include>
 					<include>**/*.config</include>
 					<include>**/*.txt</include>
+					<include>**/*.crt</include>
 				</includes>
 			</resource>
 		</resources>
