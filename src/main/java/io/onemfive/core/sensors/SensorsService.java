@@ -13,7 +13,6 @@ import io.onemfive.core.util.Wait;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
-import io.onemfive.data.util.JSONParser;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -85,7 +84,7 @@ public class SensorsService extends BaseService {
             do {
                 sensor = activeSensors.get(I2PBoteSensor.class.getName());
                 if(sensor == null) {
-                    Wait.waitABit(waitTimeMs); // wait 3 seconds
+                    Wait.aMs(waitTimeMs); // wait 3 seconds
                     currentWaitMs += waitTimeMs;
                 }
             } while(sensor == null && currentWaitMs < maxWaitMs);
