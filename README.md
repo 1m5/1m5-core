@@ -3,7 +3,7 @@ An intelligent anonymous communications framework with popular general decentral
 for embedding.
 
 ## Version
-0.5.0
+0.5.1
 
 ## Authors / Developers
 - [ObjectOrange](https://github.com/objectorange) - objectorange@protonmail.com
@@ -68,7 +68,8 @@ a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded
 a service registry, internal general services, and a number of Sensors for advanced intelligent interaction with other nodes.
 
 ## Implementation
-The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+.
+The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+. 
+Android is a subset of Java's JDK.
 
 ### Common Classes
 Classes used throughout all components are:
@@ -90,7 +91,7 @@ It supports registration of services with the service bus.
 Long-term it will support additional administration operations for the entire framework.
 
 #### Aten Service
-Not implemented althogh it's expected to be implemented shortly. 
+Not implemented although it's expected to be implemented shortly. 
 Provides utility tokens for developers, both business and technical, 
 to determine Prana distribution ratios from transaction fees if/when present.
 
@@ -350,6 +351,7 @@ As long as enough people still have their device, the network survives.
 
 ##### I2P Sensor
 An embedded I2P Router.
+Not ready for usage.
 
 ###### Attack Mitigation
 
@@ -357,12 +359,13 @@ An embedded I2P Router.
 
 ##### I2P Bote Sensor
 Uses embedded I2P Router adding storable DHT for delayed routing to battle timing attacks.
+Starting I2P Router but its unable to connect to the I2P network.
 
 ###### Build Notes
 - Required flex-gmss-1.7p1.jar in libs folder to be added to local Maven .m2 directory:
 mvn install:install-file -Dfile=flexi-gmss-1.7p1.jar -DgroupId=de.flexi -DartifactId=gmss -Dversion=1.7p1 -Dpackaging=jar
-- Required certificates.zip to be manually created by zipping up the following two directories in the i2p.i2p project (I2P Router core)
-and placing in resources/io/onemfive/core/sensors/i2p/bote:
+- Required certificates from the following two directories in the i2p.i2p project (I2P Router core)
+to be copied to resources/io/onemfive/core/sensors/i2p/bote/certificates keeping reseed and ssl as directories:
     - /installer/resources/certificates/reseed
     - /installer/resources/certificates/ssl
 
@@ -386,6 +389,7 @@ and placing in resources/io/onemfive/core/sensors/i2p/bote:
 
 ##### Tor Sensor
 An embedded Tor Router.
+Not yet embedded.
 
 ##### WiFi Aware Sensor
 
