@@ -649,7 +649,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     public static void main(String[] args) {
         Properties p = new Properties();
-        p.setProperty("1m5.dir.base","/Users/Brian/Projects/1m5/core/.1m5");
+        p.setProperty("1m5.dir.base",args[0]);
 
         I2PBoteSensor i2PBoteSensor = new I2PBoteSensor(null);
         i2PBoteSensor.start(p);
