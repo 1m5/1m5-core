@@ -657,8 +657,9 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
         long maxWaitMs = 10 * 60 * 1000; // 10 minutes
         long periodicWaitMs = 30 * 1000; // 30 seconds
         long currentWaitMs = 0;
-        while(currentWaitMs < maxWaitMs) {
-            NetworkStatus status = i2PBoteSensor.getNetworkStatus();
+        NetworkStatus status = NetworkStatus.NOT_STARTED;
+        while(currentWaitMs < maxWaitMs || status == NetworkStatus.CONNECTED) {
+            status = i2PBoteSensor.getNetworkStatus();
             LOG.info("I2PBote Network Status: "+status.name());
             if(status == NetworkStatus.CONNECTED) {
                 Envelope e = Envelope.documentFactory();
