@@ -2,6 +2,7 @@ package io.onemfive.core.contract;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatusListener;
 import io.onemfive.core.contract.ethreum.EthereumContract;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
@@ -35,8 +36,8 @@ public class ContractService extends BaseService {
 
     private EthereumContract ethereumContract;
 
-    public ContractService(MessageProducer producer) {
-        super(producer);
+    public ContractService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
     }
 
     @Override

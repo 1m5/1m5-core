@@ -2,6 +2,7 @@ package io.onemfive.core.content;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatusListener;
 
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -16,8 +17,8 @@ public class ContentService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(ContentService.class.getName());
 
-    public ContentService(MessageProducer producer) {
-        super(producer);
+    public ContentService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
     }
 
     @Override

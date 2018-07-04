@@ -17,9 +17,7 @@ import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.util.DLC;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -27,8 +25,8 @@ import java.util.logging.Logger;
  * Encompasses all functionality needed to support messaging between
  * all internal services and their life cycles.
  *
- * Provides a Staged Event-Driven Architecture (SEDA) by providing
- * channels to/from all Services.
+ * Provides a Staged Event-Driven Architecture (SEDA) by providing a
+ * channel to/from all Services.
  *
  * All bus threads come from one pool to help manage resource usage.
  *
@@ -37,7 +35,7 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegistrar {
+public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegistrar, ServiceStatusListener {
 
     private static final Logger LOG = Logger.getLogger(ServiceBus.class.getName());
 
@@ -53,6 +51,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     private ClientAppManager clientAppManager;
     private Map<String, BaseService> registeredServices;
     private Map<String, BaseService> runningServices;
+
+    private List<BusStatusListener> busStatusListeners = new ArrayList<>();
 
     // TODO: Set maxThreads by end-user max processing allocation (Prana limitations)
     private int maxThreads = Runtime.getRuntime().availableProcessors() * 2;
@@ -80,6 +80,14 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         }
     }
 
+    public void registerBusStatusListener (BusStatusListener busStatusListener) {
+        busStatusListeners.add(busStatusListener);
+    }
+
+    public void unregisterBusStatusListener(BusStatusListener busStatusListener) {
+        busStatusListeners.remove(busStatusListener);
+    }
+
     public void register(Class serviceClass, Properties p) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
         LOG.finer("Registering service class: "+serviceClass.getName());
         if(registeredServices.containsKey(serviceClass.getName())) {
@@ -93,6 +101,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             service.setProducer(this);
             // register service
             registeredServices.put(serviceClass.getName(), service);
+            service.registerServiceStatusListener(this);
             LOG.finer("Service registered successfully: "+serviceName);
             // start registered service
             new AppThread(new Runnable() {
@@ -128,6 +137,73 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         }
     }
 
+    private void updateStatus(Status status) {
+        this.status = status;
+        switch(status) {
+            case Starting: {
+                LOG.info("1M5 Service Bus is Starting");
+                break;
+            }
+            case Running: {
+                LOG.info("1M5 Service Bus is Running");
+                break;
+            }
+            case Stopping: {
+                LOG.info("1M5 Service Bus is Stopping");
+                break;
+            }
+            case Stopped: {
+                LOG.info("1M5 Service Bus has Stopped");
+                break;
+            }
+        }
+        for(BusStatusListener l : busStatusListeners) {
+            l.busStatusChanged(status);
+        }
+    }
+
+    @Override
+    public void serviceStatusChanged(String serviceFullName, ServiceStatus serviceStatus) {
+        switch(serviceStatus) {
+            case UNSTABLE: {
+                // Service is Unstable - restart
+                BaseService service = runningServices.get(serviceFullName);
+                if(service != null) {
+                    service.restart();
+                }
+                break;
+            }
+            case RUNNING: {
+                if(allServicesWithStatus(ServiceStatus.RUNNING)) {
+                    updateStatus(Status.Running);
+                }
+                break;
+            }
+            case SHUTDOWN: {
+                if(allServicesWithStatus(ServiceStatus.SHUTDOWN)) {
+                    updateStatus(Status.Stopped);
+                }
+                break;
+            }
+            case GRACEFULLY_SHUTDOWN: {
+                if(allServicesWithStatus(ServiceStatus.GRACEFULLY_SHUTDOWN)) {
+                    updateStatus(Status.Stopped);
+                }
+                break;
+            }
+        }
+    }
+
+    private Boolean allServicesWithStatus(ServiceStatus serviceStatus) {
+        Collection<BaseService> services = runningServices.values();
+        for(BaseService s : services) {
+            if(s.getServiceStatus() != serviceStatus){
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Starts up Service Bus registering internal services, starting all services registered, and starting message channel
      * and worker thread pool.
@@ -139,9 +215,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
      */
     @Override
     public boolean start(Properties properties) {
-        status = Status.Starting;
-        boolean startupSuccessful = true;
-
+        updateStatus(Status.Starting);
         if(properties != null) {
             if(this.properties == null)
                 this.properties = properties;
@@ -167,51 +241,51 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         runningServices = new HashMap<>(15);
 
         // Register Core Services
-        AdminService adminService = new AdminService(this);
-        registeredServices.put(AdminService.class.getName(), adminService);
-
-        OrchestrationService orchestrationService = new OrchestrationService(this);
+        OrchestrationService orchestrationService = new OrchestrationService(this, this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
-        SensorsService sensorsService = new SensorsService(this);
-        registeredServices.put(SensorsService.class.getName(), sensorsService);
+        AdminService adminService = new AdminService(this, this);
+        registeredServices.put(AdminService.class.getName(), adminService);
 
-        InfoVaultService infoVaultService = new InfoVaultService(this);
+        InfoVaultService infoVaultService = new InfoVaultService(this, this);
         registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
 
-        DIDService didService = new DIDService(this);
+        DIDService didService = new DIDService(this, this);
         registeredServices.put(DIDService.class.getName(), didService);
 
-        IPFSService ipfsService = new IPFSService(this);
-        registeredServices.put(IPFSService.class.getName(), ipfsService);
+        SensorsService sensorsService = new SensorsService(this, this);
+        registeredServices.put(SensorsService.class.getName(), sensorsService);
 
         // Additional Services should be registered by client via Admin Service
 
-//        PranaService pranaService = new PranaService(this);
+//        IPFSService ipfsService = new IPFSService(this, this);
+//        registeredServices.put(IPFSService.class.getName(), ipfsService);
+
+//        PranaService pranaService = new PranaService(this, this);
 //        registeredServices.put(PranaService.class.getName(), pranaService);
 
-//        ConsensusService consensusService = new ConsensusService(this);
+//        ConsensusService consensusService = new ConsensusService(this, this);
 //        registeredServices.put(ConsensusService.class.getName(), consensusService);
 
-//        ContentService contentService = new ContentService(this);
+//        ContentService contentService = new ContentService(this, this);
 //        registeredServices.put(ContentService.class.getName(), contentService);
 
-//        DEXService dexService = new DEXService(this);
+//        DEXService dexService = new DEXService(this, this);
 //        registeredServices.put(DEXService.class.getName(), dexService);
 
-//        RepositoryService repositoryService = new RepositoryService(this);
+//        RepositoryService repositoryService = new RepositoryService(this, this);
 //        registeredServices.put(RepositoryService.class.getName(), repositoryService);
 
-//        KeyRingService keyRingService = new KeyRingService(this);
+//        KeyRingService keyRingService = new KeyRingService(this, this);
 //        registeredServices.put(KeyRingService.class.getName(), keyRingService);
 
-//        PaymentService paymentService = new PaymentService(this);
+//        PaymentService paymentService = new PaymentService(this, this);
 //        registeredServices.put(PaymentService.class.getName(), paymentService);
 
-//        AtenService atenService = new AtenService(this);
+//        AtenService atenService = new AtenService(this, this);
 //        registeredServices.put(AtenService.class.getName(), atenService);
 
-//        SecureDropService secureDropService = new SecureDropService(this);
+//        SecureDropService secureDropService = new SecureDropService(this, this);
 //        registeredServices.put(SecureDropService.class.getName(), secureDropService);
 
         // Start Registered Services
@@ -231,8 +305,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         pool = new WorkerThreadPool(clientAppManager, runningServices, channel, maxThreads, maxThreads, properties);
         pool.start();
 
-        status = Status.Running;
-        return startupSuccessful;
+        return true;
     }
 
     @Override
@@ -259,8 +332,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
      */
     @Override
     public boolean shutdown() {
-        LOG.finer("Shutting down...");
-        status = Status.Stopping;
+        updateStatus(Status.Stopping);
         spin.set(false);
         pool.shutdown();
         channel.shutdown();
@@ -275,13 +347,11 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
                 }
             }, serviceName+"-ShutdownThread").start();
         }
-        status = Status.Stopped;
-        LOG.finer("Shutdown.");
         return true;
     }
 
     /**
-     * Ensure shutdown is graceful
+     * Ensure shutdown is graceful by waiting until all Services indicate graceful shutdown complete or timeout
      *
      * TODO: Implement
      *

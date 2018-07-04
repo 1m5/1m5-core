@@ -2,6 +2,8 @@ package io.onemfive.core.orchestration;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatus;
+import io.onemfive.core.ServiceStatusListener;
 import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 
@@ -18,18 +20,13 @@ public class OrchestrationService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(OrchestrationService.class.getName());
 
-    private boolean starting = false;
-    private boolean running = false;
-    private boolean shuttingDown = false;
-    private boolean shutdown = false;
-
     private int activeRoutes = 0;
     private int remainingRoutes = 0;
 
     private final Object lock = new Object();
 
-    public OrchestrationService(MessageProducer producer) {
-        super(producer);
+    public OrchestrationService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
         orchestrator = true;
     }
 
@@ -58,7 +55,7 @@ public class OrchestrationService extends BaseService {
     }
 
     private void route(Envelope e) {
-        if(running) {
+        if(getServiceStatus() == ServiceStatus.RUNNING) {
             RoutingSlip rs = e.getDynamicRoutingSlip();
             Route route = e.getRoute();
             // Select Next Route and send to channel
@@ -110,46 +107,37 @@ public class OrchestrationService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         LOG.info("Starting...");
-        shuttingDown = false;
-        shutdown = false;
-        starting = true;
-
+        updateStatus(ServiceStatus.STARTING);
         activeRoutes = 0;
         remainingRoutes = 0;
-
-        running = true;
-        starting = false;
+        updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
         return true;
     }
 
     @Override
     public boolean shutdown() {
-        running = false;
-        shuttingDown = true;
+        updateStatus(ServiceStatus.SHUTTING_DOWN);
         // Give it 3 seconds
         int tries = 1;
         while(remainingRoutes > 0 && tries > 0) {
             waitABit(3 * 1000);
             tries--;
         }
-        shutdown = true;
-        shuttingDown = false;
+        updateStatus(ServiceStatus.SHUTDOWN);
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        running = false;
-        shuttingDown = true;
+        updateStatus(ServiceStatus.GRACEFULLY_SHUTTING_DOWN);
         // Give it 30 seconds
         int tries = 10;
         while(remainingRoutes > 0 && tries > 0) {
             waitABit(3 * 1000);
             tries--;
         }
-        shutdown = true;
-        shuttingDown = false;
+        updateStatus(ServiceStatus.GRACEFULLY_SHUTDOWN);
         return true;
     }
 

@@ -2,6 +2,7 @@ package io.onemfive.core.consensus;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatusListener;
 
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -15,8 +16,8 @@ public class ConsensusService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(ConsensusService.class.getName());
 
-    public ConsensusService(MessageProducer producer) {
-        super(producer);
+    public ConsensusService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
     }
 
     @Override

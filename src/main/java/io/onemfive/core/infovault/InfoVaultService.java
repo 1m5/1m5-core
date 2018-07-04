@@ -2,6 +2,8 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatus;
+import io.onemfive.core.ServiceStatusListener;
 import io.onemfive.data.*;
 import io.onemfive.data.health.HealthRecord;
 import io.onemfive.data.health.mental.memory.MemoryTest;
@@ -26,8 +28,8 @@ public class InfoVaultService extends BaseService {
     public static final String OPERATION_LOAD = "LOAD";
     public static final String OPERATION_SAVE = "SAVE";
 
-    public InfoVaultService(MessageProducer producer) {
-        super(producer);
+    public InfoVaultService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
     }
 
     @Override
@@ -92,7 +94,9 @@ public class InfoVaultService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         LOG.info("Starting...");
+        updateStatus(ServiceStatus.STARTING);
         infoVault.start(properties);
+        updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
         return true;
     }
@@ -100,7 +104,9 @@ public class InfoVaultService extends BaseService {
     @Override
     public boolean shutdown() {
         LOG.info("Shutting down...");
+        updateStatus(ServiceStatus.SHUTTING_DOWN);
         infoVault.shutdown();
+        updateStatus(ServiceStatus.SHUTDOWN);
         LOG.info("Shutdown.");
         return true;
     }

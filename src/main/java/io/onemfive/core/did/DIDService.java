@@ -1,8 +1,6 @@
 package io.onemfive.core.did;
 
-import io.onemfive.core.BaseService;
-import io.onemfive.core.Config;
-import io.onemfive.core.MessageProducer;
+import io.onemfive.core.*;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.DID;
 import io.onemfive.data.DocumentMessage;
@@ -29,8 +27,8 @@ public class DIDService extends BaseService {
     public static final String OPERATION_CREATE = "Create";
     public static final String OPERATION_LOAD = "Load";
 
-    public DIDService(MessageProducer producer) {
-        super(producer);
+    public DIDService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
     }
 
     @Override
@@ -138,7 +136,9 @@ public class DIDService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         LOG.info("Starting....");
+        updateStatus(ServiceStatus.STARTING);
 
+        updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
         return true;
     }

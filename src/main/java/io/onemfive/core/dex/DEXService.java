@@ -2,6 +2,7 @@ package io.onemfive.core.dex;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatusListener;
 
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -15,8 +16,8 @@ public class DEXService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(DEXService.class.getName());
 
-    public DEXService(MessageProducer producer) {
-        super(producer);
+    public DEXService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
     }
 
     @Override

@@ -2,6 +2,7 @@ package io.onemfive.core.aten;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatusListener;
 import io.onemfive.data.Aten;
 
 import java.util.Properties;
@@ -16,8 +17,8 @@ public class AtenService extends BaseService {
 
     private final Logger LOG = Logger.getLogger(AtenService.class.getName());
 
-    public AtenService(MessageProducer producer) {
-        super(producer);
+    public AtenService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
     }
 
     @Override

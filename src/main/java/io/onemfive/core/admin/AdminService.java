@@ -2,6 +2,8 @@ package io.onemfive.core.admin;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatus;
+import io.onemfive.core.ServiceStatusListener;
 import io.onemfive.core.bus.ServiceBus;
 import io.onemfive.core.bus.ServiceNotAccessibleException;
 import io.onemfive.core.bus.ServiceNotSupportedException;
@@ -29,8 +31,8 @@ public class AdminService extends BaseService {
 
     private ServiceBus serviceBus;
 
-    public AdminService(MessageProducer producer) {
-        super(producer);
+    public AdminService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
         serviceBus = (ServiceBus)producer;
     }
 
@@ -43,7 +45,7 @@ public class AdminService extends BaseService {
         }
     }
 
-    private void registerServices(Envelope e){
+    private void registerServices(Envelope e) {
         List<Class> servicesToRegister = (List<Class>)DLC.getEntity(e);
         Properties p = (Properties)DLC.getData(Properties.class, e);
         for(Class c : servicesToRegister) {
@@ -62,7 +64,9 @@ public class AdminService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         LOG.info("Starting...");
+        updateStatus(ServiceStatus.STARTING);
 
+        updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
         return true;
     }

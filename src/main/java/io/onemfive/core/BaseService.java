@@ -3,11 +3,13 @@ package io.onemfive.core;
 import io.onemfive.core.infovault.InfoVault;
 import io.onemfive.data.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * TODO: Add Description
+ * A base for all Services to provide a common framework for them.
  *
  * @author objectorange
  */
@@ -19,13 +21,39 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     protected MessageProducer producer;
     protected InfoVault infoVault;
 
+    private ServiceStatus serviceStatus;
+    private List<ServiceStatusListener> serviceStatusListeners = new ArrayList<>();
+
     public BaseService() {
         infoVault = InfoVault.getInstance();
     }
 
-    public BaseService(MessageProducer producer) {
+    public BaseService(MessageProducer producer, ServiceStatusListener listener) {
         infoVault = InfoVault.getInstance();
+        serviceStatusListeners.add(listener);
         this.producer = producer;
+    }
+
+    public ServiceStatus getServiceStatus() {
+        return serviceStatus;
+    }
+
+    public void registerServiceStatusListener(ServiceStatusListener listener) {
+        serviceStatusListeners.add(listener);
+    }
+
+    public void unregisterServiceStatusListener(ServiceStatusListener listener) {
+        serviceStatusListeners.remove(listener);
+    }
+
+    protected void updateStatus(ServiceStatus serviceStatus) {
+        this.serviceStatus = serviceStatus;
+        LOG.info(this.getClass().getName()+" status changed to "+serviceStatus.toString());
+        if(serviceStatusListeners != null) {
+            for(ServiceStatusListener l : serviceStatusListeners) {
+                l.serviceStatusChanged(this.getClass().getName(), serviceStatus);
+            }
+        }
     }
 
     public MessageProducer getProducer() {
@@ -114,7 +142,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean start(Properties properties) {
-        return false;
+        return true;
     }
 
     @Override
@@ -134,11 +162,11 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean shutdown() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        return false;
+        return true;
     }
 }

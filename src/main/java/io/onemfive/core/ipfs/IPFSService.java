@@ -1,8 +1,6 @@
 package io.onemfive.core.ipfs;
 
-import io.onemfive.core.BaseService;
-import io.onemfive.core.Config;
-import io.onemfive.core.MessageProducer;
+import io.onemfive.core.*;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.sensors.clearnet.ClearnetSensor;
 import io.onemfive.data.*;
@@ -136,12 +134,8 @@ public class IPFSService extends BaseService {
     private Map<String,GatewayStatus> clearnetGateways = new HashMap<>();
     private String activeGateway;
 
-    public IPFSService() {
-        super();
-    }
-
-    public IPFSService(MessageProducer producer) {
-        super(producer);
+    public IPFSService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+        super(producer, serviceStatusListener);
     }
 
     @Override
@@ -1149,6 +1143,7 @@ public class IPFSService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         LOG.info("Starting...");
+        updateStatus(ServiceStatus.STARTING);
         try {
             // load from last saved configuration
 //            config = Config.loadFromBase("ipfs.config");
@@ -1203,9 +1198,11 @@ public class IPFSService extends BaseService {
         } catch (Exception e) {
             e.printStackTrace();
             LOG.warning("Exception caught while starting: "+e.getLocalizedMessage());
+            updateStatus(ServiceStatus.ERROR);
             return false;
         }
 
+        updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
         return true;
     }
@@ -1213,6 +1210,7 @@ public class IPFSService extends BaseService {
     @Override
     public boolean shutdown() {
         LOG.info("Shutting down...");
+        updateStatus(ServiceStatus.SHUTTING_DOWN);
         // Persist clearnetGateways list
 //        String clearnetGatewaysString = "";
 //        for(String g : clearnetGateways.keySet()) {
@@ -1227,6 +1225,7 @@ public class IPFSService extends BaseService {
 //        } catch (IOException e) {
 //            LOG.warning("IOException caught during IPFSService shutdown attempting to save property file ipfs.config: "+e.getLocalizedMessage());
 //        }
+        updateStatus(ServiceStatus.SHUTDOWN);
         LOG.info("Shutdown.");
         return true;
     }
