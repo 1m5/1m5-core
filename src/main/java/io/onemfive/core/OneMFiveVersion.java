@@ -15,16 +15,13 @@ public class OneMFiveVersion {
 
     /** deprecated */
     public final static String ID = "io.onemfive.core";
-    public final static String VERSION = "0.5.0-SNAPSHOT";
+    public final static String VERSION = "0.5.1-SNAPSHOT";
     public final static long BUILD = 1;
 
     // TODO: Change to Maven Driven
     /** for example "-test" */
     public final static String EXTRA = "";
     public final static String FULL_VERSION = VERSION + "-" + BUILD + EXTRA;
-    public static void main(String args[]) {
-        print();
-    }
 
     public static void print() {
         LOG.info("1M5 ID: " + ID);
