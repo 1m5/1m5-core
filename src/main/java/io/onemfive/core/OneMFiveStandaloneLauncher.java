@@ -2,10 +2,12 @@ package io.onemfive.core;
 
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
+import io.onemfive.core.client.ClientStatusListener;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.ipfs.IPFSRequest;
 import io.onemfive.core.ipfs.IPFSResponse;
 import io.onemfive.core.ipfs.IPFSService;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.*;
 import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
@@ -29,6 +31,13 @@ public class OneMFiveStandaloneLauncher {
 
     private static OneMFiveStandaloneLauncher launcher;
 
+    private ClientAppManager.Status status;
+    private DID toDID;
+    private DID fromDID;
+
+    private boolean awaitingKey = false;
+    private boolean emailSent = false;
+
     public static void main(String args[]) {
         LOG.info("Starting 1M5 Standalone...");
         OneMFiveVersion.print();
@@ -42,95 +51,84 @@ public class OneMFiveStandaloneLauncher {
 
     private void launch(String args[]) {
         Properties config = new Properties();
-        //// Clearnet Sensor ////
-        // for local IPFS node calls
-        config.setProperty("1m5.sensors.clearnet.http.client", "true");
-        // for handling mobile calls to this gateway
-        config.setProperty("1m5.sensors.clearnet.http.server","true");
-        config.setProperty("1m5.sensors.clearnet.http.server.ip", "localhost");
-        config.setProperty("1m5.sensors.clearnet.http.server.port", "8080");
-        config.setProperty("1m5.sensors.clearnet.http.server.path", "/mj82jg857ky45oj8xykfj92y78958n72z9gx57yg2");
         OneMFiveAppContext context = OneMFiveAppContext.getInstance(config);
         ClientAppManager manager = context.getClientAppManager();
-        Client c = manager.getClient(true);
-        DID did = new DID();
-        did.setAlias("Alice");
-        did.setPassphrase("1234");
-        // wait for startup
-        waitABit(2 * 1000);
+        final Client c = manager.getClient(true);
 
-//        testViewFile(c);
-//        testMakeDirectory(c);
-//        testMakeFile(c);
+        fromDID = new DID();
+        fromDID.addAlias("Alice");
 
-        waitABit(10000 * 1000);
-        manager.stop();
-    }
+        toDID = new DID();
+        toDID.addAlias("Alice");
 
-    private void testViewFile(Client c) {
-        // https://ipfs.io/ipfs/QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC/readme.md
-        ServiceCallback cb = new ServiceCallback() {
+        ServiceCallback getKeyCB = new ServiceCallback() {
             @Override
             public void reply(Envelope envelope) {
-                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-                if(response != null && response.resultBytes != null && response.resultBytes.length > 0) {
-                    System.out.println(new String(response.resultBytes));
+
+            }
+        };
+
+
+
+        // Step 3: Get Email
+        ServiceCallback getEmailCB = new ServiceCallback() {
+            @Override
+            public void reply(Envelope envelope) {
+
+            }
+        };
+
+        ClientStatusListener clientStatusListener = new ClientStatusListener() {
+            @Override
+            public void clientStatusChanged(ClientAppManager.Status clientStatus) {
+                status = clientStatus;
+                LOG.info("Client Status changed: "+clientStatus.name());
+                switch(status) {
+                    case INITIALIZING: {
+                        LOG.info("Bus reports initializing...");
+                        break;
+                    }
+                    case READY: {
+                        LOG.info("Bus reports ready.");
+                        break;
+                    }
+                    case STOPPING: {
+                        LOG.info("Bus reports stopping...");
+                        break;
+                    }
+                    case STOPPED: {
+                        LOG.info("Bus reports it stopped.");
+                        break;
+                    }
                 }
             }
         };
-        Envelope e = Envelope.documentFactory();
-        IPFSRequest request = new IPFSRequest();
-        request.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
-        request.file = new ByteArrayWrapper("readme.md");
-        DLC.addData(IPFSRequest.class, request, e);
-        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_GET, e);
-        c.request(e, cb);
-    }
+        c.registerClientStatusListener(clientStatusListener);
 
-    private void testMakeDirectory(Client c) {
-        ServiceCallback cb = new ServiceCallback() {
-            @Override
-            public void reply(Envelope envelope) {
-                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-                if(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0) {
-                    System.out.println(response.merkleNodes.get(0).hash.toString());
+        while(status != ClientAppManager.Status.STOPPED) {
+            if(status == ClientAppManager.Status.READY) {
+                if(fromDID.getEncodedKey() == null) {
+                    if(!awaitingKey) {
+                        // Step 1: Send Key Request
+                        Envelope e = Envelope.documentFactory();
+                        e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
+                        e.setDID(fromDID);
+                        DLC.addRoute(SensorsService.class, SensorsService.OPERATION_GET_KEYS,e);
+                        awaitingKey = true;
+                    }
+                } else if(toDID.getEncodedKey() == null) {
+                    toDID.addEncodedKey(fromDID.getEncodedKey());
+                } else if(!emailSent) {
+                    // Step 2: Send Email
+
+                    emailSent = true;
+                } else {
+                    // Step 3: Awaiting Email
+
                 }
             }
-        };
-        Envelope e = Envelope.documentFactory();
-        IPFSRequest request = new IPFSRequest();
-//        request.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
-        request.file = new ByteArrayWrapper("Syria");
-
-        DLC.addData(IPFSRequest.class, request, e);
-        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
-        c.request(e, cb);
-    }
-
-    private void testMakeFile(Client c) {
-        ServiceCallback cb = new ServiceCallback() {
-            @Override
-            public void reply(Envelope envelope) {
-                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-                if(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0) {
-                    System.out.println(response.merkleNodes.get(0).hash.toString());
-                }
-            }
-        };
-        Envelope e = Envelope.documentFactory();
-        IPFSRequest request = new IPFSRequest();
-        request.hash = Multihash.fromBase58("QmTDMoVqvyBkNMRhzvukTDznntByUNDwyNdSfV8dZ3VKRC");
-        request.file = new ByteArrayWrapper("TestFileData".getBytes());
-
-        DLC.addData(IPFSRequest.class, request, e);
-        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
-        c.request(e, cb);
-    }
-
-    private void waitABit(long waitTime) {
-        synchronized (this.launcher) {
             try {
-                launcher.wait(waitTime);
+                launcher.wait(2 * 1000);
             } catch (InterruptedException e) {
 
             }
