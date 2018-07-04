@@ -138,6 +138,7 @@ public class OneMFiveStandaloneLauncher {
                     emailToSend = email;
                     DLC.addData(Email.class, email, e);
                     DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND,e);
+                    c.request(e,getEmailCB);
                     emailSent = true;
                 } else {
                     // Step 3: Awaiting Email
