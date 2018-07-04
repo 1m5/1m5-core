@@ -34,8 +34,10 @@ public class OneMFiveStandaloneLauncher {
     private ClientAppManager.Status status;
     private DID toDID;
     private DID fromDID;
+    private Email emailToSend;
+    private Email emailReceived;
 
-    private boolean awaitingKey = false;
+    private boolean requestedKey = false;
     private boolean emailSent = false;
 
     public static void main(String args[]) {
@@ -63,18 +65,26 @@ public class OneMFiveStandaloneLauncher {
 
         ServiceCallback getKeyCB = new ServiceCallback() {
             @Override
-            public void reply(Envelope envelope) {
-
+            public void reply(Envelope e) {
+                DID did = e.getDID();
+                if(did != null && did.getEncodedKey() != null) {
+                    fromDID.addEncodedKey(did.getEncodedKey());
+                    toDID.addEncodedKey(did.getEncodedKey());
+                    LOG.info("Received encoded key: "+did.getEncodedKey());
+                } else {
+                    LOG.warning("Did not receive encoded key.");
+                }
             }
         };
 
-
-
-        // Step 3: Get Email
         ServiceCallback getEmailCB = new ServiceCallback() {
             @Override
-            public void reply(Envelope envelope) {
-
+            public void reply(Envelope e) {
+                Email em = (Email)DLC.getData(Email.class,e);
+                if(em != null) {
+                    emailReceived = em;
+                    LOG.info("Received email with subject: "+em.getSubject()+" and flag: "+em.getFlag());
+                }
             }
         };
 
@@ -108,23 +118,34 @@ public class OneMFiveStandaloneLauncher {
         while(status != ClientAppManager.Status.STOPPED) {
             if(status == ClientAppManager.Status.READY) {
                 if(fromDID.getEncodedKey() == null) {
-                    if(!awaitingKey) {
+                    if(!requestedKey) {
                         // Step 1: Send Key Request
                         Envelope e = Envelope.documentFactory();
                         e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
                         e.setDID(fromDID);
                         DLC.addRoute(SensorsService.class, SensorsService.OPERATION_GET_KEYS,e);
-                        awaitingKey = true;
+                        c.request(e,getKeyCB);
+                        requestedKey = true;
                     }
                 } else if(toDID.getEncodedKey() == null) {
                     toDID.addEncodedKey(fromDID.getEncodedKey());
                 } else if(!emailSent) {
                     // Step 2: Send Email
-
+                    Envelope e = Envelope.documentFactory();
+                    e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
+                    e.setDID(fromDID);
+                    Email email = new Email(toDID, fromDID, "A New Syrian Peace Deal","Today marks the 3rd attempt at a new deal for peace in the Syrian conflict.");
+                    emailToSend = email;
+                    DLC.addData(Email.class, email, e);
+                    DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND,e);
                     emailSent = true;
                 } else {
                     // Step 3: Awaiting Email
-
+                    if(emailReceived != null) {
+                        LOG.info("Email received.");
+                    } else {
+                        LOG.info("Awaiting email...");
+                    }
                 }
             }
             try {
