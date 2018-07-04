@@ -1,5 +1,6 @@
 package io.onemfive.core.client;
 
+import io.onemfive.core.bus.BusStatusListener;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.ServiceCallback;
 
@@ -41,5 +42,11 @@ public interface Client {
      *  @return non-null Long
      */
     Long getId();
+
+    /**
+     * Register a ClientStatusListener so that Clients can act on Client status changes.
+     * @param listener
+     */
+    void registerClientStatusListener(ClientStatusListener listener);
 
 }

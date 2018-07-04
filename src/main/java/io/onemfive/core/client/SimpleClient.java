@@ -4,7 +4,9 @@ import io.onemfive.core.MessageProducer;
 import io.onemfive.data.ServiceCallback;
 import io.onemfive.data.Envelope;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -20,11 +22,18 @@ final class SimpleClient implements Client {
     private Map<Long,ServiceCallback> claimCheck;
     private Long id;
     private MessageProducer producer;
+    private List<ClientStatusListener> clientStatusListeners = new ArrayList<>();
 
     SimpleClient(Long id, MessageProducer producer) {
         this.id = id;
         this.producer = producer;
         this.claimCheck = new HashMap<>();
+    }
+
+    void updateClientStatus(ClientAppManager.Status status) {
+        for(ClientStatusListener l : clientStatusListeners) {
+            l.clientStatusChanged(status);
+        }
     }
 
     @Override
@@ -47,6 +56,7 @@ final class SimpleClient implements Client {
         claimCheck.put(e.getId(), cb);
     }
 
+    @Override
     public void notify(Envelope e) {
         LOG.finer("Sending to ServiceCallback");
         ServiceCallback cb = claimCheck.get(e.getId());
@@ -54,4 +64,8 @@ final class SimpleClient implements Client {
         claimCheck.remove(e.getId());
     }
 
+    @Override
+    public void registerClientStatusListener(ClientStatusListener listener) {
+        clientStatusListeners.add(listener);
+    }
 }

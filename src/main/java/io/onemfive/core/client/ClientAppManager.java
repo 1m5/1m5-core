@@ -2,9 +2,11 @@ package io.onemfive.core.client;
 
 import io.onemfive.core.OneMFiveAppContext;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.bus.BusStatusListener;
 import io.onemfive.core.bus.ServiceBus;
 import io.onemfive.data.Envelope;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -15,18 +17,18 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public final class ClientAppManager {
+public final class ClientAppManager implements BusStatusListener {
 
     private static final Logger LOG = Logger.getLogger(ClientAppManager.class.getName());
 
-    public enum Status {STOPPED, INITIALIZING, READY}
+    public enum Status {STOPPED, INITIALIZING, READY, STOPPING}
 
     private Status status = Status.STOPPED;
     private boolean shutdownOnLastUnregister = true;
 
     private OneMFiveAppContext context;
     private MessageProducer producer;
-    private Client client;
+    private Client defaultClient;
 
     // registered name to client
     protected final Map<Long, Client> registered;
@@ -44,11 +46,39 @@ public final class ClientAppManager {
         return status;
     }
 
+    @Override
+    public void busStatusChanged(ServiceBus.Status busStatus) {
+        switch (busStatus) {
+            case Starting: {
+                status = Status.INITIALIZING;
+                break;
+            }
+            case Running: {
+                status = Status.READY;
+                break;
+            }
+            case Stopping: {
+                status = Status.STOPPING;
+                break;
+            }
+            case Stopped: {
+                status = Status.STOPPED;
+                break;
+            }
+        }
+        Collection<Client> clients = registered.values();
+        for(Client c : clients) {
+            if(c instanceof SimpleClient) {
+                ((SimpleClient)c).updateClientStatus(status);
+            }
+        }
+    }
+
     /**
-     * Initializes the client app manager if its status is STOPPED.
-     * When client app manager is starting, the sc service
+     * Initializes the defaultClient app manager if its status is STOPPED.
+     * When defaultClient app manager is starting, the sc service
      * will be started if its status is STOPPED also.
-     * Once started, its is ready for building an Client.
+     * Once started, its is ready for building a Client.
      * @return non-null
      */
     public boolean initialize() {
@@ -58,22 +88,23 @@ public final class ClientAppManager {
             status = Status.INITIALIZING;
             context = OneMFiveAppContext.getInstance();
             ServiceBus serviceBus = context.getServiceBus();
+            serviceBus.registerBusStatusListener(this);
             if (serviceBus.getStatus() == ServiceBus.Status.Stopped) {
                 LOG.info("Starting 1M5 Service Bus...");
+                // TODO: Add properties to ServiceBus start
                 serviceBus.start(null);
-                LOG.info("1M5 Service Bus started.");
             }
             // Assign service bus to producer for sending messages to service bus
             producer = serviceBus;
             status = Status.READY;
             LOG.info("1M5 Service Bus running ready for requests.");
         }
-        client = buildClient();
+        defaultClient = buildClient();
         return true;
     }
 
     /**
-     * Shuts down the client app manager instance and the 1M5 service.
+     * Shuts down the defaultClient app manager instance and the 1M5 service.
      */
     public boolean stop() {
         LOG.info("Shutting down...");
@@ -91,12 +122,10 @@ public final class ClientAppManager {
     }
 
     public Client getClient(boolean defaultInstance) {
-        if(client == null) {
-            client = buildClient();
-            return client;
-        }
         if(defaultInstance) {
-            return client;
+            if(defaultClient == null)
+                defaultClient = buildClient();
+            return defaultClient;
         }
         return buildClient();
     }
@@ -115,7 +144,7 @@ public final class ClientAppManager {
     }
 
     /**
-     *  Called by WorkerThread to notify client of reply.
+     *  Called by WorkerThread to notify defaultClient of reply.
      *  If another object would happen to call this,
      *  it will just ignore the call.
      *
@@ -127,7 +156,7 @@ public final class ClientAppManager {
             LOG.finer("Client.id="+clientId);
             Client client = getRegisteredClient(clientId);
             if (client != null) {
-                LOG.finer("Found client; notifying...");
+                LOG.finer("Found defaultClient; notifying...");
                 client.notify(e);
             } else {
                 LOG.warning("Client not found. Number of registered clients: "+registered.size());
@@ -137,7 +166,7 @@ public final class ClientAppManager {
 
     /**
      *  Unregister with the manager.
-     *  If last client registered and shutdownOnLastUnregister is true,
+     *  If last defaultClient registered and shutdownOnLastUnregister is true,
      *  SC service will automatically stop.
      *
      *  @param client non-null
@@ -160,7 +189,7 @@ public final class ClientAppManager {
      *  If you only need to find a port, use the PortMapper instead.
      *
      *  @param id non-null
-     *  @return client app or null if not found
+     *  @return defaultClient app or null if not found
      */
     public Client getRegisteredClient(Long id) {
         if(id == null)
