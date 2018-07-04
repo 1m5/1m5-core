@@ -6,6 +6,7 @@ import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVaultService;
 import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.core.keyring.KeyRingService;
+import io.onemfive.core.notification.NotificationService;
 import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.repository.RepositoryService;
@@ -243,6 +244,9 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         // Register Core Services
         OrchestrationService orchestrationService = new OrchestrationService(this, this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
+
+        NotificationService notificationService = new NotificationService(this, this);
+        registeredServices.put(NotificationService.class.getName(), notificationService);
 
         AdminService adminService = new AdminService(this, this);
         registeredServices.put(AdminService.class.getName(), adminService);
