@@ -460,8 +460,10 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                     email.setFlag(1);
 
                     Envelope e = Envelope.documentFactory();
+                    e.setDID(fromDID);
                     DLC.addData(io.onemfive.data.Email.class, email,e);
-                    // TODO: Where do we send it?
+
+                    // TODO: Need to figure out a Notification service of sorts to get the email back to correct client
                     sensorsService.sendToBus(e);
                     break;
                 }
