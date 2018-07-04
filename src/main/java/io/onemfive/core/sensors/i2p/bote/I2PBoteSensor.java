@@ -456,6 +456,9 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                     email.setMessage(i2pEmail.getText());
                     LOG.info("Email text: "+email.getMessage());
 
+                    // Indicate that it was received (for testing)
+                    email.setFlag(1);
+
                     Envelope e = Envelope.documentFactory();
                     DLC.addData(io.onemfive.data.Email.class, email,e);
                     // TODO: Where do we send it?
