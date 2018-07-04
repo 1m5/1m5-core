@@ -149,7 +149,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             return false;
         }
         Email i2pEmail;
-        if(sender != null && recipient != null && subject != null && message != null) {
+        if(subject != null && message != null) {
             i2pEmail = new Email(I2PBote.getInstance().getConfiguration().getIncludeSentTime());
             List<Attachment> attachments = new ArrayList<>();
             try {
@@ -163,7 +163,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                 return false;
             }
         } else {
-            LOG.warning("sender, recipient, subject, and message must be provided.");
+            LOG.warning("subject and message must be provided.");
             return false;
         }
 
