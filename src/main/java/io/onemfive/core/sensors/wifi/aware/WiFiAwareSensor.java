@@ -1,6 +1,9 @@
 package io.onemfive.core.sensors.wifi.aware;
 
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorID;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -13,9 +16,18 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class WiFiAwareSensor implements Sensor {
+public class WiFiAwareSensor extends BaseSensor {
 
     private static final Logger LOG = Logger.getLogger(WiFiAwareSensor.class.getName());
+
+    public WiFiAwareSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.WIFIAWARE;
+    }
 
     @Override
     public boolean send(Envelope envelope) {

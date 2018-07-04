@@ -1,6 +1,9 @@
 package io.onemfive.core.sensors.ham;
 
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorID;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -11,9 +14,18 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class HAMSensor implements Sensor {
+public class HAMSensor extends BaseSensor {
 
     private static final Logger LOG = Logger.getLogger(HAMSensor.class.getName());
+
+    public HAMSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.HAM;
+    }
 
     @Override
     public boolean send(Envelope envelope) {

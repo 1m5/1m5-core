@@ -1,6 +1,9 @@
 package io.onemfive.core.sensors.mesh;
 
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorID;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -11,9 +14,18 @@ import java.util.logging.Logger;
  *
  * @author ObjectOrange
  */
-public class MeshSensor implements Sensor {
+public class MeshSensor extends BaseSensor {
 
     private static final Logger LOG = Logger.getLogger(MeshSensor.class.getName());
+
+    public MeshSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.MESH;
+    }
 
     @Override
     public boolean send(Envelope envelope) {

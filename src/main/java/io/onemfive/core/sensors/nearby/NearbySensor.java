@@ -1,6 +1,9 @@
 package io.onemfive.core.sensors.nearby;
 
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorID;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -11,9 +14,18 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class NearbySensor implements Sensor {
+public class NearbySensor extends BaseSensor {
 
     private static final Logger LOG = Logger.getLogger(NearbySensor.class.getName());
+
+    public NearbySensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.NEARBY;
+    }
 
     @Override
     public boolean send(Envelope envelope) {

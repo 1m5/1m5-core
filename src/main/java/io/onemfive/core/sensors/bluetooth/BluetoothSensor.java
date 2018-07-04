@@ -1,6 +1,9 @@
 package io.onemfive.core.sensors.bluetooth;
 
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorID;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -11,9 +14,18 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class BluetoothSensor implements Sensor {
+public class BluetoothSensor extends BaseSensor {
 
     private static final Logger LOG = Logger.getLogger(BluetoothSensor.class.getName());
+
+    public BluetoothSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.BLUETOOTH;
+    }
 
     @Override
     public boolean send(Envelope envelope) {

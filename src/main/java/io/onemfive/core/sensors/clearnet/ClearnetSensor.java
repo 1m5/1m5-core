@@ -1,6 +1,7 @@
 package io.onemfive.core.sensors.clearnet;
 
 import io.onemfive.core.sensors.BaseSensor;
+import io.onemfive.core.sensors.SensorID;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Message;
 import io.onemfive.data.util.DLC;
@@ -78,6 +79,11 @@ public final class ClearnetSensor extends BaseSensor {
 
     public ClearnetSensor(SensorsService sensorsService) {
         super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.CLEARNET;
     }
 
     @Override

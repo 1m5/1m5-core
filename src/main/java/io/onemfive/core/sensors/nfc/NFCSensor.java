@@ -1,6 +1,9 @@
 package io.onemfive.core.sensors.nfc;
 
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorID;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -11,9 +14,18 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class NFCSensor implements Sensor {
+public class NFCSensor extends BaseSensor {
 
     private static final Logger LOG = Logger.getLogger(NFCSensor.class.getName());
+
+    public NFCSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.NFC;
+    }
 
     @Override
     public boolean send(Envelope envelope) {

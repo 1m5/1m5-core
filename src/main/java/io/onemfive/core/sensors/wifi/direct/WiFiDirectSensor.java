@@ -12,7 +12,10 @@ package io.onemfive.core.sensors.wifi.direct;
 //import android.net.wifi.p2p.WifiP2pManager;
 //import android.util.Log;
 
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorID;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -23,9 +26,8 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class WiFiDirectSensor
-        implements
-        Sensor
+public class WiFiDirectSensor extends BaseSensor
+//        implements
 //        WifiP2pManager.ChannelListener,
 //        DeviceActionListener
 {
@@ -43,8 +45,13 @@ public class WiFiDirectSensor
     private PeerDeviceList peerDeviceList;
     private PeerDevice peerDevice;
 
-    public WiFiDirectSensor() {
+    public WiFiDirectSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
 
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.WIFIDIRECT;
     }
 
     @Override

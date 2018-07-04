@@ -1,6 +1,9 @@
 package io.onemfive.core.sensors.tor;
 
+import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.Sensor;
+import io.onemfive.core.sensors.SensorID;
+import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
 
 import java.util.Properties;
@@ -15,9 +18,18 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class TorSensor implements Sensor {
+public class TorSensor extends BaseSensor {
 
     private static final Logger LOG = Logger.getLogger(TorSensor.class.getName());
+
+    public TorSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.TOR;
+    }
 
     @Override
     public boolean send(Envelope envelope) {

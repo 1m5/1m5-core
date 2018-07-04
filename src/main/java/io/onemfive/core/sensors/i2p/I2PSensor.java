@@ -1,7 +1,7 @@
 package io.onemfive.core.sensors.i2p;
 
+import io.onemfive.core.sensors.*;
 import io.onemfive.core.util.AppThread;
-import io.onemfive.core.sensors.Sensor;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.util.DLC;
 import net.i2p.I2PException;
@@ -35,34 +35,16 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class I2PSensor implements Sensor {
+public class I2PSensor extends BaseSensor {
 
     private static final Logger LOG = Logger.getLogger(I2PSensor.class.getName());
 
     private static final String DEST_KEY_FILE_NAME = "local_dest.key";
 
-    public enum Status {
-        // These states persist even if it died.
-        INIT, WAITING, STARTING, RUNNING, ACTIVE,
-        // button, don't kill service when paused, stay in PAUSED
-        PAUSING, PAUSED,
-        //
-        UNPAUSING,
-        // button, kill service when stopped
-        STOPPING, STOPPED,
-        // Stopped by listener (no network), next: WAITING (spin waiting for network)
-        NETWORK_STOPPING, NETWORK_STOPPED,
-        // button,
-        GRACEFUL_SHUTDOWN,
-        // error
-        ERROR
-    }
-
     // I2P Router
     private RouterContext routerContext;
     private Router router;
     private Properties properties;
-    private Status status = Status.INIT;
     private AppThread starterThread;
     private I2PClient i2pClient;
     private I2PSession i2pSession;
@@ -83,6 +65,15 @@ public class I2PSensor implements Sensor {
             "outbound.quantity",
             "outbound.backupQuantity",
     });
+
+    public I2PSensor(SensorsService sensorsService) {
+        super(sensorsService);
+    }
+
+    @Override
+    protected SensorID getSensorID() {
+        return SensorID.I2P;
+    }
 
     @Override
     public boolean send(Envelope envelope) {
@@ -257,16 +248,18 @@ public class I2PSensor implements Sensor {
 
         i2pClient = I2PClientFactory.createClient();
         try {
-            status = Status.WAITING;
+            updateStatus(SensorStatus.WAITING);
             startSignal.await(3, TimeUnit.MINUTES);
-            status = Status.STARTING;
+            updateStatus(SensorStatus.STARTING);
             initializeSession();
             doneSignal.countDown();
         } catch (InterruptedException e) {
             LOG.warning("Start interrupted, exiting");
+            updateStatus(SensorStatus.ERROR);
+            return false;
         } catch (Exception e) {
-            status = Status.ERROR;
             LOG.severe("Unable to start I2PSensor: "+e.getLocalizedMessage());
+            updateStatus(SensorStatus.ERROR);
             return false;
         }
         LOG.info("Started.");
@@ -292,14 +285,14 @@ public class I2PSensor implements Sensor {
 
     @Override
     public boolean shutdown() {
-        status = Status.STOPPING;
+        updateStatus(SensorStatus.SHUTTING_DOWN);
         new Thread(new RouterStopper()).start();
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-        status = Status.STOPPING;
+        updateStatus(SensorStatus.GRACEFULLY_SHUTTING_DOWN);
         // will shutdown in 11 minutes or less
         new Thread(new RouterGracefulStopper()).start();
         return true;
@@ -311,7 +304,6 @@ public class I2PSensor implements Sensor {
             router.setKillVMOnEnd(false);
             router.runRouter();
             routerContext = router.getContext();
-            status = Status.RUNNING;
         }
     }
 
@@ -319,7 +311,7 @@ public class I2PSensor implements Sensor {
         public void run() {
             if(router != null) {
                 router.shutdown(Router.EXIT_HARD);
-                status = Status.STOPPED;
+                updateStatus(SensorStatus.SHUTDOWN);
             }
         }
     }
@@ -328,7 +320,7 @@ public class I2PSensor implements Sensor {
         public void run() {
             if(router != null) {
                 router.shutdownGracefully(Router.EXIT_GRACEFUL);
-                status = Status.GRACEFUL_SHUTDOWN;
+                updateStatus(SensorStatus.GRACEFULLY_SHUTDOWN);
             }
         }
     }
@@ -349,7 +341,7 @@ public class I2PSensor implements Sensor {
     public static void main(String[] args) {
         Properties p = new Properties();
         p.setProperty("1m5.dir.base","/Users/Brian/Projects/1m5/core/.1m5");
-        I2PSensor sensor = new I2PSensor();
+        I2PSensor sensor = new I2PSensor(null);
         sensor.start(p);
         sensor.gracefulShutdown();
     }
