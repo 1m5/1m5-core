@@ -1,6 +1,7 @@
 package io.onemfive.core.sensors.i2p.bote;
 
 import io.onemfive.core.Config;
+import io.onemfive.core.notification.NotificationService;
 import io.onemfive.core.sensors.*;
 import io.onemfive.core.sensors.i2p.bote.crypto.PublicKeyPair;
 import io.onemfive.core.sensors.i2p.bote.email.*;
@@ -69,8 +70,6 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     private String i2pBaseDir;
     private String i2pBoteDir;
-
-//    private List<NetworkStatusListener> networkStatusListeners;
 
     public I2PBoteSensor(SensorsService sensorsService) {
         super(sensorsService);
@@ -192,92 +191,6 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             LOG.warning("GeneralSecurityException caught when sending I2P Email with messageID="+i2pEmail.getMessageID());
             return false;
         }
-
-//        try {
-
-                // Set sender
-//                EmailIdentity sender = (EmailIdentity) mSpinner.getSelectedItem();
-//                InternetAddress ia = new InternetAddress(
-//                        sender == null ? "Anonymous" :
-//                                BoteHelper.getNameAndDestination(sender.getKey()));
-//                email.setFrom(ia);
-                // We must continue to set "Sender:" even with only one mailbox
-                // in "From:", which is against RFC 2822 but required for older
-                // Bote versions to see a sender (and validate the signature).
-//                email.setSender(ia);
-
-//                for (Object obj : mTo.getObjects()) {
-//                    Person person = (Person) obj;
-//                    email.addRecipient(Message.RecipientType.TO, new InternetAddress(
-//                            person.getAddress(), person.getName()));
-//                }
-//                if (mMoreVisible) {
-//                    for (Object obj : mCc.getObjects()) {
-//                        Person person = (Person) obj;
-//                        email.addRecipient(Message.RecipientType.CC, new InternetAddress(
-//                                person.getAddress(), person.getName()));
-//                    }
-//                    for (Object obj : mBcc.getObjects()) {
-//                        Person person = (Person) obj;
-//                        email.addRecipient(Message.RecipientType.BCC, new InternetAddress(
-//                                person.getAddress(), person.getName()));
-//                    }
-//                }
-
-                // Check that we have someone to send to
-//                Address[] rcpts = email.getAllRecipients();
-//                if (rcpts == null || rcpts.length == 0) {
-                    // No recipients
-//                    mTo.setError(getActivity().getString(R.string.add_one_recipient));
-//                    mTo.requestFocus();
-//                    return false;
-//                } else {
-//                    mTo.setError(null);
-//                }
-
-//                email.setSubject(mSubject.getText().toString(), "UTF-8");
-
-                // Extract the attachments
-//                List<Attachment> attachments = new ArrayList<>();
-//                for (int i = 0; i < mAttachments.getChildCount(); i++) {
-//                    View v = mAttachments.getChildAt(i);
-                    // Warning views don't have tags set
-//                    if (v.getTag() != null)
-//                        attachments.add((Attachment) v.getTag());
-//                }
-
-                // Set the text and add attachments
-//                email.setContent(mContent.getText().toString(), attachments);
-
-                // Cache the fact that we sent this email
-//                BoteHelper.setEmailSent(email, true);
-
-                // Send the email
-//                i2PBote.sendEmail(email);
-
-                // Clean up attachments
-//            for (Attachment attachment : attachments) {
-//                if (!attachment.clean())
-//                    Log.e(Constants.ANDROID_LOG_TAG, "Can't clean up attachment: <" + attachment + ">");
-//            }
-
-//            return true;
-//        } catch (PasswordException e) {
-            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        } catch (AddressException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        } catch (MessagingException e) {
-            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        } catch (IOException e) {
-            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        } catch (GeneralSecurityException e) {
-            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
         return true;
     }
 
@@ -371,7 +284,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
     @Override
     public void networkStatusChanged() {
         String statusText;
-        switch (I2PBote.getInstance().getNetworkStatus()) {
+        switch (getNetworkStatus()) {
             case DELAY:
                 statusText = "Waiting for I2P Network...";
                 updateStatus(SensorStatus.NETWORK_WARMUP);
@@ -410,7 +323,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             // Set the new email as \Recent
             inbox.setRecent(messageId, true);
 
-            // Now display/update notification with all \Recent emails
+            // Now send notifications for all \Recent emails
             List<Email> newEmails = BoteHelper.getRecentEmails(inbox);
             io.onemfive.data.Email email;
             for (Email i2pEmail : newEmails) {
@@ -435,11 +348,14 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                 // Indicate that it was received (for testing)
                 email.setFlag(1);
 
-                Envelope e = Envelope.documentFactory();
+                Envelope e = Envelope.eventFactory(EventMessage.Type.EMAIL);
                 e.setDID(fromDID);
-                DLC.addData(io.onemfive.data.Email.class, email,e);
-
+                ((EventMessage)e.getMessage()).setMessage(email);
+                DLC.addRoute(NotificationService.class, NotificationService.OPERATION_PUBLISH,e);
                 sensorsService.sendToBus(e);
+
+                // Email sent to Notification Service therefore delete from Inbox
+                inbox.delete(i2pEmail.getMessageID());
             }
         } catch (PasswordException e) {
             LOG.warning(e.getLocalizedMessage());
