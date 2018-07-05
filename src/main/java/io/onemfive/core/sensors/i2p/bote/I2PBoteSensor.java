@@ -70,7 +70,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
     private String i2pBaseDir;
     private String i2pBoteDir;
 
-    private List<NetworkStatusListener> networkStatusListeners;
+//    private List<NetworkStatusListener> networkStatusListeners;
 
     public I2PBoteSensor(SensorsService sensorsService) {
         super(sensorsService);
@@ -88,6 +88,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
      */
     @Override
     public boolean send(Envelope e) {
+        LOG.info("Sending I2P Bote Email...");
         io.onemfive.data.Email email = (io.onemfive.data.Email)DLC.getData(io.onemfive.data.Email.class,e);
         DID fromDID = email.getFromDID();
         DID toDID = email.getToDID();
@@ -173,6 +174,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
         // Send the email
         try {
             I2PBote.getInstance().sendEmail(i2pEmail);
+            LOG.info("I2P Bote Email sent.");
         } catch (MessagingException e1) {
             e1.printStackTrace();
             LOG.warning("MessagingException caught sending I2P Email with messageID="+i2pEmail.getMessageID());
@@ -330,8 +332,10 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                 GeneralHelper.createOrModifyIdentity(true, ElGamal2048DSA1024, null, null, did.getAlias(), null, null, null, null, true, lsnr);
                 emailIdentity = identities.getDefault();
                 LOG.info("Was new default identity created: "+Boolean.toString(emailIdentity != null));
-                LOG.info("Saving Identities...");
-                identities.save();
+                if(emailIdentity != null) {
+                    LOG.info("Saving Identities...");
+                    identities.save();
+                }
             } catch (GeneralSecurityException e1) {
                 LOG.warning(e1.getLocalizedMessage());
             } catch (PasswordException e1) {
@@ -342,7 +346,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                 LOG.warning(e1.getLocalizedMessage());
             }
         }
-        if(emailIdentity != null && emailIdentity.getPublicName() != null && emailIdentity.getPublicName().equals(did.getAlias())) {
+        if(emailIdentity != null) {
             LOG.info("Building up DID for alias "+did.getAlias()+"...");
             PublicKey publicEncryptionKey = emailIdentity.getPublicEncryptionKey();
             PrivateKey privateEncryptionKey = emailIdentity.getPrivateEncryptionKey();
@@ -364,54 +368,32 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
         }
     }
 
-    public void registerSensorStatusListener(final SensorStatusListener sensorStatusListener) {
-
-        NetworkStatusListener nsl = new NetworkStatusListener() {
-            @Override
-            public void networkStatusChanged() {
-                switch (I2PBote.getInstance().getNetworkStatus()) {
-                    case DELAY:
-                        sensorStatusListener.sensorStatusChanged(SensorID.I2PBOTE, SensorStatus.NETWORK_WARMUP);
-                        break;
-                    case CONNECTING:
-                        sensorStatusListener.sensorStatusChanged(SensorID.I2PBOTE, SensorStatus.NETWORK_CONNECTING);
-                        break;
-                    case CONNECTED:
-                        sensorStatusListener.sensorStatusChanged(SensorID.I2PBOTE, SensorStatus.NETWORK_CONNECTED);
-                        break;
-                    case ERROR:
-                        sensorStatusListener.sensorStatusChanged(SensorID.I2PBOTE, SensorStatus.NETWORK_ERROR);
-                        break;
-                    case NOT_STARTED:
-                    default:
-                        sensorStatusListener.sensorStatusChanged(SensorID.I2PBOTE, SensorStatus.NETWORK_STOPPED);
-                }
-            }
-        };
-        I2PBote.getInstance().addNetworkStatusListener(nsl);
-
-    }
-
     @Override
     public void networkStatusChanged() {
         String statusText;
         switch (I2PBote.getInstance().getNetworkStatus()) {
             case DELAY:
                 statusText = "Waiting for I2P Network...";
+                updateStatus(SensorStatus.NETWORK_WARMUP);
                 break;
             case CONNECTING:
                 statusText = "Connecting to I2P Network...";
+                updateStatus(SensorStatus.NETWORK_CONNECTING);
                 break;
             case CONNECTED:
                 statusText = "Connected to I2P Network.";
                 restartAttempts = 0; // Reset restart attempts
+                updateStatus(SensorStatus.NETWORK_CONNECTED);
                 break;
             case ERROR:
                 statusText = "Error connecting to I2P Network.";
+                updateStatus(SensorStatus.NETWORK_ERROR);
                 break;
             case NOT_STARTED:
-            default:
+            default: {
                 statusText = "Not connected to I2P Network.";
+                updateStatus(SensorStatus.NETWORK_STOPPED);
+            }
         }
         LOG.info(statusText);
     }
@@ -430,78 +412,42 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
             // Now display/update notification with all \Recent emails
             List<Email> newEmails = BoteHelper.getRecentEmails(inbox);
-            int numNew = newEmails.size();
-            switch (numNew) {
-                case 0: {
-//                    nm.cancel(NOTIF_ID_NEW_EMAIL);
-                    return;
-                }
-                case 1: {
-                    Email i2pEmail = newEmails.get(0);
-                    io.onemfive.data.Email email = new io.onemfive.data.Email();
+            io.onemfive.data.Email email;
+            for (Email i2pEmail : newEmails) {
+                email = new io.onemfive.data.Email();
 
-                    DID fromDID = new DID();
-                    fromDID.addEncodedKey(i2pEmail.getOneFromAddress());
-                    email.setFromDID(fromDID);
-                    LOG.info("From Address: "+fromDID.getEncodedKey());
+                DID fromDID = new DID();
+                fromDID.addEncodedKey(i2pEmail.getOneFromAddress());
+                email.setFromDID(fromDID);
+                LOG.info("From Address: "+fromDID.getEncodedKey());
 
-                    DID toDID = new DID();
-                    toDID.addEncodedKey(i2pEmail.getOneRecipient());
-                    email.setToDID(toDID);
-                    LOG.info("To Address: "+toDID.getEncodedKey());
+                DID toDID = new DID();
+                toDID.addEncodedKey(i2pEmail.getOneRecipient());
+                email.setToDID(toDID);
+                LOG.info("To Address: "+toDID.getEncodedKey());
 
-                    email.setSubject(i2pEmail.getSubject());
-                    LOG.info("Email subject: "+email.getSubject());
+                email.setSubject(i2pEmail.getSubject());
+                LOG.info("Email subject: "+email.getSubject());
 
-                    email.setMessage(i2pEmail.getText());
-                    LOG.info("Email text: "+email.getMessage());
+                email.setMessage(i2pEmail.getText());
+                LOG.info("Email text: "+email.getMessage());
 
-                    // Indicate that it was received (for testing)
-                    email.setFlag(1);
+                // Indicate that it was received (for testing)
+                email.setFlag(1);
 
-                    Envelope e = Envelope.documentFactory();
-                    e.setDID(fromDID);
-                    DLC.addData(io.onemfive.data.Email.class, email,e);
+                Envelope e = Envelope.documentFactory();
+                e.setDID(fromDID);
+                DLC.addData(io.onemfive.data.Email.class, email,e);
 
-                    // TODO: Need to figure out a Notification service of sorts to get the email back to correct client
-                    sensorsService.sendToBus(e);
-                    break;
-                }
-                default: {
-//                    b.setContentTitle(getResources().getQuantityString(
-//                            R.plurals.n_new_emails, numNew, numNew));
-
-//                    HashSet<Address> recipients = new HashSet<>();
-//                    String bigText = "";
-                    for (Email ne : newEmails) {
-//                        recipients.add(BoteHelper.getOneLocalRecipient(ne));
-//                        bigText += BoteHelper.getNameAndShortDestination(ne.getOneFromAddress());
-//                        bigText += ": " + ne.getSubject() + "\n";
-
-//                        Envelope envelope = (Envelope)ne.getContent();
-                        LOG.info("Email text: "+ne.getText());
-//                        sensorsService.sendToBus(envelope);
-                    }
-//                    b.setContentText(BoteHelper.joinAddressNames(recipients));
-//                    b.setStyle(new NotificationCompat.BigTextStyle().bigText(bigText));
-//
-//                    Intent eli = new Intent(this, EmailListActivity.class);
-//                    eli.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                    PendingIntent peli = PendingIntent.getActivity(this, 0, eli, PendingIntent.FLAG_UPDATE_CURRENT);
-//                    b.setContentIntent(peli);
-                }
+                sensorsService.sendToBus(e);
             }
         } catch (PasswordException e) {
             LOG.warning(e.getLocalizedMessage());
         } catch (MessagingException e) {
             LOG.warning(e.getLocalizedMessage());
-//        } catch (IOException e) {
-//            LOG.warning(e.getLocalizedMessage());
         } catch (GeneralSecurityException e) {
             LOG.warning(e.getLocalizedMessage());
         }
-
-//        nm.notify(NOTIF_ID_NEW_EMAIL, b.build());
     }
 
     @Override
@@ -714,12 +660,22 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
     public void mergeRouterConfig(Properties overrides) {
         Properties props = new OrderedProperties();
         File f = new File(i2pBaseDir,"router.config");
+        boolean i2pBaseRouterConfigIsNew = false;
+        if(!f.exists()) {
+            if(!f.mkdir()) {
+                LOG.warning("While merging router.config files, unable to create router.config in i2pBaseDirectory: "+i2pBaseDir);
+            } else {
+                i2pBaseRouterConfigIsNew = true;
+            }
+        }
         InputStream i2pBaseRouterConfig = null;
         try {
             props.putAll(Config.loadFromClasspath("router.config"));
 
-            i2pBaseRouterConfig = new FileInputStream(f);
-            DataHelper.loadProps(props, i2pBaseRouterConfig);
+            if(!i2pBaseRouterConfigIsNew) {
+                i2pBaseRouterConfig = new FileInputStream(f);
+                DataHelper.loadProps(props, i2pBaseRouterConfig);
+            }
 
             // override with user settings
             if (overrides != null)
