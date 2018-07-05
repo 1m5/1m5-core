@@ -51,18 +51,22 @@ public final class ClientAppManager implements BusStatusListener {
         switch (busStatus) {
             case Starting: {
                 status = Status.INITIALIZING;
+                LOG.info("ClientAppManager Initializing...");
                 break;
             }
             case Running: {
                 status = Status.READY;
+                LOG.info("ClientAppManager Running");
                 break;
             }
             case Stopping: {
                 status = Status.STOPPING;
+                LOG.info("ClientAppManager Stopping...");
                 break;
             }
             case Stopped: {
                 status = Status.STOPPED;
+                LOG.info("ClientAppManager Stopped");
                 break;
             }
         }
@@ -152,11 +156,15 @@ public final class ClientAppManager implements BusStatusListener {
      */
     public void notify(Envelope e) {
         if(e != null) {
+            Client client;
             Long clientId = e.getClient();
-            LOG.finer("Client.id="+clientId);
-            Client client = getRegisteredClient(clientId);
+            if(clientId == null) {
+                // Likely coming from notifications therefore use default client as there should normally only be one Client
+                client = defaultClient;
+            } else {
+                client = getRegisteredClient(clientId);
+            }
             if (client != null) {
-                LOG.finer("Found defaultClient; notifying...");
                 client.notify(e);
             } else {
                 LOG.warning("Client not found. Number of registered clients: "+registered.size());
@@ -167,7 +175,7 @@ public final class ClientAppManager implements BusStatusListener {
     /**
      *  Unregister with the manager.
      *  If last defaultClient registered and shutdownOnLastUnregister is true,
-     *  SC service will automatically stop.
+     *  1M5 service will automatically stop.
      *
      *  @param client non-null
      */

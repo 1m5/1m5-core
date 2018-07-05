@@ -195,6 +195,7 @@ public class SensorsService extends BaseService {
      */
     void updateSensorStatus(final SensorID sensorID, SensorStatus sensorStatus) {
         ServiceStatus currentServiceStatus = getServiceStatus();
+        LOG.info("Status updated to: "+sensorStatus.name());
         switch (sensorStatus) {
             case INITIALIZING: {
                 if(currentServiceStatus == ServiceStatus.RUNNING)
@@ -225,6 +226,7 @@ public class SensorsService extends BaseService {
             }
             case NETWORK_CONNECTED: {
                 if(allSensorsWithStatus(SensorStatus.NETWORK_CONNECTED)) {
+                    LOG.info("All Sensors Connected to their networks, updating SensorService status to RUNNING.");
                     updateStatus(ServiceStatus.RUNNING);
                 }
                 break;

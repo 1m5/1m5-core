@@ -96,7 +96,7 @@ public class InfoVault implements LifeCycle {
     public boolean shutdown() {
         LOG.info("Shutting down...");
         boolean shutdown = db.shutdown();
-        System.out.println("Shutdown.");
+        LOG.info("Shutdown.");
         return shutdown;
     }
 
