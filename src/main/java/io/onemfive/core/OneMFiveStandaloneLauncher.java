@@ -36,8 +36,11 @@ public class OneMFiveStandaloneLauncher {
     private DID fromDID;
     private Email emailToSend;
     private Email emailReceived;
+    private String messageString = "Today marks the 3rd attempt at a new deal for peace in the Syrian conflict.";
 
     private boolean requestedKey = false;
+    private boolean receivedKey = false;
+    private boolean emailSubscribed = false;
     private boolean emailSent = false;
 
     public static void main(String args[]) {
@@ -52,16 +55,18 @@ public class OneMFiveStandaloneLauncher {
     }
 
     private void launch(String args[]) {
+        String baseDir = args[0];
         Properties config = new Properties();
+        config.setProperty("1m5.dir.base",baseDir);
         OneMFiveAppContext context = OneMFiveAppContext.getInstance(config);
         ClientAppManager manager = context.getClientAppManager();
         final Client c = manager.getClient(true);
 
         fromDID = new DID();
-        fromDID.addAlias("Alice");
+        fromDID.setAlias("Alice");
 
         toDID = new DID();
-        toDID.addAlias("Alice");
+        toDID.setAlias("Alice");
 
         ServiceCallback getKeyCB = new ServiceCallback() {
             @Override
@@ -71,20 +76,19 @@ public class OneMFiveStandaloneLauncher {
                     fromDID.addEncodedKey(did.getEncodedKey());
                     toDID.addEncodedKey(did.getEncodedKey());
                     LOG.info("Received encoded key: "+did.getEncodedKey());
+                    receivedKey = true;
                 } else {
                     LOG.warning("Did not receive encoded key.");
                 }
             }
         };
 
-        ServiceCallback getEmailCB = new ServiceCallback() {
+        Subscription subscription = new Subscription() {
             @Override
-            public void reply(Envelope e) {
-                Email em = (Email)DLC.getData(Email.class,e);
-                if(em != null) {
-                    emailReceived = em;
-                    LOG.info("Received email with subject: "+em.getSubject()+" and flag: "+em.getFlag());
-                }
+            public void notifyOfEvent(Envelope e) {
+                EventMessage m = (EventMessage)e.getMessage();
+                emailReceived = (Email)m.getMessage();
+                LOG.info("Received Email: id="+m.getId()+" type="+m.getType().name()+" name="+m.getName());
             }
         };
 
@@ -117,40 +121,40 @@ public class OneMFiveStandaloneLauncher {
 
         while(status != ClientAppManager.Status.STOPPED) {
             if(status == ClientAppManager.Status.READY) {
-                if(fromDID.getEncodedKey() == null) {
-                    if(!requestedKey) {
-                        // Step 1: Send Key Request
-                        Envelope e = Envelope.documentFactory();
-                        e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
-                        e.setDID(fromDID);
-                        DLC.addRoute(SensorsService.class, SensorsService.OPERATION_GET_KEYS,e);
-                        c.request(e,getKeyCB);
-                        requestedKey = true;
-                    }
-                } else if(toDID.getEncodedKey() == null) {
+                if(!requestedKey) {
+                    // Step 1: Send Key Request
+                    Envelope e = Envelope.documentFactory();
+                    e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
+                    e.setDID(fromDID);
+                    DLC.addRoute(SensorsService.class, SensorsService.OPERATION_GET_KEYS,e);
+                    c.request(e,getKeyCB);
+                    requestedKey = true;
+                } else if(receivedKey && toDID.getEncodedKey() == null) {
                     toDID.addEncodedKey(fromDID.getEncodedKey());
+                } else if(!emailSubscribed) {
+                    c.subscribeToEmail(subscription);
+                    emailSubscribed = true;
                 } else if(!emailSent) {
                     // Step 2: Send Email
                     Envelope e = Envelope.documentFactory();
                     e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
                     e.setDID(fromDID);
-                    Email email = new Email(toDID, fromDID, "A New Syrian Peace Deal","Today marks the 3rd attempt at a new deal for peace in the Syrian conflict.");
+                    Email email = new Email(toDID, fromDID, "A New Syrian Peace Deal",messageString);
                     emailToSend = email;
                     DLC.addData(Email.class, email, e);
                     DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND,e);
-                    c.request(e,getEmailCB);
+                    c.request(e);
                     emailSent = true;
-                } else {
+                } else if(emailReceived != null) {
                     // Step 3: Awaiting Email
-                    if(emailReceived != null) {
-                        LOG.info("Email received.");
-                    } else {
-                        LOG.info("Awaiting email...");
-                    }
+                    LOG.info("Email received: message="+emailReceived.getMessage());
+                    assert(messageString.equals(emailReceived.getMessage()));
                 }
             }
             try {
-                launcher.wait(2 * 1000);
+                synchronized (launcher) {
+                    launcher.wait(2 * 1000);
+                }
             } catch (InterruptedException e) {
 
             }
