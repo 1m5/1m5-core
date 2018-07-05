@@ -1,8 +1,10 @@
 package io.onemfive.core.client;
 
 import io.onemfive.core.bus.BusStatusListener;
+import io.onemfive.core.notification.SubscriptionRequest;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.ServiceCallback;
+import io.onemfive.data.Subscription;
 
 /**
  * Define the standard means of interacting with the 1M5 application when embedded.
@@ -48,5 +50,11 @@ public interface Client {
      * @param listener
      */
     void registerClientStatusListener(ClientStatusListener listener);
+
+    /**
+     * Subscribe to Email events (receiving Email).
+     * @param subscription
+     */
+    void subscribeToEmail(Subscription subscription);
 
 }

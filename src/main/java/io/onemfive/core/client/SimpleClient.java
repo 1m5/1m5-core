@@ -1,8 +1,13 @@
 package io.onemfive.core.client;
 
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.notification.NotificationService;
+import io.onemfive.core.notification.SubscriptionRequest;
+import io.onemfive.data.EventMessage;
 import io.onemfive.data.ServiceCallback;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.Subscription;
+import io.onemfive.data.util.DLC;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +36,7 @@ final class SimpleClient implements Client {
     }
 
     void updateClientStatus(ClientAppManager.Status status) {
+        LOG.info("Updating client status to: "+status.name()+"; number of listeners to update too: "+clientStatusListeners.size());
         for(ClientStatusListener l : clientStatusListeners) {
             l.clientStatusChanged(status);
         }
@@ -44,6 +50,7 @@ final class SimpleClient implements Client {
 
     @Override
     public void request(Envelope e) {
+        e.setClient(id);
         producer.send(e);
     }
 
@@ -67,5 +74,15 @@ final class SimpleClient implements Client {
     @Override
     public void registerClientStatusListener(ClientStatusListener listener) {
         clientStatusListeners.add(listener);
+    }
+
+    @Override
+    public void subscribeToEmail(Subscription subscription) {
+        SubscriptionRequest request = new SubscriptionRequest(EventMessage.Type.EMAIL, subscription);
+        Envelope e = Envelope.documentFactory();
+        e.setClient(id);
+        DLC.addData(SubscriptionRequest.class, request,e);
+        DLC.addRoute(NotificationService.class, NotificationService.OPERATION_SUBSCRIBE,e);
+        request(e);
     }
 }
