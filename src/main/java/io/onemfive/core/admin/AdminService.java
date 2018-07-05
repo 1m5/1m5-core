@@ -70,4 +70,19 @@ public class AdminService extends BaseService {
         LOG.info("Started.");
         return true;
     }
+
+    @Override
+    public boolean shutdown() {
+        LOG.info("Shutting down...");
+        updateStatus(ServiceStatus.SHUTTING_DOWN);
+
+        updateStatus(ServiceStatus.SHUTDOWN);
+        LOG.info("Shutdown");
+        return true;
+    }
+
+    @Override
+    public boolean gracefulShutdown() {
+        return shutdown();
+    }
 }

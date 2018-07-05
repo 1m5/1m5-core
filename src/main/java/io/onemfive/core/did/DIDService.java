@@ -143,4 +143,18 @@ public class DIDService extends BaseService {
         return true;
     }
 
+    @Override
+    public boolean shutdown() {
+        LOG.info("Shutting down....");
+        updateStatus(ServiceStatus.SHUTTING_DOWN);
+
+        updateStatus(ServiceStatus.SHUTDOWN);
+        LOG.info("Shutdown.");
+        return true;
+    }
+
+    @Override
+    public boolean gracefulShutdown() {
+        return shutdown();
+    }
 }
