@@ -120,10 +120,11 @@ final class MessageChannel implements MessageProducer, LifeCycle {
         long runningTime = begin;
         long waitMs = 1000;
         long maxWaitMs = 3 * 1000; // only 3 seconds
-        while(queue.size() > 0 && runningTime < maxWaitMs) {
+        // Wait first to attempt to finish responses
+        do {
             waitABit(waitMs);
             runningTime += waitMs;
-        }
+        } while(queue.size() > 0 && runningTime < maxWaitMs);
         return true;
     }
 
@@ -132,12 +133,13 @@ final class MessageChannel implements MessageProducer, LifeCycle {
         accepting = false;
         long begin = new Date().getTime();
         long runningTime = begin;
-        long waitMs = 1000;
+        long waitMs = 3 * 1000; // Wait longer to allow responses to complete
         long maxWaitMs = 30 * 1000; // up to 30 seconds
-        while(queue.size() > 0 && runningTime < maxWaitMs) {
+        // Wait first to attempt to finish responses
+        do {
             waitABit(waitMs);
             runningTime += waitMs;
-        }
+        } while(queue.size() > 0 && runningTime < maxWaitMs);
         return true;
     }
 
