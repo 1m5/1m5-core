@@ -158,6 +158,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
                 break;
             }
         }
+        LOG.info("Updating Bus Status Listeners; size="+busStatusListeners.size());
         for(BusStatusListener l : busStatusListeners) {
             l.busStatusChanged(status);
         }
@@ -165,29 +166,34 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
     @Override
     public void serviceStatusChanged(String serviceFullName, ServiceStatus serviceStatus) {
+        LOG.info("Service ("+serviceFullName+") reporting new status("+serviceStatus.name()+") to Bus.");
         switch(serviceStatus) {
             case UNSTABLE: {
                 // Service is Unstable - restart
-                BaseService service = runningServices.get(serviceFullName);
+                BaseService service = registeredServices.get(serviceFullName);
                 if(service != null) {
+                    LOG.warning("Service ("+serviceFullName+") reporting UNSTABLE; restarting...");
                     service.restart();
                 }
                 break;
             }
             case RUNNING: {
                 if(allServicesWithStatus(ServiceStatus.RUNNING)) {
+                    LOG.info("All Services are RUNNING therefore Bus updating status to RUNNING.");
                     updateStatus(Status.Running);
                 }
                 break;
             }
             case SHUTDOWN: {
                 if(allServicesWithStatus(ServiceStatus.SHUTDOWN)) {
+                    LOG.info("All Services are SHUTDOWN therefore Bus updating status to STOPPED.");
                     updateStatus(Status.Stopped);
                 }
                 break;
             }
             case GRACEFULLY_SHUTDOWN: {
                 if(allServicesWithStatus(ServiceStatus.GRACEFULLY_SHUTDOWN)) {
+                    LOG.info("All Services are GRACEFULLY_SHUTDOWN therefore Bus updating status to STOPPED.");
                     updateStatus(Status.Stopped);
                 }
                 break;
@@ -196,7 +202,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     }
 
     private Boolean allServicesWithStatus(ServiceStatus serviceStatus) {
-        Collection<BaseService> services = runningServices.values();
+        Collection<BaseService> services = registeredServices.values();
         for(BaseService s : services) {
             if(s.getServiceStatus() != serviceStatus){
                 return false;
@@ -235,13 +241,17 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             LOG.warning("Failed to load bus.config in ServiceBus.");
         }
 
+        // TODO: should we start the pool before the channel?
         channel = new MessageChannel(maxMessagesCached);
         channel.start(properties);
 
         registeredServices = new HashMap<>(15);
         runningServices = new HashMap<>(15);
 
-        // Register Core Services
+        // Register Core Services - Place slowest to RUNNING services first
+        SensorsService sensorsService = new SensorsService(this, this);
+        registeredServices.put(SensorsService.class.getName(), sensorsService);
+
         OrchestrationService orchestrationService = new OrchestrationService(this, this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
 
@@ -256,9 +266,6 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
         DIDService didService = new DIDService(this, this);
         registeredServices.put(DIDService.class.getName(), didService);
-
-        SensorsService sensorsService = new SensorsService(this, this);
-        registeredServices.put(SensorsService.class.getName(), sensorsService);
 
         // Additional Services should be registered by client via Admin Service
 
@@ -339,7 +346,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         updateStatus(Status.Stopping);
         spin.set(false);
         pool.shutdown();
-        channel.shutdown();
+        channel.shutdown(); // TODO: Should we shutdown channel before pool?
         for(final String serviceName : runningServices.keySet()) {
             new AppThread(new Runnable() {
                 @Override
@@ -363,7 +370,22 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
      */
     @Override
     public boolean gracefulShutdown() {
-        return shutdown();
+        updateStatus(Status.Stopping);
+        spin.set(false);
+        pool.shutdown();
+        channel.shutdown(); // TODO: Should we shutdown channel before pool?
+        for(final String serviceName : runningServices.keySet()) {
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    BaseService service = runningServices.get(serviceName);
+                    if(service.gracefulShutdown()) {
+                        runningServices.remove(serviceName);
+                    }
+                }
+            }, serviceName+"-GracefulShutdownThread").start();
+        }
+        return true;
     }
 
     public Status getStatus() {
