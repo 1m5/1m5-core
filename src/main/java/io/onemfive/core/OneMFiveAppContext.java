@@ -175,7 +175,7 @@ public class OneMFiveAppContext {
     *  All dirs except the base are created if they don't exist, but the creation will fail silently.
     */
 
-        String baseStr = getProperty("1m5.dir.base", System.getProperty("user.dir"));
+        String baseStr = getProperty("1m5.dir.base", System.getProperty("user.dir")+"/.1m5");
         LOG.info("Base Directory: "+baseStr);
         baseDir = new File(baseStr);
         if(!baseDir.exists()) {
