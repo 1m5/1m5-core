@@ -36,7 +36,7 @@ public class OneMFiveStandaloneLauncher {
     private DID fromDID;
     private Email emailToSend;
     private Email emailReceived;
-    private String messageString = "Today marks the 3rd attempt at a new deal for peace in the Syrian conflict.";
+    private String messageString;
 
     private boolean requestedKey = false;
     private boolean receivedKey = false;
@@ -118,7 +118,7 @@ public class OneMFiveStandaloneLauncher {
             }
         };
         c.registerClientStatusListener(clientStatusListener);
-
+        int numberEmailsSent = 0;
         while(status != ClientAppManager.Status.STOPPED) {
             if(status == ClientAppManager.Status.READY) {
                 if(!requestedKey) {
@@ -135,20 +135,23 @@ public class OneMFiveStandaloneLauncher {
                     c.subscribeToEmail(subscription);
                     emailSubscribed = true;
                 } else if(!emailSent) {
-                    // Step 2: Send Email
+                    // Step 4: Send Email
                     Envelope e = Envelope.documentFactory();
                     e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
                     e.setDID(fromDID);
-                    Email email = new Email(toDID, fromDID, "A New Syrian Peace Deal",messageString);
+                    messageString = ++numberEmailsSent +" attempts at a new deal for peace in the Syrian conflict.";
+                    Email email = new Email(toDID, fromDID, numberEmailsSent+" Tries at Syrian Peace Deal ",messageString);
                     emailToSend = email;
                     DLC.addData(Email.class, email, e);
                     DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND,e);
                     c.request(e);
                     emailSent = true;
                 } else if(emailReceived != null) {
-                    // Step 3: Awaiting Email
+                    // Step 5: Awaiting Email
                     LOG.info("Email received: message="+emailReceived.getMessage());
                     assert(messageString.equals(emailReceived.getMessage()));
+                    emailReceived = null;
+                    emailSent = false;
                 }
             }
             try {
