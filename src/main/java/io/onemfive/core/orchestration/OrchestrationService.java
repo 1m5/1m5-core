@@ -38,19 +38,19 @@ public class OrchestrationService extends BaseService {
      */
     @Override
     public void handleDocument(Envelope e) {
-        LOG.info("Received document by Orchestration Service; routing...");
+        LOG.fine("Received document by Orchestration Service; routing...");
         route(e);
     }
 
     @Override
     public void handleEvent(Envelope e) {
-        LOG.info("Received event by Orchestration Service; routing...");
+        LOG.fine("Received event by Orchestration Service; routing...");
         route(e);
     }
 
     @Override
     public void handleHeaders(Envelope e) {
-        LOG.info("Received headers by Orchestration Service; routing...");
+        LOG.fine("Received headers by Orchestration Service; routing...");
         route(e);
     }
 
@@ -99,7 +99,7 @@ public class OrchestrationService extends BaseService {
                 remainingRoutes++;
             }
         } else {
-            LOG.info("Not running.");
+            LOG.warning("Not running.");
             deadLetter(e);
         }
     }
@@ -117,6 +117,7 @@ public class OrchestrationService extends BaseService {
 
     @Override
     public boolean shutdown() {
+        LOG.info("Shutting down...");
         updateStatus(ServiceStatus.SHUTTING_DOWN);
         // Give it 3 seconds
         int tries = 1;
@@ -125,11 +126,13 @@ public class OrchestrationService extends BaseService {
             tries--;
         }
         updateStatus(ServiceStatus.SHUTDOWN);
+        LOG.info("Shutdown");
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
+        LOG.info("Gracefully shutting down...");
         updateStatus(ServiceStatus.GRACEFULLY_SHUTTING_DOWN);
         // Give it 30 seconds
         int tries = 10;
@@ -138,6 +141,7 @@ public class OrchestrationService extends BaseService {
             tries--;
         }
         updateStatus(ServiceStatus.GRACEFULLY_SHUTDOWN);
+        LOG.info("Gracefully Shutdown");
         return true;
     }
 

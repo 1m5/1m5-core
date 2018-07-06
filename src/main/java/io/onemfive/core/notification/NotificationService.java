@@ -68,6 +68,7 @@ public class NotificationService extends BaseService {
     }
 
     private void subscribe(Envelope e) {
+        LOG.info("Received subscribe request...");
         SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
         Map<String,List<Subscription>> st = subscriptions.get(r.getType());
         List<Subscription> s;
@@ -77,14 +78,17 @@ public class NotificationService extends BaseService {
             s = st.get(r.getFilter());
         }
         s.add(r.getSubscription());
+        LOG.info("Subscription added.");
     }
 
     private void publish(final Envelope e) {
+        LOG.info("Received publish request...");
         EventMessage m = (EventMessage)e.getMessage();
         Map<String,List<Subscription>> st = subscriptions.get(m.getType());
         List<Subscription> s = null;
         switch (m.getType()) {
             case EMAIL: {
+                LOG.info("Publish Type is Email");
                 s = st.get(null);
                 break;
             }
@@ -142,6 +146,7 @@ public class NotificationService extends BaseService {
 
         if(s != null) {
             for(final Subscription sub : s) {
+                LOG.info("Notifying subscription of event...");
                 // Directly notify in separate thread
                 // TODO: Move to WorkerThreadPool to control CPU usage
                 new AppThread(new Runnable() {
