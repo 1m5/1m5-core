@@ -493,11 +493,11 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
         i2pBoteDir = i2pAppDir + "/i2pbote";
         File i2pBoteFolder = new File(i2pBoteDir);
         if(!i2pBoteFolder.exists())
-            if(!i2pBoteFolder.mkdir())
-                LOG.warning("Unable to create I2P Bote directory: "+i2pBoteDir);
-        if(i2pBoteFolder.exists()) {
-            properties.setProperty("i2p.dir.bote",i2pBoteDir);
-        }
+            if(!i2pBoteFolder.mkdir()) {
+                LOG.warning("Unable to create I2P Bote directory: " + i2pBoteDir);
+                return false;
+            }
+        properties.setProperty("i2p.dir.bote",i2pBoteDir);
         // I2P Bote Logger Config File
         File i2pBoteLoggerConfigFile = new File(i2pBoteDir, "logger.config");
         Properties props = new Properties();
@@ -507,6 +507,42 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             DataHelper.storeProps(props, i2pBoteLoggerConfigFile);
         } catch (IOException e) {
             LOG.warning("Unable to save logger.config to directory: "+i2pBoteDir);
+        }
+
+        // I2P Bote Configuration File
+        File i2pBoteConfigFile = new File(i2pBoteDir,"i2pbote.config");
+        boolean i2pBoteConfigFileIsNew = false;
+        if(!i2pBoteConfigFile.exists()) {
+            if(!i2pBoteConfigFile.mkdir()) {
+                LOG.warning("Unable to create i2pbote.config in directory: "+i2pBoteDir);
+                return false;
+            }
+            i2pBoteConfigFileIsNew = true;
+        }
+        props = new Properties();
+        if(!i2pBoteConfigFileIsNew) {
+            // Not a new config file; Load properties from previous saves
+            try {
+                DataHelper.loadProps(props, i2pBoteConfigFile);
+            } catch (IOException e) {
+                LOG.warning("Unable to load i2pbote.config in directory: " + i2pBoteDir);
+                return false;
+            }
+        }
+        // Now support overriding previous saves if any with new configurations from 1M5 sensors.config.
+        for(String n : p.stringPropertyNames()){
+            if(n.startsWith("1m5.sensors.i2p.bote.")) {
+                props.put(n.substring("1m5.sensors.i2p.bote.".length()),p.getProperty(n));
+            }
+        }
+        // Save the config file if properties are present
+        if(props.size() > 0) {
+            try {
+                DataHelper.storeProps(props, i2pBoteConfigFile);
+            } catch (IOException e) {
+                LOG.warning("Unable to save i2pbote.config in directory: "+i2pBoteDir);
+                return false;
+            }
         }
 
         // Start I2P Bote
