@@ -131,7 +131,7 @@ public class CoreTest {
                 lock.countDown();
             }
         };
-        Envelope e = Envelope.messageFactory(Envelope.MessageType.NONE);
+        Envelope e = Envelope.headersOnlyFactory();
         e.setDID(did);
         DLC.addRoute(DIDService.class, DIDService.OPERATION_CREATE, e);
         client.request(e, cb);
@@ -150,7 +150,7 @@ public class CoreTest {
                 lock.countDown();
             }
         };
-        Envelope e = Envelope.messageFactory(Envelope.MessageType.NONE);
+        Envelope e = Envelope.headersOnlyFactory();
         e.setDID(did);
         DLC.addRoute(DIDService.class, DIDService.OPERATION_AUTHENTICATE,e);
         client.request(e, cb);
