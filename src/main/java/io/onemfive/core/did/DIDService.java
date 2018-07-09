@@ -26,6 +26,7 @@ public class DIDService extends BaseService {
     public static final String OPERATION_AUTHENTICATE = "Authenticate";
     public static final String OPERATION_CREATE = "Create";
     public static final String OPERATION_LOAD = "Load";
+    public static final String OPERATION_AUTHN_LOAD = "AuthenticateLoad";
 
     public DIDService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -53,6 +54,7 @@ public class DIDService extends BaseService {
             case OPERATION_AUTHENTICATE: {authenticate(e);break;}
             case OPERATION_CREATE: {create(e);break;}
             case OPERATION_LOAD: {load(e);break;}
+            case OPERATION_AUTHN_LOAD: {authnLoad(e);break;}
             default: deadLetter(e); // Operation not supported
         }
     }
@@ -80,6 +82,7 @@ public class DIDService extends BaseService {
         LOG.info("Received create DID request.");
         DID did = e.getDID();
         DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
+        didCreated.setAuthenticated(true);
         e.setDID(didCreated);
         // TODO: Create PGP master keys if not present and I2P keys if not present
 //        boolean created = false;
@@ -131,6 +134,18 @@ public class DIDService extends BaseService {
         // Very High Sensitivity selects I2P by default
         e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
         DLC.addRoute(SensorsService.class, SensorsService.OPERATION_GET_KEYS,e);
+    }
+
+    private void authnLoad(Envelope e) {
+        verify(e);
+        if(!e.getDID().getVerified()) {
+            create(e);
+        } else {
+            authenticate(e);
+        }
+        if(e.getDID().getAuthenticated()) {
+            load(e);
+        }
     }
 
     @Override
