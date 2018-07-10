@@ -360,7 +360,7 @@ Not ready for usage.
 ##### I2P Bote Sensor
 Uses embedded I2P Router adding storable DHT for delayed routing to battle timing attacks.
 Started when 1m5.sensors.registered property in sensors.config contains bote.
-Connects to I2P and has been verified to send messages to/from the same account.
+Connects to I2P and has been verified to send messages to/from the same address.
 
 ###### Build Notes
 - Required flex-gmss-1.7p1.jar in libs folder to be added to local Maven .m2 directory:
