@@ -350,7 +350,9 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
                 Envelope e = Envelope.eventFactory(EventMessage.Type.EMAIL);
                 e.setDID(fromDID);
-                ((EventMessage)e.getMessage()).setMessage(email);
+                EventMessage m = (EventMessage)e.getMessage();
+                m.setMessage(email);
+                m.setName(fromDID.getEncodedKey());
                 DLC.addRoute(NotificationService.class, NotificationService.OPERATION_PUBLISH,e);
                 sensorsService.sendToBus(e);
 
