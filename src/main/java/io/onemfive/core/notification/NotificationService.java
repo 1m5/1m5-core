@@ -36,12 +36,13 @@ public class NotificationService extends BaseService {
      *
      */
     public static final String OPERATION_SUBSCRIBE = "SUBSCRIBE";
+    public static final String OPERATION_UNSUBSCRIBE = "UNSUBSCRIBE";
     /**
      * To publish an EventMessage, ensure the Envelope contains one.
      */
     public static final String OPERATION_PUBLISH = "PUBLISH";
 
-    private Map<EventMessage.Type,Map<String,List<Subscription>>> subscriptions;
+    private Map<EventMessage.Type,Map<String,Subscription>> subscriptions;
 
     public NotificationService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -53,6 +54,7 @@ public class NotificationService extends BaseService {
         String operation = r.getOperation();
         switch(operation) {
             case OPERATION_SUBSCRIBE:{subscribe(e);break;}
+            case OPERATION_UNSUBSCRIBE:{unsubscribe(e);break;}
             default: deadLetter(e);
         }
     }
@@ -70,92 +72,44 @@ public class NotificationService extends BaseService {
     private void subscribe(Envelope e) {
         LOG.info("Received subscribe request...");
         SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
-        Map<String,List<Subscription>> st = subscriptions.get(r.getType());
-        List<Subscription> s;
+        Map<String,Subscription> s = subscriptions.get(r.getType());
         if(r.getFilter() == null) {
-            s = st.get(null);
+            // No filter, set default subscription list
+            s.put(null,r.getSubscription());
         } else {
-            s = st.get(r.getFilter());
+            s.put(r.getFilter(),r.getSubscription());
         }
-        s.add(r.getSubscription());
+        LOG.info("Subscription added.");
+    }
+
+    private void unsubscribe(Envelope e) {
+        LOG.info("Received unsubscribe request...");
+        SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
+        Map<String,Subscription> s = subscriptions.get(r.getType());
+        if(r.getFilter() == null) {
+            // No filter, set default subscription list
+            s.remove(null);
+        } else {
+            s.remove(r.getFilter());
+        }
         LOG.info("Subscription added.");
     }
 
     private void publish(final Envelope e) {
         LOG.info("Received publish request...");
         EventMessage m = (EventMessage)e.getMessage();
-        Map<String,List<Subscription>> st = subscriptions.get(m.getType());
-        List<Subscription> s = null;
-        switch (m.getType()) {
-            case EMAIL: {
-                LOG.info("Publish Type is Email");
-                s = st.get(null);
-                break;
-            }
-            case ERROR: {
-                s = st.get(null);
-                break;
-            }
-            case EXCEPTION: {
-                s = st.get(null);
-                break;
-            }
-            case STATUS_BUS: {
-                s = st.get(null);
-                break;
-            }
-            case STATUS_CLIENT: {
-                s = st.get(null);
-                break;
-            }
-            case STATUS_SENSOR: {
-                if(st.get(null).size() > 0) {
-                    // Get Subscriptions for Sensors with no filtering
-                    s = st.get(null);
+        Map<String,Subscription> s = subscriptions.get(m.getType());
+        final Subscription sub = s.get(m.getName());
+        if(sub != null) {
+            LOG.info("Notifying subscription of event...");
+            // Directly notify in separate thread
+            // TODO: Move to WorkerThreadPool to control CPU usage
+            new AppThread(new Runnable() {
+                @Override
+                public void run() {
+                    sub.notifyOfEvent(e);
                 }
-                if(m.getName() != null && !m.getName().isEmpty() && st.get(m.getName()) != null && st.get(m.getName()).size() > 0) {
-                    // Get Subscriptions for Sensors filtered by provided name if present
-                    if(s == null) {
-                        // No unfiltered Subscriptions
-                        s = st.get(m.getName());
-                    } else {
-                        // Add to unfiltered Subscriptions
-                        s.addAll(st.get(m.getName()));
-                    }
-                }
-                break;
-            }
-            case STATUS_SERVICE: {
-                if(st.get(null).size() > 0) {
-                    // Get Subscriptions for Services with no filtering
-                    s = st.get(null);
-                }
-                if(m.getName() != null && !m.getName().isEmpty() && st.get(m.getName()) != null && st.get(m.getName()).size() > 0) {
-                    // Get Subscriptions for Services filtered by provided name if present
-                    if(s == null) {
-                        // No unfiltered Subscriptions
-                        s = st.get(m.getName());
-                    } else {
-                        // Add to unfiltered Subscriptions
-                        s.addAll(st.get(m.getName()));
-                    }
-                }
-                break;
-            }
-        }
-
-        if(s != null) {
-            for(final Subscription sub : s) {
-                LOG.info("Notifying subscription of event...");
-                // Directly notify in separate thread
-                // TODO: Move to WorkerThreadPool to control CPU usage
-                new AppThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        sub.notifyOfEvent(e);
-                    }
-                }).start();
-            }
+            }).start();
         }
     }
 
@@ -167,20 +121,13 @@ public class NotificationService extends BaseService {
         subscriptions = new HashMap<>();
         // For each EventMessage.Type, set a HashMap<String,List<Subscription>>
         // and add a null filtered list for Subscriptions with no filters.
-        subscriptions.put(EventMessage.Type.EMAIL, new HashMap<String, List<Subscription>>());
-        subscriptions.get(EventMessage.Type.EMAIL).put(null,new ArrayList<Subscription>());
-        subscriptions.put(EventMessage.Type.EXCEPTION, new HashMap<String, List<Subscription>>());
-        subscriptions.get(EventMessage.Type.EXCEPTION).put(null,new ArrayList<Subscription>());
-        subscriptions.put(EventMessage.Type.ERROR, new HashMap<String, List<Subscription>>());
-        subscriptions.get(EventMessage.Type.ERROR).put(null,new ArrayList<Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_BUS, new HashMap<String, List<Subscription>>());
-        subscriptions.get(EventMessage.Type.STATUS_BUS).put(null,new ArrayList<Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_CLIENT, new HashMap<String, List<Subscription>>());
-        subscriptions.get(EventMessage.Type.STATUS_CLIENT).put(null,new ArrayList<Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_SENSOR, new HashMap<String, List<Subscription>>());
-        subscriptions.get(EventMessage.Type.STATUS_SENSOR).put(null,new ArrayList<Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_SERVICE, new HashMap<String, List<Subscription>>());
-        subscriptions.get(EventMessage.Type.STATUS_SERVICE).put(null,new ArrayList<Subscription>());
+        subscriptions.put(EventMessage.Type.EMAIL, new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.EXCEPTION, new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.ERROR, new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.STATUS_BUS, new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.STATUS_CLIENT, new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.STATUS_SENSOR, new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.STATUS_SERVICE, new HashMap<String, Subscription>());
 
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
