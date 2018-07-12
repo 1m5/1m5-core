@@ -60,7 +60,6 @@ public class OneMFiveAppContext {
     private volatile boolean randomInitialized;
     private volatile boolean shaInitialized;
 
-
     protected final Set<Runnable> shutdownTasks;
     private final File baseDir;
     private final File configDir;
@@ -83,7 +82,6 @@ public class OneMFiveAppContext {
      * started in the same JVM after the first is shut down,
      * e.g. on Android.
      */
-
     public static OneMFiveAppContext getInstance() {
         if(globalAppContext == null) {
             synchronized (lockA) {
@@ -128,52 +126,6 @@ public class OneMFiveAppContext {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    /*
-    *  Directories.
-    *
-    *  These are all set at instantiation and will not be changed by subsequent property changes.
-    *
-    *  All properties, if set, should be relative paths.
-    *
-    *  All files that you wish to remain in the environment persisted should use absolute paths
-    *  and persisted outside of the base directory in a location considered safe from corruption
-    *  or accidental deletion.
-    *
-    *  Name	    Property 	    Method		    Files
-    *  -----	-------- 	    -----		    -----
-    *  Base	    1m5.dir.base	getBaseDir()	lib/, run-time files on classpath
-    *  Temp	    1m5.dir.temp	getTempDir()	Temporary files
-    *  Config   1m5.dir.config	getConfigDir()	*.config, hosts.txt, addressbook/, ...
-    *
-    *  (the following all default to the same as Config)
-    *
-    *  PID	    1m5.dir.pid	g   etPIDDir()	    router.ping
-    *  Router	1m5.dir.router	getRouterDir()	netDb/, peerProfiles/, router.*, keyBackup/, ...
-    *  Log	    1m5.dir.log	    getLogDir()	    logs/
-    *  App	    1m5.dir.app	    getAppDir()	    same as base
-    *
-    *  Note that we can't control where the wrapper puts its files.
-    *
-    *  The app dir is where all transient data files should be maintained. Apps should always read and write files here,
-    *  using a constructor such as:
-    *
-    *       String path = mypath;
-    *       File f = new File(path);
-    *       if (!f.isAbsolute())
-    *           f = new File(context.getAppDir(), path);
-    *
-    *  and never attempt to access files using
-    *
-    *       File f = new File("foo");
-    *
-    *  An app should assume the file system is not writable.
-    *
-    *  Here in OneMFiveAppContext, all the dirs default to the base.
-    *  However these will be different in ConsciousContext, as ConsciousService.java will set
-    *  the properties in the ConsciousContext constructor.
-    *
-    *  All dirs except the base are created if they don't exist, but the creation will fail silently.
-    */
 
         String baseStr = getProperty("1m5.dir.base", System.getProperty("user.dir")+"/.1m5");
         LOG.info("Base Directory: "+baseStr);

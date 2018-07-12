@@ -12,6 +12,10 @@ import java.util.logging.Logger;
  */
 public class Config {
 
+    public static String PROP_OPERATING_SYSTEM = "OPERATING_SYSTEM";
+
+    public enum OS {Android,Linux,OSX,Windows}
+
     private static final Logger LOG = Logger.getLogger(Config.class.getName());
 
     public static Properties loadFromClasspath(String name) throws Exception {

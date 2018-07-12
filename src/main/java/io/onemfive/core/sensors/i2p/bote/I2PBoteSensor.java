@@ -466,22 +466,22 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             }
 
         File seedCertificates = new File(certDir, "reseed");
-        File[] allSeedCertificates = seedCertificates.listFiles();
-        if ( allSeedCertificates != null) {
-            for (File f : allSeedCertificates) {
-                LOG.info("Deleting old seed certificate: " + f);
-                FileUtil.rmdir(f, false);
-            }
-        }
+//        File[] allSeedCertificates = seedCertificates.listFiles();
+//        if ( allSeedCertificates != null) {
+//            for (File f : allSeedCertificates) {
+//                LOG.info("Deleting old seed certificate: " + f);
+//                FileUtil.rmdir(f, false);
+//            }
+//        }
 
         File sslCertificates = new File(certDir, "ssl");
-        File[] allSSLCertificates = sslCertificates.listFiles();
-        if ( allSSLCertificates != null) {
-            for (File f : allSSLCertificates) {
-                LOG.info("Deleting old ssl certificate: " + f);
-                FileUtil.rmdir(f, false);
-            }
-        }
+//        File[] allSSLCertificates = sslCertificates.listFiles();
+//        if ( allSSLCertificates != null) {
+//            for (File f : allSSLCertificates) {
+//                LOG.info("Deleting old ssl certificate: " + f);
+//                FileUtil.rmdir(f, false);
+//            }
+//        }
 
         if(!copyCertificatesToBaseDir(seedCertificates, sslCertificates))
             return false;
@@ -657,59 +657,66 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
      */
     private boolean copyCertificatesToBaseDir(File reseedCertificates, File sslCertificates) {
         final String path = "io/onemfive/core/sensors/i2p/bote";
-        final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-        if(jarFile.isFile()) {
-            // called by a user of the 1M5 Core jar
-            try {
-                final JarFile jar = new JarFile(jarFile);
-                JarEntry entry;
-                File f = null;
-                final Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
-                while(entries.hasMoreElements()) {
-                    entry = entries.nextElement();
-                    final String name = entry.getName();
-                    if (name.startsWith(path + "/certificates/reseed/")) { //filter according to the path
-                        if(!name.endsWith("/")) {
-                            String fileName = name.substring(name.lastIndexOf("/")+1);
-                            LOG.info("fileName to save: " + fileName);
-                            f = new File(reseedCertificates, fileName);
-                        }
-                    }
-                    if(name.startsWith(path + "/certificates/ssl/")) {
-                        if(!name.endsWith("/")) {
-                            String fileName = name.substring(name.lastIndexOf("/")+1);
-                            LOG.info("fileName to save: " + fileName);
-                            f = new File(sslCertificates, fileName);
-                        }
-                    }
-                    if(f != null) {
-                        boolean fileReadyToSave = false;
-                        if(!f.exists() && f.createNewFile()) fileReadyToSave = true;
-                        else if(f.exists() && f.delete() && f.createNewFile()) fileReadyToSave = true;
-                        if(fileReadyToSave) {
-                            FileOutputStream fos = new FileOutputStream(f);
-                            byte[] byteArray = new byte[1024];
-                            int i;
-                            InputStream is = getClass().getClassLoader().getResourceAsStream(name);
-                            //While the input stream has bytes
-                            while ((i = is.read(byteArray)) > 0) {
-                                //Write the bytes to the output stream
-                                fos.write(byteArray, 0, i);
+        // Android apps are doing this within their startup as unable to extract these files from jars
+        if(properties.getProperty(Config.PROP_OPERATING_SYSTEM) != null) {
+            if(!properties.getProperty(Config.PROP_OPERATING_SYSTEM).equals(Config.OS.Android.name())) {
+                // Other - extract as jar
+                String jarPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+                final File jarFile = new File(jarPath);
+                if (jarFile.isFile()) {
+                    // called by a user of the 1M5 Core jar
+                    try {
+                        final JarFile jar = new JarFile(jarFile);
+                        JarEntry entry;
+                        File f = null;
+                        final Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+                        while (entries.hasMoreElements()) {
+                            entry = entries.nextElement();
+                            final String name = entry.getName();
+                            if (name.startsWith(path + "/certificates/reseed/")) { //filter according to the path
+                                if (!name.endsWith("/")) {
+                                    String fileName = name.substring(name.lastIndexOf("/") + 1);
+                                    LOG.info("fileName to save: " + fileName);
+                                    f = new File(reseedCertificates, fileName);
+                                }
                             }
-                            //Close streams to prevent errors
-                            is.close();
-                            fos.close();
-                            f = null;
-                        } else {
-                            LOG.warning("Unable to save file from 1M5 jar and is required: "+name);
-                            return false;
+                            if (name.startsWith(path + "/certificates/ssl/")) {
+                                if (!name.endsWith("/")) {
+                                    String fileName = name.substring(name.lastIndexOf("/") + 1);
+                                    LOG.info("fileName to save: " + fileName);
+                                    f = new File(sslCertificates, fileName);
+                                }
+                            }
+                            if (f != null) {
+                                boolean fileReadyToSave = false;
+                                if (!f.exists() && f.createNewFile()) fileReadyToSave = true;
+                                else if (f.exists() && f.delete() && f.createNewFile()) fileReadyToSave = true;
+                                if (fileReadyToSave) {
+                                    FileOutputStream fos = new FileOutputStream(f);
+                                    byte[] byteArray = new byte[1024];
+                                    int i;
+                                    InputStream is = getClass().getClassLoader().getResourceAsStream(name);
+                                    //While the input stream has bytes
+                                    while ((i = is.read(byteArray)) > 0) {
+                                        //Write the bytes to the output stream
+                                        fos.write(byteArray, 0, i);
+                                    }
+                                    //Close streams to prevent errors
+                                    is.close();
+                                    fos.close();
+                                    f = null;
+                                } else {
+                                    LOG.warning("Unable to save file from 1M5 jar and is required: " + name);
+                                    return false;
+                                }
+                            }
                         }
+                        jar.close();
+                    } catch (IOException e) {
+                        LOG.warning(e.getLocalizedMessage());
+                        return false;
                     }
                 }
-                jar.close();
-            } catch (IOException e) {
-                LOG.warning(e.getLocalizedMessage());
-                return false;
             }
         } else {
             // called while testing in an IDE
