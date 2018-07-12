@@ -92,7 +92,7 @@ public class NotificationService extends BaseService {
         } else {
             s.remove(r.getFilter());
         }
-        LOG.info("Subscription added.");
+        LOG.info("Subscription removed.");
     }
 
     private void publish(final Envelope e) {
