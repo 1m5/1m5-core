@@ -264,14 +264,14 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
         if(emailIdentity != null) {
             LOG.info("Building up DID for alias "+did.getAlias()+"...");
             PublicKey publicEncryptionKey = emailIdentity.getPublicEncryptionKey();
-            PrivateKey privateEncryptionKey = emailIdentity.getPrivateEncryptionKey();
-            KeyPair encryptionKeyPair = new KeyPair(publicEncryptionKey, privateEncryptionKey);
-            did.addEncryptionKeys(DID.Provider.I2P, did.getAlias(), encryptionKeyPair);
+//            PrivateKey privateEncryptionKey = emailIdentity.getPrivateEncryptionKey();
+//            KeyPair encryptionKeyPair = new KeyPair(publicEncryptionKey, privateEncryptionKey);
+//            did.addEncryptionKeys(DID.Provider.I2P, did.getAlias(), encryptionKeyPair);
 
             PublicKey publicSigningKey = emailIdentity.getPublicSigningKey();
-            PrivateKey privateSigningKey = emailIdentity.getPrivateSigningKey();
-            KeyPair signingKeyPair = new KeyPair(publicSigningKey, privateSigningKey);
-            did.addIdentity(DID.Provider.I2P, did.getAlias(), signingKeyPair);
+//            PrivateKey privateSigningKey = emailIdentity.getPrivateSigningKey();
+//            KeyPair signingKeyPair = new KeyPair(publicSigningKey, privateSigningKey);
+//            did.addIdentity(DID.Provider.I2P, did.getAlias(), signingKeyPair);
 
             PublicKeyPair publicKeyPair = new PublicKeyPair(publicEncryptionKey, publicSigningKey);
             try {
