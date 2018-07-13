@@ -3,7 +3,7 @@ An intelligent anonymous communications framework with popular general decentral
 for embedding.
 
 ## Version
-0.5.1
+0.5.2
 
 ## Authors / Developers
 - [ObjectOrange](https://github.com/objectorange) - objectorange@protonmail.com
