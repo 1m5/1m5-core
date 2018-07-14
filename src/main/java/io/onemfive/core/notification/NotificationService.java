@@ -42,6 +42,8 @@ public class NotificationService extends BaseService {
      */
     public static final String OPERATION_PUBLISH = "PUBLISH";
 
+    private Subscription demoSub;
+
     private Map<String,Map<String,Subscription>> subscriptions;
 
     public NotificationService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
@@ -72,6 +74,7 @@ public class NotificationService extends BaseService {
     private void subscribe(Envelope e) {
         LOG.info("Received subscribe request...");
         SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
+        demoSub = r.getSubscription();
         LOG.info("Subscription for type: "+r.getType().name());
         Map<String,Subscription> s = subscriptions.get(r.getType().name());
         if(r.getFilter() == null) {
@@ -101,10 +104,12 @@ public class NotificationService extends BaseService {
     private void publish(final Envelope e) {
         LOG.info("Received publish request...");
         EventMessage m = (EventMessage)e.getMessage();
-        LOG.info("For type: "+m.getType().name());
-        Map<String,Subscription> s = subscriptions.get(m.getType().name());
+        LOG.info("For type: "+m.getType());
+        Map<String,Subscription> s = subscriptions.get(m.getType());
         LOG.info("With name to filter on: "+m.getName());
-        final Subscription sub = s.get(m.getName());
+        // Temporarily comment out for Demo as we wont be able to get Alice's keys after install
+//        final Subscription sub = s.get(m.getName());
+        final Subscription sub = demoSub;
         if(sub != null) {
             LOG.info("Notifying subscription of event...");
             // Directly notify in separate thread
