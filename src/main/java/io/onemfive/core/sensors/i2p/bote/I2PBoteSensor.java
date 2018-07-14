@@ -333,12 +333,18 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                 email = new io.onemfive.data.Email();
 
                 DID fromDID = new DID();
-                fromDID.addEncodedKey(i2pEmail.getOneFromAddress());
+                String fromAddress = (i2pEmail.getAllFromAddresses().toArray()[0]).toString();
+                fromAddress = fromAddress.substring(fromAddress.indexOf("<")+1);
+                fromAddress = fromAddress.substring(0,fromAddress.length()-1);
+                fromDID.addEncodedKey(fromAddress);
                 email.setFromDID(fromDID);
                 LOG.info("From Address: "+fromDID.getEncodedKey());
 
                 DID toDID = new DID();
-                toDID.addEncodedKey(i2pEmail.getOneRecipient());
+                String toAddress = i2pEmail.getToAddresses()[0].toString();
+                toAddress = toAddress.substring(toAddress.indexOf("<")+1);
+                toAddress = toAddress.substring(0,toAddress.length()-1);
+                toDID.addEncodedKey(toAddress);
                 email.setToDID(toDID);
                 LOG.info("To Address: "+toDID.getEncodedKey());
 
