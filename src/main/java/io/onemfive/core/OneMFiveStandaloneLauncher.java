@@ -88,7 +88,7 @@ public class OneMFiveStandaloneLauncher {
             public void notifyOfEvent(Envelope e) {
                 EventMessage m = (EventMessage)e.getMessage();
                 emailReceived = (Email)m.getMessage();
-                LOG.info("Received Email: id="+m.getId()+" type="+m.getType().name()+" name="+m.getName());
+                LOG.info("Received Email: id="+m.getId()+" type="+m.getType()+" name="+m.getName());
             }
         };
 
