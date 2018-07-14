@@ -42,7 +42,7 @@ public class NotificationService extends BaseService {
      */
     public static final String OPERATION_PUBLISH = "PUBLISH";
 
-    private Map<EventMessage.Type,Map<String,Subscription>> subscriptions;
+    private Map<String,Map<String,Subscription>> subscriptions;
 
     public NotificationService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -72,11 +72,14 @@ public class NotificationService extends BaseService {
     private void subscribe(Envelope e) {
         LOG.info("Received subscribe request...");
         SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
-        Map<String,Subscription> s = subscriptions.get(r.getType());
+        LOG.info("Subscription for type: "+r.getType().name());
+        Map<String,Subscription> s = subscriptions.get(r.getType().name());
         if(r.getFilter() == null) {
             // No filter, set default subscription list
+            LOG.info("With no filters.");
             s.put(null,r.getSubscription());
         } else {
+            LOG.info("With filter: "+r.getFilter());
             s.put(r.getFilter(),r.getSubscription());
         }
         LOG.info("Subscription added.");
@@ -85,7 +88,7 @@ public class NotificationService extends BaseService {
     private void unsubscribe(Envelope e) {
         LOG.info("Received unsubscribe request...");
         SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
-        Map<String,Subscription> s = subscriptions.get(r.getType());
+        Map<String,Subscription> s = subscriptions.get(r.getType().name());
         if(r.getFilter() == null) {
             // No filter, set default subscription list
             s.remove(null);
@@ -98,7 +101,9 @@ public class NotificationService extends BaseService {
     private void publish(final Envelope e) {
         LOG.info("Received publish request...");
         EventMessage m = (EventMessage)e.getMessage();
-        Map<String,Subscription> s = subscriptions.get(m.getType());
+        LOG.info("For type: "+m.getType().name());
+        Map<String,Subscription> s = subscriptions.get(m.getType().name());
+        LOG.info("With name to filter on: "+m.getName());
         final Subscription sub = s.get(m.getName());
         if(sub != null) {
             LOG.info("Notifying subscription of event...");
@@ -110,6 +115,8 @@ public class NotificationService extends BaseService {
                     sub.notifyOfEvent(e);
                 }
             }).start();
+        } else {
+            LOG.info("");
         }
     }
 
@@ -121,13 +128,13 @@ public class NotificationService extends BaseService {
         subscriptions = new HashMap<>();
         // For each EventMessage.Type, set a HashMap<String,List<Subscription>>
         // and add a null filtered list for Subscriptions with no filters.
-        subscriptions.put(EventMessage.Type.EMAIL, new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.EXCEPTION, new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.ERROR, new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_BUS, new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_CLIENT, new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_SENSOR, new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_SERVICE, new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.EMAIL.name(), new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.EXCEPTION.name(), new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.ERROR.name(), new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.STATUS_BUS.name(), new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.STATUS_CLIENT.name(), new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.STATUS_SENSOR.name(), new HashMap<String, Subscription>());
+        subscriptions.put(EventMessage.Type.STATUS_SERVICE.name(), new HashMap<String, Subscription>());
 
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
