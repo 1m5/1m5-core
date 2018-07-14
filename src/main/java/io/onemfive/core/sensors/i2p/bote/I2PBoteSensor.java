@@ -157,8 +157,9 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             try {
                 i2pEmail.setSender(sender);
                 i2pEmail.addRecipient(Message.RecipientType.TO, recipient);
-                i2pEmail.setSubject(subject,"UTF-8");
-                i2pEmail.setContent(message, attachments);
+                i2pEmail.setSubject(subject);
+                i2pEmail.setText(message);
+                i2pEmail.setHeader("Content-Type",email.getMessageType());
             } catch (MessagingException e1) {
                 e1.printStackTrace();
                 LOG.warning("Issue setting sender, recipient, subject, or content.");
@@ -346,6 +347,9 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
                 email.setMessage(i2pEmail.getText());
                 LOG.info("Email text: "+email.getMessage());
+
+                email.setMessageType(i2pEmail.getContentType());
+                LOG.info("Email text type: "+email.getMessageType());
 
                 // Indicate that it was received (for testing)
                 email.setFlag(1);
