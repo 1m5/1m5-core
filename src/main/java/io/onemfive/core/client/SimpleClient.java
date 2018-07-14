@@ -50,13 +50,14 @@ final class SimpleClient implements Client {
 
     @Override
     public void request(Envelope e) {
+        LOG.finer("Sending to service bus message channel");
         e.setClient(id);
         producer.send(e);
     }
 
     @Override
     public void request(Envelope e, ServiceCallback cb) {
-        LOG.finer("Sending to service bus message channel");
+        LOG.finer("Sending to service bus message channel with callback");
         e.setClient(id);
         producer.send(e);
         // Save callback for later retrieval using envelope id for correlation
@@ -67,8 +68,10 @@ final class SimpleClient implements Client {
     public void notify(Envelope e) {
         LOG.finer("Sending to ServiceCallback");
         ServiceCallback cb = claimCheck.get(e.getId());
-        cb.reply(e);
-        claimCheck.remove(e.getId());
+        if(cb != null) {
+            cb.reply(e);
+            claimCheck.remove(e.getId());
+        }
     }
 
     @Override
