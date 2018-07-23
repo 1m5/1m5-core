@@ -24,8 +24,8 @@
 	</organization>
 	<licenses>
 		<license>
-			<name>Unlicense</name>
-			<url>https://unlicense.org/</url>
+			<name>GPLv3</name>
+			<url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
 		</license>
 	</licenses>
 	<developers>

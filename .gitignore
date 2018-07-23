@@ -23,6 +23,7 @@
 hs_err_pid*
 
 .idea
+*.iml
 /eventlog.txt
 /prngseed.rnd
 /router.config
@@ -35,3 +36,4 @@ hs_err_pid*
 .1m5
 .ndb
 i2pbote
+libs/flexi-gmss-1.7p1.jar
