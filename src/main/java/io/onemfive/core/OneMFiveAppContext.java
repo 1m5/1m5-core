@@ -13,20 +13,20 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * <p>Provide a scope for accessing services that SC provides.  Rather than
+ * <p>Provide a scope for accessing services that 15M5 provides.  Rather than
  * using the traditional singleton, where any component can access the component
- * in question directly, all of those SC related services are exposed through
+ * in question directly, all of those 1M5 related services are exposed through
  * a particular OneMFiveAppContext. This helps not only with understanding their use
- * and the services SC provides, but it also allows multiple isolated
+ * and the services 1M5 provides, but it also allows multiple isolated
  * environments to operate concurrently within the same JVM - particularly useful
  * for stubbing out implementations of the rooted services and simulating the
  * software's interaction between multiple instances.</p>
  *
- * As a simplification, there is also a global context - if some component needs
+ * <p>As a simplification, there is also a global context - if some component needs
  * access to one of the services but doesn't have its own context from which
  * to root itself, it binds to the OneMFiveAppContext's globalAppContext(), which is
  * the first context that was created within the JVM, or a new one if no context
- * existed already.  This functionality is often used within the SC core for
+ * existed already.  This functionality is often used within the 1M5 core for
  * logging - e.g. <pre>
  *     private static final Log _log = new Log(someClass.class);
  * </pre>
@@ -34,7 +34,7 @@ import java.util.logging.Logger;
  * contexts should build their own context as soon as possible (within the main(..))
  * so that any referenced components will latch on to that context instead of
  * instantiating a new one.  However, there are situations in which both can be
- * relevant.
+ * relevant.</p>
  *
  * @author I2P, objectorange
  */
@@ -56,9 +56,6 @@ public class OneMFiveAppContext {
     private volatile boolean statManagerInitialized;
     private volatile boolean logManagerInitialized;
     private volatile boolean simpleTimerInitialized;
-    protected volatile boolean clockInitialized; // used in ConsciousContext
-    private volatile boolean randomInitialized;
-    private volatile boolean shaInitialized;
 
     protected final Set<Runnable> shutdownTasks;
     private final File baseDir;
