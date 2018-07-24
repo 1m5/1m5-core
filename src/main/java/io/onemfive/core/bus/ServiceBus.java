@@ -290,8 +290,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 //        KeyRingService keyRingService = new KeyRingService(this, this);
 //        registeredServices.put(KeyRingService.class.getName(), keyRingService);
 
-//        PaymentService paymentService = new PaymentService(this, this);
-//        registeredServices.put(PaymentService.class.getName(), paymentService);
+//        CurrencyService paymentService = new CurrencyService(this, this);
+//        registeredServices.put(CurrencyService.class.getName(), paymentService);
 
 //        AtenService atenService = new AtenService(this, this);
 //        registeredServices.put(AtenService.class.getName(), atenService);

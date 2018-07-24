@@ -1,4 +1,4 @@
-package io.onemfive.core.contract.ethreum;
+package io.onemfive.core.contract.omni;
 
 import io.onemfive.core.contract.BountyContract;
 import io.onemfive.data.Envelope;
@@ -10,9 +10,9 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class EthereumBountyContract extends EthereumContract implements BountyContract {
+public class OmniBountyContract extends OmniContract implements BountyContract {
 
-    private static final Logger LOG = Logger.getLogger(EthereumBountyContract.class.getName());
+    private static final Logger LOG = Logger.getLogger(OmniBountyContract.class.getName());
 
     @Override
     public void createBounty(Envelope envelope) {

@@ -3,7 +3,7 @@ package io.onemfive.core.contract;
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.ServiceStatusListener;
-import io.onemfive.core.contract.ethreum.EthereumContract;
+import io.onemfive.core.contract.omni.OmniContract;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
@@ -34,7 +34,7 @@ public class ContractService extends BaseService {
     public static final String OPERATION_REMOVE_VOTER = "REMOVE_VOTER";
     public static final String OPERATION_KILL_CONTRACT = "KILL_CONTRACT";
 
-    private EthereumContract ethereumContract;
+    private OmniContract contract;
 
     public ContractService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -67,14 +67,14 @@ public class ContractService extends BaseService {
     }
 
     private Contract selectContract(Envelope e) {
-        // Only Ethereum for now
-        return ethereumContract;
+        // Only Omni for now
+        return contract;
     }
 
     @Override
     public boolean start(Properties properties) {
         LOG.info("Starting...");
-        ethereumContract = new EthereumContract();
+        contract = new OmniContract();
         LOG.info("Started");
         return true;
     }
