@@ -81,7 +81,7 @@ public class NotificationService extends BaseService {
         } else {
             LOG.info("With filter: "+r.getFilter());
             if(s.get(r.getFilter()) == null)
-                s.put(r.getFilter(), new ArrayList<>());
+                s.put(r.getFilter(), new ArrayList<Subscription>());
             s.get(r.getFilter()).add(r.getSubscription());
         }
         LOG.info("Subscription added.");
@@ -124,7 +124,7 @@ public class NotificationService extends BaseService {
         }
         LOG.info("Notifying "+toNotify.size()+" subscriber(s) of event...");
         // Directly notify in separate thread
-        for(Subscription sub: toNotify) {
+        for(final Subscription sub: toNotify) {
             // TODO: Move to WorkerThreadPool to control CPU usage
             new AppThread(new Runnable() {
                 @Override
