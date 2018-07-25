@@ -101,6 +101,7 @@ public class NotificationService extends BaseService {
 
     private void publish(final Envelope e) {
         LOG.info("Received publish request...");
+        List<Subscription> toNotify = new ArrayList<>();
         EventMessage m = (EventMessage)e.getMessage();
         LOG.info("For type: "+m.getType());
         Map<String,List<Subscription>> s = subscriptions.get(m.getType());
@@ -108,15 +109,22 @@ public class NotificationService extends BaseService {
             LOG.info("No subscriptions for type: "+m.getType());
             return;
         }
-        LOG.info("With name to filter on: " + m.getName());
-        final List<Subscription> subs = s.get(m.getName());
+        final List<Subscription> subs = s.get(null);
         if(subs.size() == 0) {
-            LOG.info("No subscriptions for filter: "+m.getName());
-            return;
+            LOG.info("No subscriptions without filters.");
+        } else {
+            toNotify.addAll(subs);
         }
-        LOG.info("Notifying "+subs.size()+" subscriber(s) of event...");
+        LOG.info("With name to filter on: " + m.getName());
+        final List<Subscription> filteredSubs = s.get(m.getName());
+        if(filteredSubs.size() == 0) {
+            LOG.info("No subscriptions for filter: "+m.getName());
+        } else {
+            toNotify.addAll(filteredSubs);
+        }
+        LOG.info("Notifying "+toNotify.size()+" subscriber(s) of event...");
         // Directly notify in separate thread
-        for(Subscription sub: subs) {
+        for(Subscription sub: toNotify) {
             // TODO: Move to WorkerThreadPool to control CPU usage
             new AppThread(new Runnable() {
                 @Override
