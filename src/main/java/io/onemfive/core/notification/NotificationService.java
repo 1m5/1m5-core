@@ -22,7 +22,7 @@ public class NotificationService extends BaseService {
 
     /**
      * To subscribe to EventMessages, send a SubscriptionRequest as a DocumentMessage to Service using
-     * OPERATION_SUBCRIBE as operation. SubscriptionRequest must specify EventMessage.Type and optionally a Filter.
+     * OPERATION_SUBSCRIBE as operation. SubscriptionRequest must specify EventMessage.Type and optionally a Filter.
      *
      * Filters available for each EventMessage.Type:
      *
@@ -33,6 +33,7 @@ public class NotificationService extends BaseService {
      * STATUS_SERVICE: String representing full name of Service class, e.g. io.onemfive.core.sensors.SensorService
      * STATUS_BUS: No filters supported
      * STATUS_CLIENT: No filters supported
+     * TEXT: Can filter by name if provided. For I2P messages, the name is the sender's base64 encoded key.
      *
      */
     public static final String OPERATION_SUBSCRIBE = "SUBSCRIBE";
@@ -42,9 +43,7 @@ public class NotificationService extends BaseService {
      */
     public static final String OPERATION_PUBLISH = "PUBLISH";
 
-    private Subscription demoSub;
-
-    private Map<String,Map<String,Subscription>> subscriptions;
+    private Map<String,Map<String,List<Subscription>>> subscriptions;
 
     public NotificationService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -74,16 +73,16 @@ public class NotificationService extends BaseService {
     private void subscribe(Envelope e) {
         LOG.info("Received subscribe request...");
         SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
-        demoSub = r.getSubscription();
         LOG.info("Subscription for type: "+r.getType().name());
-        Map<String,Subscription> s = subscriptions.get(r.getType().name());
+        Map<String,List<Subscription>> s = subscriptions.get(r.getType().name());
         if(r.getFilter() == null) {
-            // No filter, set default subscription list
             LOG.info("With no filters.");
-            s.put(null,r.getSubscription());
+            s.get(null).add(r.getSubscription());
         } else {
             LOG.info("With filter: "+r.getFilter());
-            s.put(r.getFilter(),r.getSubscription());
+            if(s.get(r.getFilter()) == null)
+                s.put(r.getFilter(), new ArrayList<>());
+            s.get(r.getFilter()).add(r.getSubscription());
         }
         LOG.info("Subscription added.");
     }
@@ -91,12 +90,11 @@ public class NotificationService extends BaseService {
     private void unsubscribe(Envelope e) {
         LOG.info("Received unsubscribe request...");
         SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
-        Map<String,Subscription> s = subscriptions.get(r.getType().name());
+        Map<String,List<Subscription>> s = subscriptions.get(r.getType().name());
         if(r.getFilter() == null) {
-            // No filter, set default subscription list
-            s.remove(null);
+            s.get(null).remove(r.getSubscription());
         } else {
-            s.remove(r.getFilter());
+            s.get(r.getFilter()).remove(r.getSubscription());
         }
         LOG.info("Subscription removed.");
     }
@@ -105,14 +103,20 @@ public class NotificationService extends BaseService {
         LOG.info("Received publish request...");
         EventMessage m = (EventMessage)e.getMessage();
         LOG.info("For type: "+m.getType());
-        Map<String,Subscription> s = subscriptions.get(m.getType());
-        LOG.info("With name to filter on: "+m.getName());
-        // Temporarily comment out for Demo as we wont be able to get Alice's keys after install
-//        final Subscription sub = s.get(m.getName());
-        final Subscription sub = demoSub;
-        if(sub != null) {
-            LOG.info("Notifying subscription of event...");
-            // Directly notify in separate thread
+        Map<String,List<Subscription>> s = subscriptions.get(m.getType());
+        if(s.size() == 0) {
+            LOG.info("No subscriptions for type: "+m.getType());
+            return;
+        }
+        LOG.info("With name to filter on: " + m.getName());
+        final List<Subscription> subs = s.get(m.getName());
+        if(subs.size() == 0) {
+            LOG.info("No subscriptions for filter: "+m.getName());
+            return;
+        }
+        LOG.info("Notifying "+subs.size()+" subscriber(s) of event...");
+        // Directly notify in separate thread
+        for(Subscription sub: subs) {
             // TODO: Move to WorkerThreadPool to control CPU usage
             new AppThread(new Runnable() {
                 @Override
@@ -120,8 +124,6 @@ public class NotificationService extends BaseService {
                     sub.notifyOfEvent(e);
                 }
             }).start();
-        } else {
-            LOG.info("");
         }
     }
 
@@ -131,19 +133,28 @@ public class NotificationService extends BaseService {
         updateStatus(ServiceStatus.STARTING);
 
         subscriptions = new HashMap<>();
-        // For each EventMessage.Type, set a HashMap<String,List<Subscription>>
+        // For each EventMessage.Type, set a HashMap<String,Subscription>
         // and add a null filtered list for Subscriptions with no filters.
-        subscriptions.put(EventMessage.Type.EMAIL.name(), new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.EXCEPTION.name(), new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.ERROR.name(), new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_BUS.name(), new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_CLIENT.name(), new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_SENSOR.name(), new HashMap<String, Subscription>());
-        subscriptions.put(EventMessage.Type.STATUS_SERVICE.name(), new HashMap<String, Subscription>());
+
+        subscriptions.put(EventMessage.Type.EMAIL.name(), buildNewMap());
+        subscriptions.put(EventMessage.Type.EXCEPTION.name(), buildNewMap());
+        subscriptions.put(EventMessage.Type.ERROR.name(), buildNewMap());
+        subscriptions.put(EventMessage.Type.STATUS_BUS.name(), buildNewMap());
+        subscriptions.put(EventMessage.Type.STATUS_CLIENT.name(), buildNewMap());
+        subscriptions.put(EventMessage.Type.STATUS_SENSOR.name(), buildNewMap());
+        subscriptions.put(EventMessage.Type.STATUS_SERVICE.name(), buildNewMap());
+        subscriptions.put(EventMessage.Type.TEXT.name(), buildNewMap());
 
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
         return true;
+    }
+
+    private Map<String,List<Subscription>> buildNewMap() {
+        List<Subscription> l = new ArrayList<>();
+        Map<String,List<Subscription>> m = new HashMap<>();
+        m.put(null,l);
+        return m;
     }
 
     @Override
