@@ -1,7 +1,7 @@
 package io.onemfive.core.sensors;
 
 /**
- * TODO: Add Description
+ * Sensor Identification
  *
  * @author objectorange
  */

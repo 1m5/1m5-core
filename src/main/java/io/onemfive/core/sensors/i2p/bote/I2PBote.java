@@ -295,20 +295,20 @@ public class I2PBote implements NetworkStatusSource, EmailFolderManager, MailSen
         backgroundThreads.add(relayPacketSender);
 
         I2PAppThread seedless = null;
-        try {
-            Class<? extends I2PAppThread> clazz = Class.forName(
-                    "i2p.bote.service.seedless.SeedlessInitializer"
-            ).asSubclass(I2PAppThread.class);
-            Constructor<? extends I2PAppThread> ctor =
-                    clazz.getDeclaredConstructor(I2PSocketManager.class);
-            seedless = ctor.newInstance(socketManager);
-            backgroundThreads.add(seedless);
-        } catch (ClassNotFoundException e) {
-        } catch (NoSuchMethodException e) {
-        } catch (InstantiationException e) {
-        } catch (IllegalAccessException e) {
-        } catch (InvocationTargetException e) {
-        }
+//        try {
+//            Class<? extends I2PAppThread> clazz = Class.forName(
+//                    "i2p.bote.service.seedless.SeedlessInitializer"
+//            ).asSubclass(I2PAppThread.class);
+//            Constructor<? extends I2PAppThread> ctor =
+//                    clazz.getDeclaredConstructor(I2PSocketManager.class);
+//            seedless = ctor.newInstance(socketManager);
+//            backgroundThreads.add(seedless);
+//        } catch (ClassNotFoundException e) {
+//        } catch (NoSuchMethodException e) {
+//        } catch (InstantiationException e) {
+//        } catch (IllegalAccessException e) {
+//        } catch (InvocationTargetException e) {
+//        }
 
         dht = new KademliaDHT(sendQueue, dispatcher, configuration.getDhtPeerFile(), (DhtPeerSource) seedless);
         backgroundThreads.add(dht);
@@ -355,20 +355,20 @@ public class I2PBote implements NetworkStatusSource, EmailFolderManager, MailSen
         deliveryChecker = new DeliveryChecker(dht, sentFolder, configuration, this);
         backgroundThreads.add(deliveryChecker);
 
-        try {
-            Class<?> clazz = Class.forName("i2p.bote.service.ApiServiceImpl");
-            Constructor<?> ctor =
-                    clazz.getDeclaredConstructor(Configuration.class,
-                            EmailFolderManager.class,
-                            MailSender.class,
-                            PasswordVerifier.class);
-            apiService = (ApiService) ctor.newInstance(configuration, this, this, this);
-        } catch (ClassNotFoundException e) {
-        } catch (NoSuchMethodException e) {
-        } catch (InstantiationException e) {
-        } catch (IllegalAccessException e) {
-        } catch (InvocationTargetException e) {
-        }
+//        try {
+//            Class<?> clazz = Class.forName("i2p.bote.service.ApiServiceImpl");
+//            Constructor<?> ctor =
+//                    clazz.getDeclaredConstructor(Configuration.class,
+//                            EmailFolderManager.class,
+//                            MailSender.class,
+//                            PasswordVerifier.class);
+//            apiService = (ApiService) ctor.newInstance(configuration, this, this, this);
+//        } catch (ClassNotFoundException e) {
+//        } catch (NoSuchMethodException e) {
+//        } catch (InstantiationException e) {
+//        } catch (IllegalAccessException e) {
+//        } catch (InvocationTargetException e) {
+//        }
     }
 
     /**

@@ -1,8 +1,8 @@
 package io.onemfive.core.sensors.i2p.bote;
 
-import io.onemfive.core.Config;
 import io.onemfive.core.notification.NotificationService;
 import io.onemfive.core.sensors.*;
+import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.i2p.bote.crypto.PublicKeyPair;
 import io.onemfive.core.sensors.i2p.bote.email.*;
 import io.onemfive.core.sensors.i2p.bote.email.Email;
@@ -18,27 +18,17 @@ import io.onemfive.core.sensors.i2p.bote.util.GeneralHelper;
 import io.onemfive.core.util.Wait;
 import io.onemfive.data.*;
 import io.onemfive.data.util.DLC;
-import net.i2p.client.I2PClient;
 import net.i2p.data.DataHelper;
 import net.i2p.router.Router;
-import net.i2p.router.RouterContext;
-import net.i2p.util.FileUtil;
-import net.i2p.util.OrderedProperties;
 
 import javax.mail.*;
 import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
 /**
@@ -48,30 +38,9 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, NewEmailListener {
-
-    /**
-     * 1 = ElGamal-2048 / DSA-1024
-     * 2 = ECDH-256 / ECDSA-256
-     * 3 = ECDH-521 / ECDSA-521
-     * 4 = NTRUEncrypt-1087 / GMSS-512
-     */
-    public static int ElGamal2048DSA1024 = 1;
-    public static int ECDH256ECDSA256 = 2;
-    public static int ECDH521EDCSA521 = 3;
-    public static int NTRUEncrypt1087GMSS512 = 4;
+public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, NewEmailListener {
 
     private static final Logger LOG = Logger.getLogger(I2PBoteSensor.class.getName());
-
-    private Properties properties;
-
-    // I2P Router and Context
-    private File i2pDir;
-    private RouterContext routerContext;
-    private Router router;
-
-    private String i2pBaseDir;
-    private String i2pBoteDir;
 
     public I2PBoteSensor(SensorsService sensorsService) {
         super(sensorsService);
@@ -195,11 +164,6 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
             return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean reply(Envelope envelope) {
-        return false;
     }
 
     public void getKeys(Envelope e) {
@@ -336,7 +300,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                 String fromAddress = (i2pEmail.getAllFromAddresses().toArray()[0]).toString();
                 fromAddress = fromAddress.substring(fromAddress.indexOf("<")+1);
                 fromAddress = fromAddress.substring(0,fromAddress.length()-1);
-                fromDID.addEncodedKey(fromAddress);
+                fromDID.addEncodedKey(DID.Provider.I2P, fromAddress);
                 email.setFromDID(fromDID);
                 LOG.info("From Address: "+fromDID.getEncodedKey());
 
@@ -344,7 +308,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
                 String toAddress = i2pEmail.getToAddresses()[0].toString();
                 toAddress = toAddress.substring(toAddress.indexOf("<")+1);
                 toAddress = toAddress.substring(0,toAddress.length()-1);
-                toDID.addEncodedKey(toAddress);
+                toDID.addEncodedKey(DID.Provider.I2P, toAddress);
                 email.setToDID(toDID);
                 LOG.info("To Address: "+toDID.getEncodedKey());
 
@@ -382,129 +346,13 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     @Override
     public boolean start(Properties p) {
+        super.start(p);
         LOG.info("Starting I2P Bote Sensor...");
         // I2P Bote Sensor Starting
         updateStatus(SensorStatus.STARTING);
-        LOG.info("Loading I2P properties...");
-        properties = p;
-        // Set up I2P Directories within 1M5 base directory - Base MUST get created or exit
-        i2pBaseDir = properties.getProperty("1m5.dir.base") + "/i2p";
-        i2pDir = new File(i2pBaseDir);
-        if(!i2pDir.exists())
-            if(!i2pDir.mkdir()) {
-                LOG.severe("Unable to create I2P base directory: "+i2pBaseDir+"; exiting...");
-                return false;
-            }
-        System.setProperty("i2p.dir.base",i2pBaseDir);
-        properties.setProperty("i2p.dir.base",i2pBaseDir);
-        // I2P Config Directory
-        String i2pConfigDir = i2pBaseDir + "/config";
-        File i2pConfigFolder = new File(i2pConfigDir);
-        if(!i2pConfigFolder.exists())
-            if(!i2pConfigFolder.mkdir())
-                LOG.warning("Unable to create I2P config directory: " +i2pConfigDir);
-        if(i2pConfigFolder.exists()) {
-            System.setProperty("i2p.dir.config",i2pConfigDir);
-            properties.setProperty("i2p.dir.config",i2pConfigDir);
-        }
-        // I2P Router Directory
-        String i2pRouterDir = i2pBaseDir + "/router";
-        File i2pRouterFolder = new File(i2pRouterDir);
-        if(!i2pRouterFolder.exists())
-            if(!i2pRouterFolder.mkdir())
-                LOG.warning("Unable to create I2P router directory: "+i2pRouterDir);
-        if(i2pRouterFolder.exists()) {
-            System.setProperty("i2p.dir.router",i2pRouterDir);
-            properties.setProperty("i2p.dir.router",i2pRouterDir);
-        }
-        // I2P PID Directory
-        String i2pPIDDir = i2pBaseDir + "/pid";
-        File i2pPIDFolder = new File(i2pPIDDir);
-        if(!i2pPIDFolder.exists())
-            if(!i2pPIDFolder.mkdir())
-                LOG.warning("Unable to create I2P PID directory: "+i2pPIDDir);
-        if(i2pPIDFolder.exists()) {
-            System.setProperty("i2p.dir.pid",i2pPIDDir);
-            properties.setProperty("i2p.dir.pid",i2pPIDDir);
-        }
-        // I2P Log Directory
-        String i2pLogDir = i2pBaseDir + "/log";
-        File i2pLogFolder = new File(i2pLogDir);
-        if(!i2pLogFolder.exists())
-            if(!i2pLogFolder.mkdir())
-                LOG.warning("Unable to create I2P log directory: "+i2pLogDir);
-        if(i2pLogFolder.exists()) {
-            System.setProperty("i2p.dir.log",i2pLogDir);
-            properties.setProperty("i2p.dir.log",i2pLogDir);
-        }
-        // I2P App Directory
-        String i2pAppDir = i2pBaseDir + "/app";
-        File i2pAppFolder = new File(i2pAppDir);
-        if(!i2pAppFolder.exists())
-            if(!i2pAppFolder.mkdir())
-                LOG.warning("Unable to create I2P app directory: "+i2pAppDir);
-        if(i2pAppFolder.exists()) {
-            System.setProperty("i2p.dir.app", i2pAppDir);
-            properties.setProperty("i2p.dir.app", i2pAppDir);
-        }
-
-        // Running Internal I2P Router
-        System.setProperty(I2PClient.PROP_TCP_HOST, "internal");
-        System.setProperty(I2PClient.PROP_TCP_PORT, "internal");
-
-        // Merge router.config files
-        mergeRouterConfig(null);
-
-        // Certificates
-        File certDir = new File(i2pBaseDir, "certificates");
-        if(!certDir.exists())
-            if(!certDir.mkdir()) {
-                LOG.severe("Unable to create certificates directory in: "+i2pBaseDir+"; exiting...");
-                return false;
-            }
-        File seedDir = new File(certDir, "reseed");
-        if(!seedDir.exists())
-            if(!seedDir.mkdir()) {
-                LOG.severe("Unable to create "+i2pBaseDir+"/certificates/reseed directory; exiting...");
-                return false;
-            }
-        File sslDir = new File(certDir, "ssl");
-        if(!sslDir.exists())
-            if(!sslDir.mkdir()) {
-                LOG.severe("Unable to create "+i2pBaseDir+"/certificates/ssl directory; exiting...");
-                return false;
-            }
-
-        File seedCertificates = new File(certDir, "reseed");
-//        File[] allSeedCertificates = seedCertificates.listFiles();
-//        if ( allSeedCertificates != null) {
-//            for (File f : allSeedCertificates) {
-//                LOG.info("Deleting old seed certificate: " + f);
-//                FileUtil.rmdir(f, false);
-//            }
-//        }
-
-        File sslCertificates = new File(certDir, "ssl");
-//        File[] allSSLCertificates = sslCertificates.listFiles();
-//        if ( allSSLCertificates != null) {
-//            for (File f : allSSLCertificates) {
-//                LOG.info("Deleting old ssl certificate: " + f);
-//                FileUtil.rmdir(f, false);
-//            }
-//        }
-
-        if(!copyCertificatesToBaseDir(seedCertificates, sslCertificates))
-            return false;
-
-        // Start I2P Router
-        LOG.info("Starting I2P Router...");
-        router = new Router(properties);
-        router.setKillVMOnEnd(false);
-        router.runRouter();
-        routerContext = router.getContext();
 
         // I2P Bote Directory
-        i2pBoteDir = i2pAppDir + "/i2pbote";
+        String i2pBoteDir = i2pAppDir + "/i2pbote";
         File i2pBoteFolder = new File(i2pBoteDir);
         if(!i2pBoteFolder.exists())
             if(!i2pBoteFolder.mkdir()) {
@@ -581,12 +429,14 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     @Override
     public boolean restart() {
+        super.restart();
         restartAttempts++;
         return gracefulShutdown() && start(this.properties);
     }
 
     @Override
     public boolean shutdown() {
+        super.shutdown();
         LOG.info("Shutting down...");
         updateStatus(SensorStatus.SHUTTING_DOWN);
         I2PBote.getInstance().shutDown();
@@ -602,6 +452,7 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
 
     @Override
     public boolean gracefulShutdown() {
+        super.gracefulShutdown();
         LOG.info("Gracefully shutting down...");
         updateStatus(SensorStatus.GRACEFULLY_SHUTDOWN);
         I2PBote.getInstance().shutDown();
@@ -612,159 +463,6 @@ public class I2PBoteSensor extends BaseSensor implements NetworkStatusListener, 
         }
         updateStatus(SensorStatus.GRACEFULLY_SHUTDOWN);
         LOG.info("Gracefully shutdown.");
-        return true;
-    }
-
-    /**
-     *  Load defaults from internal router.config on classpath,
-     *  then add props from i2pDir/router.config overriding any from internal router.config,
-     *  then override these with the supplied overrides if not null which would likely come from 3rd party app (not yet supported),
-     *  then write back to i2pDir/router.config.
-     *
-     *  @param overrides local overrides or null
-     */
-    public void mergeRouterConfig(Properties overrides) {
-        Properties props = new OrderedProperties();
-        File f = new File(i2pBaseDir,"router.config");
-        boolean i2pBaseRouterConfigIsNew = false;
-        if(!f.exists()) {
-            if(!f.mkdir()) {
-                LOG.warning("While merging router.config files, unable to create router.config in i2pBaseDirectory: "+i2pBaseDir);
-            } else {
-                i2pBaseRouterConfigIsNew = true;
-            }
-        }
-        InputStream i2pBaseRouterConfig = null;
-        try {
-            props.putAll(Config.loadFromClasspath("router.config"));
-
-            if(!i2pBaseRouterConfigIsNew) {
-                i2pBaseRouterConfig = new FileInputStream(f);
-                DataHelper.loadProps(props, i2pBaseRouterConfig);
-            }
-
-            // override with user settings
-            if (overrides != null)
-                props.putAll(overrides);
-
-            DataHelper.storeProps(props, f);
-        } catch (Exception e) {
-            LOG.warning("Exception caught while merging router.config properties: "+e.getLocalizedMessage());
-        } finally {
-            if (i2pBaseRouterConfig != null) try {
-                i2pBaseRouterConfig.close();
-            } catch (IOException ioe) {
-            }
-        }
-    }
-
-    /**
-     *  Copy all certificates found in resources/io/onemfive/core/sensors/i2p/bote/certificates
-     *  into i2pBaseDir/certificates
-     *
-     *  @param reseedCertificates destination directory for reseed certificates
-     *  @param sslCertificates destination directory for ssl certificates
-     */
-    private boolean copyCertificatesToBaseDir(File reseedCertificates, File sslCertificates) {
-        final String path = "io/onemfive/core/sensors/i2p/bote";
-        // Android apps are doing this within their startup as unable to extract these files from jars
-        if(properties.getProperty(Config.PROP_OPERATING_SYSTEM) != null) {
-            if(!properties.getProperty(Config.PROP_OPERATING_SYSTEM).equals(Config.OS.Android.name())) {
-                // Other - extract as jar
-                String jarPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-                final File jarFile = new File(jarPath);
-                if (jarFile.isFile()) {
-                    // called by a user of the 1M5 Core jar
-                    try {
-                        final JarFile jar = new JarFile(jarFile);
-                        JarEntry entry;
-                        File f = null;
-                        final Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
-                        while (entries.hasMoreElements()) {
-                            entry = entries.nextElement();
-                            final String name = entry.getName();
-                            if (name.startsWith(path + "/certificates/reseed/")) { //filter according to the path
-                                if (!name.endsWith("/")) {
-                                    String fileName = name.substring(name.lastIndexOf("/") + 1);
-                                    LOG.info("fileName to save: " + fileName);
-                                    f = new File(reseedCertificates, fileName);
-                                }
-                            }
-                            if (name.startsWith(path + "/certificates/ssl/")) {
-                                if (!name.endsWith("/")) {
-                                    String fileName = name.substring(name.lastIndexOf("/") + 1);
-                                    LOG.info("fileName to save: " + fileName);
-                                    f = new File(sslCertificates, fileName);
-                                }
-                            }
-                            if (f != null) {
-                                boolean fileReadyToSave = false;
-                                if (!f.exists() && f.createNewFile()) fileReadyToSave = true;
-                                else if (f.exists() && f.delete() && f.createNewFile()) fileReadyToSave = true;
-                                if (fileReadyToSave) {
-                                    FileOutputStream fos = new FileOutputStream(f);
-                                    byte[] byteArray = new byte[1024];
-                                    int i;
-                                    InputStream is = getClass().getClassLoader().getResourceAsStream(name);
-                                    //While the input stream has bytes
-                                    while ((i = is.read(byteArray)) > 0) {
-                                        //Write the bytes to the output stream
-                                        fos.write(byteArray, 0, i);
-                                    }
-                                    //Close streams to prevent errors
-                                    is.close();
-                                    fos.close();
-                                    f = null;
-                                } else {
-                                    LOG.warning("Unable to save file from 1M5 jar and is required: " + name);
-                                    return false;
-                                }
-                            }
-                        }
-                        jar.close();
-                    } catch (IOException e) {
-                        LOG.warning(e.getLocalizedMessage());
-                        return false;
-                    }
-                }
-            }
-        } else {
-            // called while testing in an IDE
-            URL boteFolderURL = I2PBoteSensor.class.getResource(path);
-            File boteResFolder = null;
-            try {
-                boteResFolder = new File(boteFolderURL.toURI());
-            } catch (URISyntaxException e) {
-                LOG.warning("Unable to access bote resource directory.");
-                return false;
-            }
-            File[] boteResFolderFiles = boteResFolder.listFiles();
-            File certResFolder = null;
-            for (File f : boteResFolderFiles) {
-                if ("certificates".equals(f.getName())) {
-                    certResFolder = f;
-                    break;
-                }
-            }
-            if (certResFolder != null) {
-                File[] folders = certResFolder.listFiles();
-                for (File folder : folders) {
-                    if ("reseed".equals(folder.getName())) {
-                        File[] reseedCerts = folder.listFiles();
-                        for (File reseedCert : reseedCerts) {
-                            FileUtil.copy(reseedCert, reseedCertificates, true, false);
-                        }
-                    } else if ("ssl".equals(folder.getName())) {
-                        File[] sslCerts = folder.listFiles();
-                        for (File sslCert : sslCerts) {
-                            FileUtil.copy(sslCert, sslCertificates, true, false);
-                        }
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
         return true;
     }
 

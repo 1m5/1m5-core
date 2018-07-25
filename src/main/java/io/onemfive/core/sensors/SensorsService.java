@@ -30,6 +30,7 @@ import java.util.logging.Logger;
  * HIGH: I2P
  * VERYHIGH: I2P Bote
  * EXTREME: Mesh
+ * NEO: A combination of all anonymous networks from MEDIUM to EXTREME
  *
  * We are working towards providing the following sensitivity routing logic:
  *
@@ -71,7 +72,7 @@ import java.util.logging.Logger;
  * at which it will continue until supplied tokens for transaction are exhausted.
  * 4. If I2P fails during any of these attempts and MESH is available, MESH will take over.
  *
- *  @author ObjectOrange
+ *  @author objectorange
  */
 public class SensorsService extends BaseService {
 
