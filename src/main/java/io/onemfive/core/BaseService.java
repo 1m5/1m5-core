@@ -30,7 +30,8 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     public BaseService(MessageProducer producer, ServiceStatusListener listener) {
         infoVault = InfoVault.getInstance();
-        serviceStatusListeners.add(listener);
+        if(listener != null)
+            serviceStatusListeners.add(listener);
         this.producer = producer;
     }
 
@@ -48,7 +49,6 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     protected void updateStatus(ServiceStatus serviceStatus) {
         this.serviceStatus = serviceStatus;
-        LOG.info(this.getClass().getName()+" status changed to "+serviceStatus.toString());
         if(serviceStatusListeners != null) {
             for(ServiceStatusListener l : serviceStatusListeners) {
                 l.serviceStatusChanged(this.getClass().getName(), serviceStatus);

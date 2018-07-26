@@ -8,6 +8,10 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -22,11 +26,20 @@ public class DIDService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(DIDService.class.getName());
 
-    public static final String OPERATION_VERIFY = "Verify";
-    public static final String OPERATION_AUTHENTICATE = "Authenticate";
-    public static final String OPERATION_CREATE = "Create";
-    public static final String OPERATION_LOAD = "Load";
-    public static final String OPERATION_AUTHN_LOAD = "AuthenticateLoad";
+    public static final String OPERATION_VERIFY = "VERIFY";
+    public static final String OPERATION_AUTHENTICATE = "AUTHENTICATE";
+    public static final String OPERATION_CREATE = "CREATE";
+    public static final String OPERATION_LOAD = "LOAD";
+    public static final String OPERATION_AUTHN_LOAD = "AUTHN_LOAD";
+    public static final String OPERATION_HASH = "HASH";
+    public static final String OPERATION_VERIFY_HASH = "VERIFY_HASH";
+
+    public static final String MESSAGE_DIGEST_SHA1 = "SHA1";
+    public static final String MESSAGE_DIGEST_SHA256 = "SHA256";
+    public static final String MESSAGE_DIGEST_SHA384 = "SHA384";
+    public static final String MESSAEG_DIGEST_SHA512 = "SHA512";
+
+    private Map<String,DID> contacts;
 
     public DIDService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -55,6 +68,16 @@ public class DIDService extends BaseService {
             case OPERATION_CREATE: {create(e);break;}
             case OPERATION_LOAD: {load(e);break;}
             case OPERATION_AUTHN_LOAD: {authnLoad(e);break;}
+            case OPERATION_HASH: {
+                HashRequest r = (HashRequest)DLC.getData(HashRequest.class,e);
+                hash(r);
+                break;
+            }
+            case OPERATION_VERIFY_HASH:{
+                VerifyHashRequest r = (VerifyHashRequest)DLC.getData(VerifyHashRequest.class,e);
+                verifyHash(r);
+                break;
+            }
             default: deadLetter(e); // Operation not supported
         }
     }
@@ -74,34 +97,24 @@ public class DIDService extends BaseService {
     }
 
     /**
-     * Creates and returns DID
-     * TODO: Create PGP master keys if not present and I2P & Bote keys if not present
+     * Creates and returns identity key using master key for provided alias if one does not exist.
+     * If master key is not present, one will be created by the Key Ring Service.
      * @param e
      */
     private void create(Envelope e) {
         LOG.info("Received create DID request.");
         DID did = e.getDID();
-        DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
-        didCreated.setAuthenticated(true);
-        e.setDID(didCreated);
-        // TODO: Create PGP master keys if not present and I2P keys if not present
-//        boolean created = false;
-        // Use passphrase to encrypt and cache it
-//        try {
-//            I2PBote.getInstance().changePassword(alias.getBytes(), passphrase.getBytes(), passphrase2.getBytes());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (GeneralSecurityException e) {
-//            e.printStackTrace();
-//        } catch (PasswordException e) {
-//            e.printStackTrace();
-//        }
+        // make sure we don't already have a key
+        if(contacts.get(did.getAlias()) == null) {
 
+        }
+//        DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
+//        didCreated.setAuthenticated(true);
+//        e.setDID(didCreated);
     }
 
     /**
      * Authenticates passphrase
-     * TODO: Use PGP for authentication of master keys
      * @param e
      */
     private void authenticate(Envelope e) {
@@ -116,17 +129,6 @@ public class DIDService extends BaseService {
         } else {
             did.setAuthenticated(false);
         }
-//        boolean authn = false;
-//        try {
-//            I2PBote.getInstance().tryPassword(passphrase.getBytes());
-//            authn = true;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (GeneralSecurityException e) {
-//            e.printStackTrace();
-//        } catch (PasswordException e) {
-//            e.printStackTrace();
-//        }
     }
 
     private void load(Envelope e) {
@@ -148,10 +150,29 @@ public class DIDService extends BaseService {
         }
     }
 
+    private void hash(HashRequest r) {
+        try {
+            MessageDigest md = MessageDigest.getInstance(r.hashAlgorithm);
+            r.hash = md.digest(r.contentToHash);
+        } catch (NoSuchAlgorithmException e1) {
+            r.exception = e1;
+        }
+    }
+
+    private void verifyHash(VerifyHashRequest r) {
+        HashRequest hr = new HashRequest();
+        hr.contentToHash = r.content;
+        hr.hashAlgorithm = r.hashAlgorithm;
+        hash(hr);
+        r.isAMatch = hr.exception == null && hr.hash != null && new String(hr.hash).equals(new String(r.hashToVerify));
+    }
+
     @Override
     public boolean start(Properties properties) {
         LOG.info("Starting....");
         updateStatus(ServiceStatus.STARTING);
+
+        contacts = new HashMap<>();
 
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");

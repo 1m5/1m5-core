@@ -258,14 +258,17 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         NotificationService notificationService = new NotificationService(this, this);
         registeredServices.put(NotificationService.class.getName(), notificationService);
 
-        AdminService adminService = new AdminService(this, this);
-        registeredServices.put(AdminService.class.getName(), adminService);
+        KeyRingService keyRingService = new KeyRingService(this, this);
+        registeredServices.put(KeyRingService.class.getName(), keyRingService);
+
+        DIDService didService = new DIDService(this, this);
+        registeredServices.put(DIDService.class.getName(), didService);
 
         InfoVaultService infoVaultService = new InfoVaultService(this, this);
         registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
 
-        DIDService didService = new DIDService(this, this);
-        registeredServices.put(DIDService.class.getName(), didService);
+        AdminService adminService = new AdminService(this, this);
+        registeredServices.put(AdminService.class.getName(), adminService);
 
         // Additional Services should be registered by client via Admin Service
 
@@ -286,9 +289,6 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
 //        RepositoryService repositoryService = new RepositoryService(this, this);
 //        registeredServices.put(RepositoryService.class.getName(), repositoryService);
-
-//        KeyRingService keyRingService = new KeyRingService(this, this);
-//        registeredServices.put(KeyRingService.class.getName(), keyRingService);
 
 //        CurrencyService paymentService = new CurrencyService(this, this);
 //        registeredServices.put(CurrencyService.class.getName(), paymentService);

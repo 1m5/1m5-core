@@ -16,8 +16,8 @@
 
 	<name>core</name>
 	<url>https://1m5.io</url>
-	<description>AI Assistance for Humanity</description>
-	<inceptionYear>2018</inceptionYear>
+	<description>Invisible Matrix Services Core Library</description>
+	<inceptionYear>2017</inceptionYear>
 	<organization>
 		<name>1M5</name>
 		<url>https://1m5.io</url>
@@ -37,9 +37,9 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git@github.com/1m5</connection>
-		<developerConnection>scm:git@github.com/1m5</developerConnection>
-		<url>git@github.com/1m5</url>
+		<connection>scm:git@github.com/1m5/core</connection>
+		<developerConnection>scm:git@github.com/1m5/core</developerConnection>
+		<url>git@github.com/1m5/core</url>
 	</scm>
 
 	<profiles>
@@ -77,26 +77,17 @@
 			<version>${project.version}</version>
 		</dependency>
 		<!-- DID -->
-		<!--<dependency>-->
-			<!--<groupId>com.madgag.spongycastle</groupId>-->
-			<!--<artifactId>core</artifactId>-->
-			<!--<version>1.58.0.0</version>-->
-		<!--</dependency>-->
-		<!--<dependency>-->
-			<!--<groupId>com.madgag.spongycastle</groupId>-->
-			<!--<artifactId>prov</artifactId>-->
-			<!--<version>1.58.0.0</version>-->
-		<!--</dependency>-->
-		<!--<dependency>-->
-			<!--<groupId>com.madgag.spongycastle</groupId>-->
-			<!--<artifactId>bcpkix-jdk15on</artifactId>-->
-			<!--<version>1.58.0.0</version>-->
-		<!--</dependency>-->
-		<!--<dependency>-->
-			<!--<groupId>com.madgag.spongycastle</groupId>-->
-			<!--<artifactId>bcpg-jdk15on</artifactId>-->
-			<!--<version>1.58.0.0</version>-->
-		<!--</dependency>-->
+		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcpg-jdk15on -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpg-jdk15on</artifactId>
+			<version>1.60</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.60</version>
+		</dependency>
 		<!-- InfoVault -->
 		<dependency>
 			<groupId>org.dizitart</groupId>
