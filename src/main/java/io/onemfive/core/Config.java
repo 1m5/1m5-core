@@ -22,11 +22,11 @@ public class Config {
         return loadFromClasspath(name, null, false);
     }
 
-    public static Properties loadFromClasspath(String name, Properties scProps, boolean overrideSupplied) throws Exception {
+    public static Properties loadFromClasspath(String name, Properties inProps, boolean overrideSupplied) throws Exception {
         LOG.info("Loading properties file "+name+"...");
         Properties p = new Properties();
-        if(scProps != null && overrideSupplied)
-            p.putAll(scProps);
+        if(inProps != null && overrideSupplied)
+            p.putAll(inProps);
         InputStream is = null;
         try {
             is = Config.class.getClassLoader().getResourceAsStream(name);
@@ -35,6 +35,7 @@ public class Config {
             Enumeration propNames = p.propertyNames();
             while(propNames.hasMoreElements()){
                 String propName = (String)propNames.nextElement();
+                p.put(propName, p.getProperty(propName));
                 LOG.info(propName+":"+p.getProperty(propName));
             }
         } catch (Exception e) {
@@ -44,8 +45,8 @@ public class Config {
             if(is!=null)
                 try { is.close();} catch (IOException e) {}
         }
-        if(scProps != null && !overrideSupplied)
-            p.putAll(scProps);
+        if(inProps != null && !overrideSupplied)
+            p.putAll(inProps);
         return p;
     }
 

@@ -8,10 +8,15 @@ import io.onemfive.data.util.DLC;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
+import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.Provider;
 import java.security.Security;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -42,14 +47,15 @@ public class KeyRingService extends BaseService {
     public static final String OPERATION_STORE = "STORE";
     public static final String OPERATION_GET_KEYS = "GET_KEYS";
 
+    private static final String PROVIDER_BOUNCY_CASTLE = "BC";
+
     private static final Logger LOG = Logger.getLogger(KeyRingService.class.getName());
 
     private Properties properties;
 
-    // Master Key Ring
-    private PGPSecretKeyRing secretKeyRing;
-    // Identity Keys
-
+    // Master Key Rings
+    private PGPSecretKeyRingCollection secretKeyRingCollection;
+    private PGPPublicKeyRingCollection publicKeyRingCollection;
 
     public KeyRingService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -65,43 +71,93 @@ public class KeyRingService extends BaseService {
                 break;
             }
             case OPERATION_STORE: {
-                StoreKeyRingRequest r = (StoreKeyRingRequest)DLC.getData(StoreKeyRingRequest.class,e);
-                store(r);
+                store(e);
             }
             case OPERATION_GET_KEYS: {
-                GetKeysRequest r = (GetKeysRequest)DLC.getData(GetKeysRequest.class,e);
-                getKeys(r);
+                getKeys(e);
             }
             default: deadLetter(e);
         }
     }
 
-    private void store(StoreKeyRingRequest r) {
+    private void store(Envelope e) {
+        StoreKeyRingRequest r = (StoreKeyRingRequest)DLC.getData(StoreKeyRingRequest.class,e);
 
     }
 
     private void load(LoadKeyRingRequest r) {
+        if(r.publicKeyRingCollectionFileLocation == null) {
+            LOG.severe("public key collection location is required.");
+            return;
+        }
+        if(r.secretKeyRingCollectionFileLocation == null) {
+            LOG.severe("secrete key collection location is required.");
+            return;
+        }
+        if(r.passphrase == null) {
+            LOG.severe("passphrase is required.");
+            return;
+        }
+        File skr = new File(r.secretKeyRingCollectionFileLocation);
+        if(!skr.exists()) {
+            try {
+                if (!skr.createNewFile())
+                    return;
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                return;
+            }
+        }
 
+        File pkr = new File(r.publicKeyRingCollectionFileLocation);
+        if(!pkr.exists()) {
+            try {
+                if (!pkr.createNewFile())
+                    return;
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                return;
+            }
+        }
+
+        try {
+            FileInputStream fis = new FileInputStream(skr);
+            secretKeyRingCollection = new PGPSecretKeyRingCollection(fis, new JcaKeyFingerprintCalculator());
+            fis = new FileInputStream(pkr);
+            publicKeyRingCollection = new PGPPublicKeyRingCollection(fis, new JcaKeyFingerprintCalculator());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (PGPException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    private void getKeys(GetKeysRequest r) {
+    private void getKeys(Envelope e) {
+        GetKeysRequest r = (GetKeysRequest)DLC.getData(GetKeysRequest.class,e);
 
     }
 
     @Override
-    public boolean start(Properties properties) {
+    public boolean start(Properties p) {
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
 
-        this.properties = properties;
         try {
-            Config.loadFromClasspath("keyring.config", properties, false);
+            properties = Config.loadFromClasspath("keyring.config", p, false);
         } catch (Exception e) {
             LOG.warning(e.getLocalizedMessage());
         }
 
         Security.addProvider(new BouncyCastleProvider());
 
+        if(properties.get("1m5.keyring.secretKeyRingCollectionFile") != null && properties.get("1m5.keyring.publicKeyRingCollectionFile") != null) {
+            LoadKeyRingRequest r = new LoadKeyRingRequest();
+            r.secretKeyRingCollectionFileLocation = properties.getProperty("1m5.keyring.secretKeyRingCollectionFile");
+            r.publicKeyRingCollectionFileLocation = properties.getProperty("1m5.keyring.publicKeyRingCollectionFile");
+            r.passphrase = "1234".toCharArray();
+            r.autoGenerate = true;
+            load(r);
+        }
 
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started");
@@ -129,8 +185,8 @@ public class KeyRingService extends BaseService {
     }
 
     public static void main(String[] args) {
-        Security.addProvider(new BouncyCastleProvider());
-
+        KeyRingService s = new KeyRingService(null, null);
+        s.start(null);
     }
 
 }
