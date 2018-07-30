@@ -67,7 +67,7 @@ self-sovereign identities, GitLab, Monero, and other privacy preserving services
 a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
 a service registry, internal general services, and a number of Sensors for advanced intelligent interaction with other nodes.
 
-## [Implementation](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/core.md)
+## [Implementation](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/README.md)
 The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+. 
 Android is a subset of Java's JDK.
 
