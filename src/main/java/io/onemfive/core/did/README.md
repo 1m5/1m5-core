@@ -1,7 +1,7 @@
 # Decentralized IDentification (DID) Service
-Working to implement a [Web Of Trust](https://en.wikipedia.org/wiki/Web_of_trust) with Self Sovereign Identity
+Implementing [Web Of Trust](https://en.wikipedia.org/wiki/Web_of_trust) with Self Sovereign Identity
  
-Uses Key Ring Service to Manage the Keys
+Uses Key Ring Service to Manage the Physical Persistence of Keys
 
 ## Bill of Rights
 
@@ -19,6 +19,7 @@ so long as those interfaces come from open source and free efforts.
 * AES symmetric keys for encrypting identity keys and as session keys
 * SHA256 hashing for signatures and other integrity verifications
 * ElGamal for asymmetric keys
+* Multiple identities per person are supported to take into consideration different aspects of life
 
 ### Individuals must have the tools to access and control their identities
 Self-sovereign identity holders must be able to easily retrieve identity attributes and verified claims as well
@@ -27,6 +28,7 @@ information (PII) data that is hidden from the identity holder. This includes ma
 identity attributes, and keeping private what they choose.
 
 * Service interfaces for managing identities that can be called by user interface based applications.
+* Identity Keys lost can be recovered through verification with an established reputation via friends and family.
 
 ### The platforms and protocols on which self-sovereign identities are built, must be open and transparent
 This refers to how the platforms and protocols are governed, including how they are managed and updated.
@@ -40,7 +42,7 @@ The platform, protocols on which self-sovereign identities are built, must be go
 By definition, if the platform is governed by a private entity or limited set of participants, the Identity holder
 is not in control of the future of their identity.
 
-1M5 wil be governed by members and membership will be open to those using it through their public keys (identities).
+1M5 will be governed by members and membership will be open to those using it through their public keys (identities).
 Governance within the application will be supported in the future by members, especially with the implementation of [V4D](https://v4d.io).
 
 ### Identities must exist for the life of the identity holder
@@ -52,15 +54,14 @@ its claims: they can't be tied forever.
 
 * 1M5 is a decentralized autonomous organization in that it is not registered in any jurisdiction and thus will exist so long as there is membership.
 * All keys and the data they have access to can be deleted from the system at any time.
-* Data provided to another party is forever un-controllable as a copy is provided to the other party.
-* Data provided to another party at a given time does not mean that any future data will be given unless explicitly given permission.
+* Data provided to another party is a one-time copy provided to the other party and no longer revocable unless maintained with the other party in 1M5.
 * Any recurring data access to another party can be immediately canceled at any time.
 
 ### Identities must be portable
 
 Identity attributes and verified claims must be controlled personally and be transportable and interoperable
 as desired. Government entities, companies and other individuals can come and go. So it is essential that
-identity holders can move their identity data to other blockchains or platforms to ensure that they alone
+identity holders can move their identity data to other platforms to ensure that they alone
 control their identity.
 
 * Using common standards today and as the industry evolves while ensuring keys can be imported, exported, and mapped to new technologies as they evolve.
@@ -91,8 +92,8 @@ and shared. If an identity holder wants to enable an age-related commercial tran
 the only verified claim that needs to be share is whether they are over 21. There is not need to share actual age,
 street address, height, weight, etc.
 
-* Access can be given to data at a very granular level explicitly approved by the member.
-* No integrations with legal systems will be tolerated. Laws are made by one group to control other groups behaviors and normally found to be unethical. Although data can be shown to 3rd parties if the member wishes as in the example with being old enough to purchase alcohol in a jurisdiction requiring proof of age.
+* Access can be given to data at the lowest attribute level explicitly approved by the member.
+* Data can be shown to 3rd parties if the member wishes as in the example with being old enough to purchase alcohol in a jurisdiction requiring proof of age but all data owned by the user is managed by the user to uphold voluntaryism.
 * The only rules to be followed within 1M5 is ethics and it's defined to be the non-aggression principle / voluntary relationships (voluntaryism).
 
 ### The rights of identity holders must supersede any other platform or ecosystem entities</h2>
@@ -106,4 +107,5 @@ independent, and free of censorship.
 * Independent: 1M5 is a DAO with no jurisdiction oversight, only member oversight
 * Free of Censorship: 1M5's bread and butter - anonymous highly censorship resistant communications with strong at-rest data encryption
 
-## 
+## Features and Roadmap
+The DID Service is being implemented as individual projects needs arise.

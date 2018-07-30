@@ -71,3 +71,16 @@ a service registry, internal general services, and a number of Sensors for advan
 The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+. 
 Android is a subset of Java's JDK.
 
+## Integrations
+
+### [Inkrypt's](https://inkrypt.io) - Content Delivery Network (CDN) for Journalism
+Inkrypt is building a CDN for Journalists to store and publish articles fighting government
+oppression of the right to free speech globally. They need censorship resistant identities
+to protect journalists from harm yet support their ability to build a reputation as a trusting
+source for news and to ensure that information is also not censored nor stolen yet allows
+the journalist to release portions of the information as they desire to whom they desire
+to share it with to include no one or everyone (global public).
+
+### [Dragonsbane](https://dragonsbane.io) - Health and Wellness for All
+
+### [Purism](https://puri.sm) - Censorship Resistant Hardware and Operating Systems
