@@ -71,6 +71,8 @@ a service registry, internal general services, and a number of Sensors for advan
 The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+. 
 Android is a subset of Java's JDK.
 
+Documentation of the Core starts [here](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/README.md).
+
 ## Integrations
 
 ### [Inkrypt's](https://inkrypt.io) - Content Delivery Network (CDN) for Journalism
@@ -84,3 +86,9 @@ to share it with to include no one or everyone (global public).
 ### [Dragonsbane](https://dragonsbane.io) - Health and Wellness for All
 
 ### [Purism](https://puri.sm) - Censorship Resistant Hardware and Operating Systems
+
+### [DGramz](https://dgramz.io) - Open Private Communications for Humanity - Free Speech Worldwide
+
+### [V4D](https://v4d.io) - Voluntary Decentralized Delegative Direct Democracy
+
+### [460R4](https://460r4.io/) - Voluntary Markets
