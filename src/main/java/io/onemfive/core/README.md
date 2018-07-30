@@ -73,12 +73,6 @@ Access revocable on your command.
 Currently uses Nitrite NoSQL embedded database used for persisting and loading into memory 1M5 data entities.
 Needs to be seriously redesigned towards a JanusGraph over Cassandra on 10 billion mobiles with response times < 500ms.
 
-### [IPFS Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/ipfs/README.md)
-Acts as an API for IPFS. 
-Supports local IPFS nodes, making calls to remote gateways, and acting as a gateway.
-IPFS doesn't support anonymous communications inter-node and encryption must be provided.
-Privacy isn't very strong and thus IPFS should only be used for public information without fear of censorship or retaliation.
-
 ### [KeyRing Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/keyring/README.md)
 Key management for securing your keys on your mobile and off-line. 
 Supports sending keys to and receiving keys from off-line key vaults. 
@@ -113,7 +107,7 @@ The first implementation is for GitLab using GitLab.com as a temporary hosting s
 Started but not yet implemented.
 
 ### [SecureDrop Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/securedrop/README.md)
-Simplifies submitting sensitive data to Secure Drop service via clearnet or Tor.
+Simplifies submitting sensitive data to Secure Drop service via Tor.
 
 Not Yet Implemented.
 
