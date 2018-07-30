@@ -2,6 +2,7 @@ package io.onemfive.core.content;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatus;
 import io.onemfive.core.ServiceStatusListener;
 
 import java.util.Properties;
@@ -23,8 +24,27 @@ public class ContentService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        LOG.info("Not implemented yet.");
+        LOG.info("Starting....");
+        updateStatus(ServiceStatus.STARTING);
+
+        updateStatus(ServiceStatus.RUNNING);
+        LOG.info("Started.");
         return true;
+    }
+
+    @Override
+    public boolean shutdown() {
+        LOG.info("Shutting down....");
+        updateStatus(ServiceStatus.SHUTTING_DOWN);
+
+        updateStatus(ServiceStatus.SHUTDOWN);
+        LOG.info("Shutdown.");
+        return true;
+    }
+
+    @Override
+    public boolean gracefulShutdown() {
+        return shutdown();
     }
 
 }
