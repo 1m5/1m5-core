@@ -6,7 +6,14 @@ for embedding.
 0.5.2
 
 ## Authors / Developers
-- [ObjectOrange](https://github.com/objectorange) - objectorange@protonmail.com
+* Founder / Project Lead Developer: [ObjectOrange](https://github.com/objectorange) - objectorange@protonmail.com
+* Quality Assurance Developer: Anonymous
+* I2P Lead Developer: Desired
+* Identity (DID) Lead Developer: Desired
+* Content Lead Developer: Desired
+
+## Bounties
+* Paid in Bitcoin
 
 ## Opportunities
 [**Freedom of Speech**](https://en.wikipedia.org/wiki/Freedom_of_speech) - a principle that supports the freedom of 
@@ -92,3 +99,4 @@ to share it with to include no one or everyone (global public).
 ### [V4D](https://v4d.io) - Voluntary Decentralized Delegative Direct Democracy
 
 ### [460R4](https://460r4.io/) - Voluntary Markets
+
