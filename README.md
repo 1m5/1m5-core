@@ -7,7 +7,7 @@ for embedding.
 
 ## Authors / Developers
 * Founder / Project Lead Developer: [ObjectOrange](https://github.com/objectorange) - objectorange@protonmail.com
-* Quality Assurance Developer: Anonymous
+* Quality Assurance Developer: Private
 * I2P Lead Developer: Desired
 * Identity (DID) Lead Developer: Desired
 * Content Lead Developer: Desired
