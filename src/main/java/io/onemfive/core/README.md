@@ -18,7 +18,7 @@ Classes used throughout all components are:
 - **ServiceStatusListener**: Interface for receiving service status'.
 
 ## Components
-Primary components are the bus, services, sensors, and utilities.
+Primary components are the bus, clients, services, and sensors.
 
 ### [Admin Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/admin/README.md)
 It supports registration of services with the service bus. 
