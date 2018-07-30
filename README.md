@@ -75,7 +75,7 @@ Documentation of the Core starts [here](https://github.com/1m5/core/tree/master/
 
 ## Integrations
 
-### [Inkrypt's](https://inkrypt.io) - Content Delivery Network (CDN) for Journalism
+### [Inkrypt](https://inkrypt.io) - Content Delivery Network (CDN) for Journalism
 Inkrypt is building a CDN for Journalists to store and publish articles fighting government
 oppression of the right to free speech globally. They need censorship resistant identities
 to protect journalists from harm yet support their ability to build a reputation as a trusting
