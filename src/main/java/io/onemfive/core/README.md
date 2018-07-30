@@ -79,7 +79,7 @@ Supports local IPFS nodes, making calls to remote gateways, and acting as a gate
 IPFS doesn't support anonymous communications inter-node and encryption must be provided.
 Privacy isn't very strong and thus IPFS should only be used for public information without fear of censorship or retaliation.
 
-### [KeyRing Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/ipfs/README.md)
+### [KeyRing Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/keyring/README.md)
 Key management for securing your keys on your mobile and off-line. 
 Supports sending keys to and receiving keys from off-line key vaults. 
 
