@@ -7,6 +7,7 @@ import io.onemfive.core.util.Wait;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.EventMessage;
+import io.onemfive.data.Peer;
 import io.onemfive.data.util.DLC;
 import net.i2p.I2PException;
 import net.i2p.client.*;
@@ -104,13 +105,14 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
     @Override
     public boolean send(Envelope envelope) {
         LOG.info("Sending I2P Message...");
-        DID toDID = (DID)DLC.getEntity(envelope);
-        if(toDID == null) {
-            LOG.warning("No toDID found as Entity in Envelope while sending to I2P.");
+        DID did = (DID)DLC.getEntity(envelope);
+        if(did == null) {
+            LOG.warning("No DID found as Entity in Envelope while sending to I2P.");
             return false;
         }
-        if(toDID.getEncodedKey(DID.Provider.I2P) == null) {
-            LOG.warning("toDID must have an encodedKey for provider I2P.");
+        Peer to = did.getPeer(Peer.NETWORK_I2P);
+        if(to == null) {
+            LOG.warning("No Peer for I2P found in DID while sending to I2P.");
             return false;
         }
         String content = (String) DLC.getContent(envelope);
@@ -118,12 +120,11 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
             LOG.warning("No content found in Envelope while sending to I2P.");
             return false;
         }
+
         try {
-            Destination destination = new Destination(toDID.getEncodedKey(DID.Provider.I2P));
+            Destination destination = i2pSession.lookupDest(to.toString());
             i2pSession.sendMessage(destination, content.getBytes());
             LOG.info("I2P Message sent.");
-        } catch (DataFormatException e) {
-            LOG.warning("Exception while creating I2P Destination using encoded key ["+toDID.getEncodedKey(DID.Provider.I2P)+"]: "+e.getLocalizedMessage());
         } catch (I2PSessionException e) {
             LOG.warning("Exception while sending I2P message: " + e.getLocalizedMessage());
             return false;
@@ -155,14 +156,14 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
             d.loadI2PDatagram(msg);
             byte[] payload = d.getPayload();
             Destination sender = d.getSender();
-
             Envelope e = Envelope.eventFactory(EventMessage.Type.TEXT);
-            DID fromDID = new DID();
-            fromDID.addEncodedKey(DID.Provider.I2P, sender.toBase64());
-            e.setDID(fromDID);
+            Peer from = new Peer(Peer.NETWORK_I2P, sender.toBase64());
+            DID did = new DID();
+            did.addPeer(from);
+            e.setDID(did);
             EventMessage m = (EventMessage)e.getMessage();
             m.setMessage(new String(payload));
-            m.setName(fromDID.getEncodedKey(DID.Provider.I2P));
+            m.setName(from.getAddress());
             DLC.addRoute(NotificationService.class, NotificationService.OPERATION_PUBLISH, e);
             sensorsService.sendToBus(e);
         }

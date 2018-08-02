@@ -2,42 +2,21 @@ package io.onemfive.core.keyring;
 
 import io.onemfive.core.*;
 import io.onemfive.data.Envelope;
-import io.onemfive.data.EventMessage;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
-import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
-import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.Provider;
 import java.security.Security;
-import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * Creates, persists, and removes identity keys (OpenPGP) wrapping them with a symmetric key (AES).
- * Provides identity keys for DID Service.
- * Storage currently local hard drive but slated to support external usb drives.
- *
- * Some policies:
- * <ul>
- *     <li>Confidentiality
- *          <ul>
- *              <li>No certificates will be used in 1M5 as it would require divulging an identity to an untrusted 3rd party</li>
- *          </ul>
- *     </li>
- *     <li>Availability
- *          <ul>
- *              <li>Cipher flexibility is important as 1M5 is a platform for integrating service providers and sensors</li>
- *          </ul>
- *     </li>
- * </ul>
+ * Manages keys for the bus and its user.
  *
  * @author ObjectOrange
  */
@@ -53,9 +32,9 @@ public class KeyRingService extends BaseService {
 
     private Properties properties;
 
-    // Master Key Rings
-    private PGPSecretKeyRingCollection secretKeyRingCollection;
-    private PGPPublicKeyRingCollection publicKeyRingCollection;
+    // Key Rings
+    private PGPSecretKeyRing secretKeyRing;
+    private PGPPublicKeyRing publicKeyRing;
 
     public KeyRingService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -122,9 +101,11 @@ public class KeyRingService extends BaseService {
 
         try {
             FileInputStream fis = new FileInputStream(skr);
-            secretKeyRingCollection = new PGPSecretKeyRingCollection(fis, new JcaKeyFingerprintCalculator());
+            secretKeyRing = new PGPSecretKeyRing(fis, new JcaKeyFingerprintCalculator());
+
             fis = new FileInputStream(pkr);
-            publicKeyRingCollection = new PGPPublicKeyRingCollection(fis, new JcaKeyFingerprintCalculator());
+            publicKeyRing = new PGPPublicKeyRing(fis, new JcaKeyFingerprintCalculator());
+
         } catch (IOException ex) {
             ex.printStackTrace();
         } catch (PGPException ex) {
@@ -135,6 +116,28 @@ public class KeyRingService extends BaseService {
     private void getKeys(Envelope e) {
         GetKeysRequest r = (GetKeysRequest)DLC.getData(GetKeysRequest.class,e);
 
+    }
+
+    private PGPPublicKey getPublicKey(String alias) {
+        PGPPublicKey key = null;
+        if(publicKeyRing != null) {
+
+        }
+        return key;
+    }
+
+    private PGPPrivateKey getPrivateKey(String alias) {
+        PGPPrivateKey key = null;
+
+        return key;
+    }
+
+    private PGPSecretKey getSecretKey(String alias) {
+        PGPSecretKey key = null;
+        if(secretKeyRing != null) {
+
+        }
+        return key;
     }
 
     @Override
@@ -150,11 +153,12 @@ public class KeyRingService extends BaseService {
 
         Security.addProvider(new BouncyCastleProvider());
 
-        if(properties.get("1m5.keyring.secretKeyRingCollectionFile") != null && properties.get("1m5.keyring.publicKeyRingCollectionFile") != null) {
+        if(properties.get("1m5.keyring.secretKeyRingCollectionFile") != null
+                && properties.get("1m5.keyring.publicKeyRingCollectionFile") != null) {
             LoadKeyRingRequest r = new LoadKeyRingRequest();
             r.secretKeyRingCollectionFileLocation = properties.getProperty("1m5.keyring.secretKeyRingCollectionFile");
             r.publicKeyRingCollectionFileLocation = properties.getProperty("1m5.keyring.publicKeyRingCollectionFile");
-            r.passphrase = "1234".toCharArray();
+            r.passphrase = "x8j32o$Dz8jaf4a!iPsfa2klKdQ".toCharArray();
             r.autoGenerate = true;
             load(r);
         }

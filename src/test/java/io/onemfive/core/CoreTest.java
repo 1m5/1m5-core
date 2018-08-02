@@ -17,6 +17,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -120,9 +121,13 @@ public class CoreTest {
 
 //    @Test
     public void testDIDCreate() {
-        DID did = new DID();
-        did.setAlias("Alice");
-        did.setPassphrase("1234");
+        DID did = null;
+        try {
+            did = DID.create("Alice", "1234", DID.MESSAGE_DIGEST_SHA512);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            assert false;
+        }
         ServiceCallback cb = new ServiceCallback() {
             @Override
             public void reply(Envelope envelope) {
@@ -139,9 +144,13 @@ public class CoreTest {
 
 //    @Test
     public void testDIDAuthN() {
-        DID did = new DID();
-        did.setAlias("Alice");
-        did.setPassphrase("1234");
+        DID did = null;
+        try {
+            did = DID.create("Alice", "1234", DID.MESSAGE_DIGEST_SHA512);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            assert false;
+        }
         ServiceCallback cb = new ServiceCallback() {
             @Override
             public void reply(Envelope envelope) {

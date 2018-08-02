@@ -11,6 +11,7 @@ import io.onemfive.core.sensors.i2p.bote.folder.EmailFolder;
 import io.onemfive.core.sensors.i2p.bote.folder.NewEmailListener;
 import io.onemfive.core.sensors.i2p.bote.network.NetworkStatus;
 import io.onemfive.core.sensors.i2p.bote.network.NetworkStatusListener;
+import io.onemfive.core.sensors.i2p.bote.packet.dht.Contact;
 import io.onemfive.core.sensors.i2p.bote.status.ChangeIdentityStatus;
 import io.onemfive.core.sensors.i2p.bote.status.StatusListener;
 import io.onemfive.core.sensors.i2p.bote.util.BoteHelper;
@@ -74,55 +75,96 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
                 LOG.warning("Unable to create Anonymous sender InternetAddress");
                 return false;
             }
-        } else if(fromDID.getEncodedKey() == null) {
-            LOG.warning("From DID Encoded Key is null: alias="+fromDID.getAlias());
-            return false;
         } else {
             try {
-                sender = new InternetAddress(BoteHelper.getNameAndDestination(fromDID.getEncodedKey()));
+                Peer fromPeer = fromDID.getPeer(Peer.NETWORK_I2P);
+                if(fromPeer == null) {
+                    // peer not provided
+                    if(fromDID.getAlias() != null) {
+                        // alias provided so look to see if there is an EmailIdentity associated with it
+                        Collection<EmailIdentity> identities = I2PBote.getInstance().getIdentities().getAll();
+                        for (EmailIdentity i : identities) {
+                            if (fromDID.getAlias().equals(i.getPublicName())) {
+                                // EmailIdentity's public name is alias
+                                fromPeer = new Peer(Peer.NETWORK_I2P, i.toBase64());
+                            }
+                        }
+                    }
+                    if(fromPeer == null) {
+                        // Use default
+                        fromPeer = new Peer(Peer.NETWORK_I2P, I2PBote.getInstance().getLocalDestination().toBase64());
+                        fromDID.addPeer(fromPeer);
+                    }
+                }
+                sender = new InternetAddress(BoteHelper.getNameAndDestination(fromPeer.getAddress()));
             } catch (AddressException e1) {
                 e1.printStackTrace();
-                LOG.warning("Unable to build InternetAddress using FromDID with EncodedKey="+fromDID.getEncodedKey()+" and alias="+fromDID.getAlias());
+                LOG.warning("Unable to build InternetAddress using FromDID with hash="+fromDID.toString()+" and alias="+fromDID.getAlias());
                 return false;
             } catch (PasswordException e1) {
                 e1.printStackTrace();
-                LOG.warning("Password either not present or incorrect when building InternetAddress using FromDID with EncodedKey="+fromDID.getEncodedKey()+" and alias="+fromDID.getAlias());
+                LOG.warning("Passphrase either not present or incorrect when building InternetAddress using FromDID with hash="+fromDID.toString()+" and alias="+fromDID.getAlias());
                 return false;
             } catch (IOException e1) {
                 e1.printStackTrace();
-                LOG.warning("IOException caught when building InternetAddress using FromDID with EncodedKey="+fromDID.getEncodedKey()+" and alias="+fromDID.getAlias());
+                LOG.warning("IOException caught when building InternetAddress using FromDID with hash="+fromDID.toString()+" and alias="+fromDID.getAlias());
                 return false;
             } catch (GeneralSecurityException e1) {
                 e1.printStackTrace();
-                LOG.warning("GeneralSecurityException caught when building InternetAddress using FromDID with EncodedKey="+fromDID.getEncodedKey()+" and alias="+fromDID.getAlias());
+                LOG.warning("GeneralSecurityException caught when building InternetAddress using FromDID with hash="+fromDID.toString()+" and alias="+fromDID.getAlias());
                 return false;
             }
         }
 
-        InternetAddress recipient = null;
+        if(toDID == null) {
+            LOG.warning("To DID required to send I2P Bote message (no destination).");
+            return false;
+        }
+        Peer toPeer = toDID.getPeer(Peer.NETWORK_I2P);
+        if(toPeer==null) {
+            if(toDID.getAlias() != null) {
+                try {
+                    Set<Contact> contacts = I2PBote.getInstance().getAddressBook().getAll();
+                    for(Contact c : contacts) {
+                        if(toDID.getAlias().equals(c.getName())) {
+                            toPeer = new Peer(Peer.NETWORK_I2P, c.getBase64Dest());
+                            toDID.addPeer(toPeer);
+                        }
+                    }
+                } catch (PasswordException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                }
+            }
+        }
+        if(toPeer == null) {
+            LOG.warning("To Peer not provided in To DID and unable to find it in I2P Bote Addressbook");
+            return false;
+        }
+        InternetAddress recipient;
         try {
-            recipient = new InternetAddress(BoteHelper.getNameAndDestination(toDID.getEncodedKey()));
+            recipient = new InternetAddress(BoteHelper.getNameAndDestination(toPeer.getAddress()));
         } catch (AddressException e1) {
             e1.printStackTrace();
-            LOG.warning("Unable to build InternetAddress using ToDID with EncodedKey="+toDID.getEncodedKey()+" and alias="+toDID.getAlias());
+            LOG.warning("Unable to build InternetAddress using ToDID with hash=" + toDID.toString() + " and alias=" + toDID.getAlias());
             return false;
         } catch (PasswordException e1) {
             e1.printStackTrace();
-            LOG.warning("Password either not present or incorrect when building InternetAddress using ToDID with EncodedKey="+toDID.getEncodedKey()+" and alias="+toDID.getAlias());
+            LOG.warning("Password either not present or incorrect when building InternetAddress using ToDID with hash=" + toDID.toString() + " and alias=" + toDID.getAlias());
             return false;
         } catch (IOException e1) {
             e1.printStackTrace();
-            LOG.warning("IOException caught when building InternetAddress using ToDID with EncodedKey="+toDID.getEncodedKey()+" and alias="+toDID.getAlias());
+            LOG.warning("IOException caught when building InternetAddress using ToDID with hash=" + toDID.toString() + " and alias=" + toDID.getAlias());
             return false;
         } catch (GeneralSecurityException e1) {
             e1.printStackTrace();
-            LOG.warning("GeneralSecurityException caught when building InternetAddress using ToDID with EncodedKey="+toDID.getEncodedKey()+" and alias="+toDID.getAlias());
+            LOG.warning("GeneralSecurityException caught when building InternetAddress using ToDID with hash=" + toDID.toString() + " and alias=" + toDID.getAlias());
             return false;
         }
+
         Email i2pEmail;
         if(subject != null && message != null) {
             i2pEmail = new Email(I2PBote.getInstance().getConfiguration().getIncludeSentTime());
-            List<Attachment> attachments = new ArrayList<>();
+//            List<Attachment> attachments = new ArrayList<>();
             try {
                 i2pEmail.setSender(sender);
                 i2pEmail.addRecipient(Message.RecipientType.TO, recipient);
@@ -164,88 +206,6 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
             return false;
         }
         return true;
-    }
-
-    public void getKeys(Envelope e) {
-        DID did = e.getDID();
-        LOG.info("Retrieving I2P Bote keys...");
-        Identities identities = I2PBote.getInstance().getIdentities();
-        EmailIdentity emailIdentity = null;
-        try {
-            emailIdentity = identities.getDefault();
-            if(emailIdentity != null) {
-                LOG.info("Default Identity found.");
-            } else {
-                LOG.info("Default Identity not found; must create.");
-            }
-        } catch (PasswordException e1) {
-            LOG.warning(e1.getLocalizedMessage());
-        } catch (IOException e1) {
-            LOG.warning(e1.getLocalizedMessage());
-        } catch (GeneralSecurityException e1) {
-            LOG.warning(e1.getLocalizedMessage());
-        }
-        if(emailIdentity == null) {
-            // No Default Identity therefore create one
-            StatusListener<ChangeIdentityStatus> lsnr = new StatusListener<ChangeIdentityStatus>() {
-                @Override
-                public void updateStatus(ChangeIdentityStatus changeIdentityStatus, String... args) {
-                    LOG.info(changeIdentityStatus.toString());
-                }
-            };
-            /**
-             * Args:
-             * 1 = new?
-             * 2 = Crypto IDs:
-             *      1 = ElGamal-2048 / DSA-1024
-             *      2 = ECDH-256 / ECDSA-256
-             *      3 = ECDH-521 / ECDSA-521
-             *      4 = NTRUEncrypt-1087 / GMSS-512
-             * 3,4 = null
-             * 5 = Alias/Public Name
-             * 6-9 = null
-             * 10 = default?
-             * 11 = StatusListener
-             */
-            try {
-                LOG.info("Creating default identities with alias: "+did.getAlias());
-                GeneralHelper.createOrModifyIdentity(true, ElGamal2048DSA1024, null, null, did.getAlias(), null, null, null, null, true, lsnr);
-                emailIdentity = identities.getDefault();
-                LOG.info("Was new default identity created: "+Boolean.toString(emailIdentity != null));
-                if(emailIdentity != null) {
-                    LOG.info("Saving Identities...");
-                    identities.save();
-                }
-            } catch (GeneralSecurityException e1) {
-                LOG.warning(e1.getLocalizedMessage());
-            } catch (PasswordException e1) {
-                LOG.warning(e1.getLocalizedMessage());
-            } catch (IOException e1) {
-                LOG.warning(e1.getLocalizedMessage());
-            } catch (IllegalDestinationParametersException e1) {
-                LOG.warning(e1.getLocalizedMessage());
-            }
-        }
-        if(emailIdentity != null) {
-            LOG.info("Building up DID for alias "+did.getAlias()+"...");
-            PublicKey publicEncryptionKey = emailIdentity.getPublicEncryptionKey();
-//            PrivateKey privateEncryptionKey = emailIdentity.getPrivateEncryptionKey();
-//            KeyPair encryptionKeyPair = new KeyPair(publicEncryptionKey, privateEncryptionKey);
-//            did.addEncryptionKeys(DID.Provider.I2P, did.getAlias(), encryptionKeyPair);
-
-            PublicKey publicSigningKey = emailIdentity.getPublicSigningKey();
-//            PrivateKey privateSigningKey = emailIdentity.getPrivateSigningKey();
-//            KeyPair signingKeyPair = new KeyPair(publicSigningKey, privateSigningKey);
-//            did.addIdentity(DID.Provider.I2P, did.getAlias(), signingKeyPair);
-
-            PublicKeyPair publicKeyPair = new PublicKeyPair(publicEncryptionKey, publicSigningKey);
-            try {
-                did.addEncodedKey(emailIdentity.getCryptoImpl().toBase64(publicKeyPair));
-                LOG.info("Base64 public key pair: "+did.getEncodedKey());
-            } catch (GeneralSecurityException e1) {
-                LOG.warning("GeneralSecurityException caught while converting public keys to base 64.");
-            }
-        }
     }
 
     @Override
@@ -300,17 +260,17 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
                 String fromAddress = (i2pEmail.getAllFromAddresses().toArray()[0]).toString();
                 fromAddress = fromAddress.substring(fromAddress.indexOf("<")+1);
                 fromAddress = fromAddress.substring(0,fromAddress.length()-1);
-                fromDID.addEncodedKey(DID.Provider.I2P, fromAddress);
+                fromDID.setHashAndAlgorithm(fromAddress.getBytes(),DID.ENCODING_BASE64);
                 email.setFromDID(fromDID);
-                LOG.info("From Address: "+fromDID.getEncodedKey());
+                LOG.info("From Address: "+fromDID.toString());
 
                 DID toDID = new DID();
                 String toAddress = i2pEmail.getToAddresses()[0].toString();
                 toAddress = toAddress.substring(toAddress.indexOf("<")+1);
                 toAddress = toAddress.substring(0,toAddress.length()-1);
-                toDID.addEncodedKey(DID.Provider.I2P, toAddress);
+                toDID.setHashAndAlgorithm(toAddress.getBytes(),DID.ENCODING_BASE64);
                 email.setToDID(toDID);
-                LOG.info("To Address: "+toDID.getEncodedKey());
+                LOG.info("To Address: "+toDID.toString());
 
                 email.setSubject(i2pEmail.getSubject());
                 LOG.info("Email subject: "+email.getSubject());
@@ -328,7 +288,7 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
                 e.setDID(fromDID);
                 EventMessage m = (EventMessage)e.getMessage();
                 m.setMessage(email);
-                m.setName(fromDID.getEncodedKey());
+                m.setName(fromDID.toString());
                 DLC.addRoute(NotificationService.class, NotificationService.OPERATION_PUBLISH,e);
                 sensorsService.sendToBus(e);
 

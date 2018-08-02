@@ -68,21 +68,6 @@ public class OneMFiveStandaloneLauncher {
         toDID = new DID();
         toDID.setAlias("Alice");
 
-        ServiceCallback getKeyCB = new ServiceCallback() {
-            @Override
-            public void reply(Envelope e) {
-                DID did = e.getDID();
-                if(did != null && did.getEncodedKey() != null) {
-                    fromDID.addEncodedKey(did.getEncodedKey());
-                    toDID.addEncodedKey(did.getEncodedKey());
-                    LOG.info("Received encoded key: "+did.getEncodedKey());
-                    receivedKey = true;
-                } else {
-                    LOG.warning("Did not receive encoded key.");
-                }
-            }
-        };
-
         Subscription subscription = new Subscription() {
             @Override
             public void notifyOfEvent(Envelope e) {
@@ -121,17 +106,7 @@ public class OneMFiveStandaloneLauncher {
         int numberEmailsSent = 0;
         while(status != ClientAppManager.Status.STOPPED) {
             if(status == ClientAppManager.Status.READY) {
-                if(!requestedKey) {
-                    // Step 1: Send Key Request
-                    Envelope e = Envelope.documentFactory();
-                    e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
-                    e.setDID(fromDID);
-                    DLC.addRoute(SensorsService.class, SensorsService.OPERATION_GET_KEYS,e);
-                    c.request(e,getKeyCB);
-                    requestedKey = true;
-                } else if(receivedKey && toDID.getEncodedKey() == null) {
-                    toDID.addEncodedKey(fromDID.getEncodedKey());
-                } else if(!emailSubscribed) {
+                if(!emailSubscribed) {
                     c.subscribeToEmail(subscription);
                     emailSubscribed = true;
                 } else if(!emailSent) {

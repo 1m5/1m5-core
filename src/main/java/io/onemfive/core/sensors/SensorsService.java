@@ -78,7 +78,6 @@ public class SensorsService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(SensorsService.class.getName());
 
-    public static final String OPERATION_GET_KEYS = "GET_KEYS";
     public static final String OPERATION_SEND = "SEND";
     public static final String OPERATION_REPLY_CLEARNET = "REPLY_CLEARNET";
 
@@ -114,6 +113,7 @@ public class SensorsService extends BaseService {
                 && activeSensors.containsKey(SensorID.TOR)) {
             // Use Tor
             LOG.fine("Using Tor Sensor...");
+
             sensor = activeSensors.get(SensorID.TOR);
         } else if(Envelope.Sensitivity.HIGH.equals(e.getSensitivity())
                 || r.getOperation().endsWith(".i2p")
@@ -157,9 +157,6 @@ public class SensorsService extends BaseService {
             if(OPERATION_SEND.equals(r.getOperation())) {
                 LOG.fine("Sending Envelope to selected Sensor...");
                 sensor.send(e);
-            } else if(OPERATION_GET_KEYS.equals(r.getOperation()) && sensor instanceof I2PBoteSensor) {
-                LOG.fine("Retrieving keys from I2PBoteSensor...");
-                ((I2PBoteSensor) sensor).getKeys(e);
             }
         } else {
             if (r.getOperation().equals(OPERATION_REPLY_CLEARNET)) {

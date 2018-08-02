@@ -4,6 +4,7 @@ import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 import io.onemfive.data.DID;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.logging.Logger;
 
@@ -23,15 +24,11 @@ public class DIDDAO {
         this.dbMgr = dbMgr;
     }
 
-    public DID createDID(String alias, String passphrase) {
+    public DID createDID(String alias, String passphrase, String hashAlgorithm) throws NoSuchAlgorithmException {
         DID did = load(alias);
         if(did == null) {
             LOG.info("Creating DID with alias: "+alias);
-            did = new DID();
-            did.setId(random.nextLong());
-            did.setAlias(alias);
-            did.setPassphrase(passphrase);
-            did.setStatus(DID.Status.ACTIVE);
+            did = DID.create(alias, passphrase, hashAlgorithm);
             dbMgr.getDb().getRepository(DID.class).insert(did);
         } else {
             LOG.info("DID alias already present: "+alias);

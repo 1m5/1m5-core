@@ -1,7 +1,6 @@
 package io.onemfive.core.did;
 
 import io.onemfive.core.*;
-import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
@@ -26,15 +25,9 @@ public class DIDService extends BaseService {
     public static final String OPERATION_VERIFY = "VERIFY";
     public static final String OPERATION_AUTHENTICATE = "AUTHENTICATE";
     public static final String OPERATION_CREATE = "CREATE";
-    public static final String OPERATION_LOAD = "LOAD";
-    public static final String OPERATION_AUTHN_LOAD = "AUTHN_LOAD";
+    public static final String OPERATION_AUTHENTICATE_CREATE = "AUTHENTICATE_CREATE";
     public static final String OPERATION_HASH = "HASH";
     public static final String OPERATION_VERIFY_HASH = "VERIFY_HASH";
-
-    public static final String MESSAGE_DIGEST_SHA1 = "SHA1";
-    public static final String MESSAGE_DIGEST_SHA256 = "SHA256";
-    public static final String MESSAGE_DIGEST_SHA384 = "SHA384";
-    public static final String MESSAEG_DIGEST_SHA512 = "SHA512";
 
     private Map<String,DID> contacts;
 
@@ -63,8 +56,7 @@ public class DIDService extends BaseService {
             case OPERATION_VERIFY: {verify(e);break;}
             case OPERATION_AUTHENTICATE: {authenticate(e);break;}
             case OPERATION_CREATE: {create(e);break;}
-            case OPERATION_LOAD: {load(e);break;}
-            case OPERATION_AUTHN_LOAD: {authnLoad(e);break;}
+            case OPERATION_AUTHENTICATE_CREATE: {authenticateOrCreate(e);break;}
             case OPERATION_HASH: {
                 HashRequest r = (HashRequest)DLC.getData(HashRequest.class,e);
                 hash(r);
@@ -128,22 +120,12 @@ public class DIDService extends BaseService {
         }
     }
 
-    private void load(Envelope e) {
-        LOG.info("Ensure I2P identities are present in DID. Request them from Sensor Service using Very High Sensitivity.");
-        // Very High Sensitivity selects I2P by default
-        e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
-        DLC.addRoute(SensorsService.class, SensorsService.OPERATION_GET_KEYS,e);
-    }
-
-    private void authnLoad(Envelope e) {
+    private void authenticateOrCreate(Envelope e) {
         verify(e);
         if(!e.getDID().getVerified()) {
             create(e);
         } else {
             authenticate(e);
-        }
-        if(e.getDID().getAuthenticated()) {
-            load(e);
         }
     }
 
