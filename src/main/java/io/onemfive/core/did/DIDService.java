@@ -28,7 +28,12 @@ public class DIDService extends BaseService {
     public static final String OPERATION_AUTHENTICATE_CREATE = "AUTHENTICATE_CREATE";
     public static final String OPERATION_HASH = "HASH";
     public static final String OPERATION_VERIFY_HASH = "VERIFY_HASH";
+    public static final String OPERATION_GET_LOCAL_DID = "GET_LOCAL_DID";
+    public static final String OPERATION_ADD_CONTACT = "ADD_CONTACT";
+    public static final String OPERATION_GET_CONTACT = "GET_CONTACT";
 
+    private DID localDefaultDID;
+    private Map<String,DID> localUserDIDs;
     private Map<String,DID> contacts;
 
     public DIDService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
@@ -53,6 +58,9 @@ public class DIDService extends BaseService {
     private void handleAll(Envelope e) {
         Route route = e.getRoute();
         switch(route.getOperation()) {
+            case OPERATION_GET_LOCAL_DID: {getLocalDID(e);break;}
+            case OPERATION_ADD_CONTACT: {addContact(e);break;}
+            case OPERATION_GET_CONTACT: {getContact(e);break;}
             case OPERATION_VERIFY: {verify(e);break;}
             case OPERATION_AUTHENTICATE: {authenticate(e);break;}
             case OPERATION_CREATE: {create(e);break;}
@@ -69,6 +77,55 @@ public class DIDService extends BaseService {
             }
             default: deadLetter(e); // Operation not supported
         }
+    }
+
+    private void getLocalDID(Envelope e) {
+        LOG.info("Received get DID request.");
+        DID requestingDID = buildDID(e.getDID());
+        if(requestingDID != null
+                && localUserDIDs.get(requestingDID.toString()) == null) {
+            localUserDIDs.put(requestingDID.toString(), requestingDID);
+        } else {
+            e.setDID(localDefaultDID);
+        }
+        DID didToLoad = buildDID((DID)DLC.getData(DID.class, e));
+        if(didToLoad != null
+                && localUserDIDs.get(didToLoad.toString()) == null) {
+            localUserDIDs.put(didToLoad.toString(), didToLoad);
+        }
+    }
+
+    private void addContact(Envelope e) {
+        DID contact = buildDID((DID)DLC.getData(DID.class, e));
+        if(contact != null
+                && contacts.get(contact.toString()) == null) {
+            contacts.put(contact.toString(), contact);
+        }
+    }
+
+    private void getContact(Envelope e) {
+        String hash = (String)DLC.getContent(e);
+        if(hash != null && contacts.get(hash) != null) {
+            DLC.addData(DID.class, contacts.get(hash), e);
+        }
+    }
+
+    private DID buildDID(DID did) {
+        DID newDID = null;
+        if(did != null
+                && did.getHash() == null
+                && did.getAlias() != null
+                && did.getPassphrase() != null) {
+            try {
+                if(did.getHashAlgorithm() == null)
+                    newDID = DID.create(did.getAlias(), did.getPassphrase());
+                else
+                    newDID = DID.create(did.getAlias(), did.getPassphrase(), did.getHashAlgorithm());
+            } catch (NoSuchAlgorithmException e1) {
+                LOG.warning(e1.getLocalizedMessage());
+            }
+        }
+        return newDID;
     }
 
     private void verify(Envelope e) {
@@ -151,6 +208,13 @@ public class DIDService extends BaseService {
         LOG.info("Starting....");
         updateStatus(ServiceStatus.STARTING);
 
+        try {
+            localDefaultDID = DID.create("default", "hnIyn397bDoueYb7$jfunsuINyBk3!klnhn2f8j23r8hgnKH8jrwngmlag", DID.MESSAGE_DIGEST_SHA512);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.severe("Unable to create default DID with SHA512 algorithm. Apparently name is wrong.");
+            return false;
+        }
+        localUserDIDs = new HashMap<>();
         contacts = new HashMap<>();
 
         updateStatus(ServiceStatus.RUNNING);
