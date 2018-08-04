@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 /**
  * Provides notifications of publishing events for subscribers.
  *
+ * TODO: Replace callbacks with service calls to improve scalability and thread contention
+ *
  * @author objectorange
  */
 public class NotificationService extends BaseService {
