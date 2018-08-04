@@ -249,14 +249,14 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         runningServices = new HashMap<>(15);
 
         // Register Core Services - Place slowest to RUNNING services first
+        InfoVaultService infoVaultService = new InfoVaultService(this, this);
+        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
+
         SensorsService sensorsService = new SensorsService(this, this);
         registeredServices.put(SensorsService.class.getName(), sensorsService);
 
         OrchestrationService orchestrationService = new OrchestrationService(this, this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
-
-        NotificationService notificationService = new NotificationService(this, this);
-        registeredServices.put(NotificationService.class.getName(), notificationService);
 
         KeyRingService keyRingService = new KeyRingService(this, this);
         registeredServices.put(KeyRingService.class.getName(), keyRingService);
@@ -264,8 +264,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         DIDService didService = new DIDService(this, this);
         registeredServices.put(DIDService.class.getName(), didService);
 
-        InfoVaultService infoVaultService = new InfoVaultService(this, this);
-        registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
+        NotificationService notificationService = new NotificationService(this, this);
+        registeredServices.put(NotificationService.class.getName(), notificationService);
 
         AdminService adminService = new AdminService(this, this);
         registeredServices.put(AdminService.class.getName(), adminService);
