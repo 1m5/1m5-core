@@ -105,6 +105,19 @@ public class SensorsService extends BaseService {
     }
 
     private void handleAll(Envelope e) {
+        SensorRequest request = (SensorRequest)DLC.getData(SensorRequest.class,e);
+        if(request == null) {
+            LOG.warning("No SensorRequest found in Envelope data while sending to SensorsService.");
+            return;
+        }
+        if(request.from == null) {
+            LOG.warning("No fromDID found in SensorRequest while sending to SensorsService.");
+            return;
+        }
+        if(request.to == null) {
+            LOG.warning("No toDID found in SensorRequest while sending to SensorsService.");
+            return;
+        }
         Route r = e.getRoute();
         Sensor sensor = null;
         if(Envelope.Sensitivity.MEDIUM.equals(e.getSensitivity())

@@ -105,14 +105,10 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
     @Override
     public boolean send(Envelope envelope) {
         LOG.info("Sending I2P Message...");
-        DID did = (DID)DLC.getEntity(envelope);
-        if(did == null) {
-            LOG.warning("No DID found as Entity in Envelope while sending to I2P.");
-            return false;
-        }
-        Peer to = did.getPeer(Peer.NETWORK_I2P);
-        if(to == null) {
-            LOG.warning("No Peer for I2P found in DID while sending to I2P.");
+        SensorRequest request = (SensorRequest)DLC.getData(SensorRequest.class,envelope);
+        Peer toPeer = request.to.getPeer(Peer.NETWORK_I2P);
+        if(toPeer == null) {
+            LOG.warning("No Peer for I2P found in toDID while sending to I2P.");
             return false;
         }
         String content = (String) DLC.getContent(envelope);
@@ -122,7 +118,7 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
         }
 
         try {
-            Destination destination = i2pSession.lookupDest(to.toString());
+            Destination destination = i2pSession.lookupDest(toPeer.toString());
             i2pSession.sendMessage(destination, content.getBytes());
             LOG.info("I2P Message sent.");
         } catch (I2PSessionException e) {
