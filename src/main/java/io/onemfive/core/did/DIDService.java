@@ -83,23 +83,23 @@ public class DIDService extends BaseService {
         LOG.info("Received get DID request.");
         DID requestingDID = buildDID(e.getDID());
         if(requestingDID != null
-                && localUserDIDs.get(requestingDID.toString()) == null) {
-            localUserDIDs.put(requestingDID.toString(), requestingDID);
+                && localUserDIDs.get(requestingDID.getHashString()) == null) {
+            localUserDIDs.put(requestingDID.getHashString(), requestingDID);
         } else {
             e.setDID(localDefaultDID);
         }
         DID didToLoad = buildDID((DID)DLC.getData(DID.class, e));
         if(didToLoad != null
-                && localUserDIDs.get(didToLoad.toString()) == null) {
-            localUserDIDs.put(didToLoad.toString(), didToLoad);
+                && localUserDIDs.get(didToLoad.getHashString()) == null) {
+            localUserDIDs.put(didToLoad.getHashString(), didToLoad);
         }
     }
 
     private void addContact(Envelope e) {
         DID contact = buildDID((DID)DLC.getData(DID.class, e));
         if(contact != null
-                && contacts.get(contact.toString()) == null) {
-            contacts.put(contact.toString(), contact);
+                && contacts.get(contact.getHashString()) == null) {
+            contacts.put(contact.getHashString(), contact);
         }
     }
 
@@ -167,7 +167,7 @@ public class DIDService extends BaseService {
         LOG.info("Received authn DID request.");
         DID did = e.getDID();
         DID didLoaded = infoVault.getDidDAO().load(did.getAlias());
-        // TODO: Replace with I2PBote example below
+
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())
                 && did.getPassphrase() != null && did.getPassphrase().equals(didLoaded.getPassphrase())) {
             didLoaded.setAuthenticated(true);
