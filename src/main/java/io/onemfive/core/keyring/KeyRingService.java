@@ -6,6 +6,7 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
 import org.bouncycastle.bcpg.HashAlgorithmTags;
+import org.bouncycastle.bcpg.RSASecretBCPGKey;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.bcpg.sig.Features;
 import org.bouncycastle.bcpg.sig.KeyFlags;
@@ -16,13 +17,12 @@ import org.bouncycastle.openpgp.*;
 import org.bouncycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
 import org.bouncycastle.openpgp.operator.bc.*;
-import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
-import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
+import org.bouncycastle.openpgp.operator.jcajce.*;
 
 import java.io.*;
 import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.security.Security;
+import java.security.*;
+import java.security.interfaces.RSAPrivateCrtKey;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -57,8 +57,10 @@ public class KeyRingService extends BaseService {
     private Properties properties = new Properties();
 
     private File skr;
+    // a secret key with master key and any sub-keys
     private PGPSecretKeyRing secretKeyRing;
     private File pkr;
+    // a public key with master key and any sub-keys
     private PGPPublicKeyRing publicKeyRing;
 
     public KeyRingService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
@@ -87,7 +89,6 @@ public class KeyRingService extends BaseService {
             LOG.warning(LoadKeyRingsRequest.class.getName() + " required as parameter.");
             return;
         }
-
         if(r.alias == null) {
             LOG.warning("Alias is required.");
             return;
@@ -106,8 +107,10 @@ public class KeyRingService extends BaseService {
             r.publicKeyRingCollectionFileLocation = "pkr";
         }
 
+        boolean newFiles = false;
         skr = new File(r.secretKeyRingCollectionFileLocation);
         if(!skr.exists()) {
+            newFiles = true;
             try {
                 if (!skr.createNewFile())
                     return;
@@ -119,6 +122,7 @@ public class KeyRingService extends BaseService {
 
         pkr = new File(r.publicKeyRingCollectionFileLocation);
         if(!pkr.exists()) {
+            newFiles = true;
             try {
                 if (!pkr.createNewFile())
                     return;
@@ -128,23 +132,26 @@ public class KeyRingService extends BaseService {
             }
         }
 
-        // Try to load keys from files
-        try {
+        if(!newFiles) {
+            // Try to load keys from files
+            try {
+                // TODO: Decrypt files
+                FileInputStream fis = new FileInputStream(skr);
+                secretKeyRing = new PGPSecretKeyRing(fis, new BcKeyFingerprintCalculator());
 
-            FileInputStream fis = new FileInputStream(skr);
-            secretKeyRing = new PGPSecretKeyRing(fis, new BcKeyFingerprintCalculator());
+                fis = new FileInputStream(pkr);
+                publicKeyRing = new PGPPublicKeyRing(fis, new BcKeyFingerprintCalculator());
 
-            fis = new FileInputStream(pkr);
-            publicKeyRing = new PGPPublicKeyRing(fis, new BcKeyFingerprintCalculator());
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (PGPException ex) {
-            ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } catch (PGPException ex) {
+                ex.printStackTrace();
+            }
         }
 
         // If rings could not be loaded then generate them if an alias and passphrase are provided.
         if(secretKeyRing == null || publicKeyRing == null && r.autoGenerate) {
+            // TODO: Encrypt files
             PGPKeyRingGenerator krgen = generateKeyRingGenerator(r.alias, r.passphrase, r.hashStrength);
             // Create and save the Key Rings
             secretKeyRing = krgen.generateSecretKeyRing();
@@ -169,6 +176,7 @@ public class KeyRingService extends BaseService {
     }
 
     private void saveKeyRings() {
+        // TODO: Encrypt files
         if(secretKeyRing != null && skr != null) {
             try {
                 BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
@@ -191,6 +199,50 @@ public class KeyRingService extends BaseService {
     }
 
     private void generateKeyPair(Envelope e) {
+        GenerateKeyPairRequest r = (GenerateKeyPairRequest)DLC.getData(GenerateKeyPairRequest.class,e);
+        if(r == null) {
+            LOG.warning(GenerateKeyPairRequest.class.getName()+" required in Envelope data.");
+            return;
+        }
+        if(r.alias == null) {
+            LOG.warning("Alias required.");
+            return;
+        }
+        if(r.passphrase == null) {
+            LOG.warning("Passphrase required.");
+            return;
+        }
+
+        try {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", PROVIDER_BOUNCY_CASTLE);
+            kpg.initialize(1024);
+            KeyPair kp = kpg.generateKeyPair();
+            PublicKey publicKey = kp.getPublic();
+            PrivateKey privateKey = kp.getPrivate();
+
+            PGPPublicKey a = (new JcaPGPKeyConverter().getPGPPublicKey(PGPPublicKey.RSA_GENERAL, publicKey, new Date()));
+            RSAPrivateCrtKey rsK = (RSAPrivateCrtKey)privateKey;
+            RSASecretBCPGKey privPk = new RSASecretBCPGKey(rsK.getPrivateExponent(), rsK.getPrimeP(), rsK.getPrimeQ());
+            PGPPrivateKey b = new PGPPrivateKey(a.getKeyID(), a.getPublicKeyPacket(), privPk);
+
+            PGPDigestCalculator sha1Calc = new JcaPGPDigestCalculatorProviderBuilder().build().get(HashAlgorithmTags.SHA1);
+            PGPKeyPair keyPair = new PGPKeyPair(a,b);
+
+            PGPSecretKey secretKey = new PGPSecretKey(PGPSignature.DEFAULT_CERTIFICATION, keyPair, r.alias, sha1Calc, null, null, new JcaPGPContentSignerBuilder(keyPair.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1), new JcePBESecretKeyEncryptorBuilder(PGPEncryptedData.CAST5, sha1Calc).setProvider(PROVIDER_BOUNCY_CASTLE).build(r.passphrase.toCharArray()));
+
+            PGPSecretKeyRing.insertSecretKey(secretKeyRing, secretKey);
+
+            PGPPublicKey key = secretKey.getPublicKey();
+
+            PGPPublicKeyRing.insertPublicKey(publicKeyRing, key);
+
+        } catch (NoSuchAlgorithmException e1) {
+            e1.printStackTrace();
+        } catch (NoSuchProviderException e1) {
+            e1.printStackTrace();
+        } catch (PGPException e1) {
+            e1.printStackTrace();
+        }
 
     }
 
