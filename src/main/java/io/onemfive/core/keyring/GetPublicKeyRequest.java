@@ -1,8 +1,12 @@
 package io.onemfive.core.keyring;
 
 import io.onemfive.core.ServiceRequest;
+import org.bouncycastle.openpgp.PGPPublicKey;
+
+import java.util.List;
 
 public class GetPublicKeyRequest extends ServiceRequest {
     public String alias;
-    public String hash;
+    // Response
+    List<PGPPublicKey> publicKeys;
 }

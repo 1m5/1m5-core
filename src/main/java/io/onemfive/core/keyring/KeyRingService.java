@@ -5,9 +5,7 @@ import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
-import org.bouncycastle.bcpg.HashAlgorithmTags;
-import org.bouncycastle.bcpg.RSASecretBCPGKey;
-import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
+import org.bouncycastle.bcpg.*;
 import org.bouncycastle.bcpg.sig.Features;
 import org.bouncycastle.bcpg.sig.KeyFlags;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
@@ -71,44 +69,117 @@ public class KeyRingService extends BaseService {
     public void handleDocument(Envelope e) {
         Route route = e.getRoute();
         switch (route.getOperation()) {
-            case OPERATION_LOAD_KEY_RINGS: { loadKeyRings((LoadKeyRingsRequest)DLC.getData(LoadKeyRingsRequest.class,e));break; }
+            case OPERATION_LOAD_KEY_RINGS: {
+                LoadKeyRingsRequest r = (LoadKeyRingsRequest)DLC.getData(LoadKeyRingsRequest.class,e);
+                if(r == null) {
+                    LOG.warning(LoadKeyRingsRequest.class.getName() + " required as parameter.");
+                    return;
+                }
+                if(r.alias == null) {
+                    LOG.warning("Alias is required.");
+                    return;
+                }
+                if(r.passphrase == null) {
+                    LOG.warning("Passphrase is required.");
+                    return;
+                }
+                if(r.hashStrength < PASSWORD_HASH_STRENGTH_64) {
+                    r.hashStrength = PASSWORD_HASH_STRENGTH_130k;
+                }
+                if(r.secretKeyRingCollectionFileLocation == null) {
+                    r.secretKeyRingCollectionFileLocation = "skr";
+                }
+                if(r.publicKeyRingCollectionFileLocation == null) {
+                    r.publicKeyRingCollectionFileLocation = "pkr";
+                }
+                loadKeyRings(r.alias, r.passphrase, r.hashStrength, r.secretKeyRingCollectionFileLocation, r.publicKeyRingCollectionFileLocation, r.autoGenerate);
+                break;
+            }
             case OPERATION_SAVE_KEY_RINGS: { saveKeyRings();break; }
-            case OPERATION_GENERATE_KEY_PAIR: { generateKeyPair(e);break; }
-            case OPERATION_STORE_PUBLIC_KEYS: { storePublicKeys(e);break; }
-            case OPERATION_GET_PUBLIC_KEYS: { getPublicKeys(e);break; }
-            case OPERATION_ENCRYPT: { encrypt(e);break; }
-            case OPERATION_DECRYPT: { decrypt(e);break; }
-            case OPERATION_SIGN: { sign(e);break; }
-            case OPERATION_VERIFY_SIGNATURE: { verifySignature(e);break; }
+            case OPERATION_GENERATE_KEY_PAIR: {
+                GenerateKeyPairRequest r = (GenerateKeyPairRequest)DLC.getData(GenerateKeyPairRequest.class,e);
+                if(r == null) {
+                    LOG.warning(GenerateKeyPairRequest.class.getName()+" required in Envelope data.");
+                    return;
+                }
+                if(r.alias == null) {
+                    LOG.warning("Alias required.");
+                    return;
+                }
+                if(r.passphrase == null) {
+                    LOG.warning("Passphrase required.");
+                    return;
+                }
+                generateKeyPair(r.alias, r.passphrase);
+                break;
+            }
+            case OPERATION_STORE_PUBLIC_KEYS: {
+                StorePublicKeysRequest r = (StorePublicKeysRequest)DLC.getData(StorePublicKeysRequest.class,e);
+                if(r == null) {
+                    LOG.warning(StorePublicKeysRequest.class.getName()+" required.");
+                    return;
+                }
+                if(r.publicKeys == null || r.publicKeys.size() == 0) {
+                    LOG.warning("A list of PGPPublicKeys greater than 0 is required to store.");
+                    return;
+                }
+                if(publicKeyRing == null) {
+                    LOG.warning(PGPPublicKeyRing.class.getName()+" must be created first.");
+                    return;
+                }
+                storePublicKeys(r.publicKeys);
+                break;
+            }
+            case OPERATION_GET_PUBLIC_KEYS: {
+                GetPublicKeyRequest r = (GetPublicKeyRequest)DLC.getData(GetPublicKeyRequest.class,e);
+                r.publicKeys = getPublicKeys(r.alias);
+                break;
+            }
+            case OPERATION_ENCRYPT: {
+                EncryptRequest r = (EncryptRequest)DLC.getData(EncryptRequest.class, e);
+                r.encryptedContent = encrypt(r.plainTextContent, r.alias, r.passphrase);
+                break;
+            }
+            case OPERATION_DECRYPT: {
+                DecryptRequest r = (DecryptRequest)DLC.getData(DecryptRequest.class, e);
+                r.plaintextContent = decrypt(r.encryptedContent, r.alias, r.passphrase);
+                break;
+            }
+            case OPERATION_SIGN: {
+                SignRequest r = (SignRequest)DLC.getData(SignRequest.class, e);
+                try {
+                    r.signature = sign(r.contentToSign, r.alias, r.passphrase);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (PGPException e1) {
+                    e1.printStackTrace();
+                }
+                break;
+            }
+            case OPERATION_VERIFY_SIGNATURE: {
+                VerifySignatureRequest r = (VerifySignatureRequest)DLC.getData(VerifySignatureRequest.class,e);
+                try {
+                    r.verified = verifySignature(r.contentSigned, r.signature, r.alias);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (PGPException e1) {
+                    e1.printStackTrace();
+                }
+                break;
+            }
             default: deadLetter(e);
         }
     }
 
-    private void loadKeyRings(LoadKeyRingsRequest r) {
-        if(r == null) {
-            LOG.warning(LoadKeyRingsRequest.class.getName() + " required as parameter.");
-            return;
-        }
-        if(r.alias == null) {
-            LOG.warning("Alias is required.");
-            return;
-        }
-        if(r.passphrase == null) {
-            LOG.warning("Passphrase is required.");
-            return;
-        }
-        if(r.hashStrength < PASSWORD_HASH_STRENGTH_64) {
-            r.hashStrength = PASSWORD_HASH_STRENGTH_130k;
-        }
-        if(r.secretKeyRingCollectionFileLocation == null) {
-            r.secretKeyRingCollectionFileLocation = "skr";
-        }
-        if(r.publicKeyRingCollectionFileLocation == null) {
-            r.publicKeyRingCollectionFileLocation = "pkr";
-        }
+    private void loadKeyRings(String alias,
+                              char[] passphrase,
+                              int hashStrength,
+                              String secretKeyRingCollectionFileLocation,
+                              String publicKeyRingCollectionFileLocation,
+                              boolean autoGenerate) {
 
         boolean newFiles = false;
-        skr = new File(r.secretKeyRingCollectionFileLocation);
+        skr = new File(secretKeyRingCollectionFileLocation);
         if(!skr.exists()) {
             newFiles = true;
             try {
@@ -120,7 +191,7 @@ public class KeyRingService extends BaseService {
             }
         }
 
-        pkr = new File(r.publicKeyRingCollectionFileLocation);
+        pkr = new File(publicKeyRingCollectionFileLocation);
         if(!pkr.exists()) {
             newFiles = true;
             try {
@@ -150,9 +221,9 @@ public class KeyRingService extends BaseService {
         }
 
         // If rings could not be loaded then generate them if an alias and passphrase are provided.
-        if(secretKeyRing == null || publicKeyRing == null && r.autoGenerate) {
+        if(secretKeyRing == null || publicKeyRing == null && autoGenerate) {
             // TODO: Encrypt files
-            PGPKeyRingGenerator krgen = generateKeyRingGenerator(r.alias, r.passphrase, r.hashStrength);
+            PGPKeyRingGenerator krgen = generateKeyRingGenerator(alias, passphrase, hashStrength);
             // Create and save the Key Rings
             secretKeyRing = krgen.generateSecretKeyRing();
             try {
@@ -198,21 +269,7 @@ public class KeyRingService extends BaseService {
         }
     }
 
-    private void generateKeyPair(Envelope e) {
-        GenerateKeyPairRequest r = (GenerateKeyPairRequest)DLC.getData(GenerateKeyPairRequest.class,e);
-        if(r == null) {
-            LOG.warning(GenerateKeyPairRequest.class.getName()+" required in Envelope data.");
-            return;
-        }
-        if(r.alias == null) {
-            LOG.warning("Alias required.");
-            return;
-        }
-        if(r.passphrase == null) {
-            LOG.warning("Passphrase required.");
-            return;
-        }
-
+    private void generateKeyPair(String alias, char[] passphrase) {
         try {
             KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", PROVIDER_BOUNCY_CASTLE);
             kpg.initialize(1024);
@@ -228,7 +285,10 @@ public class KeyRingService extends BaseService {
             PGPDigestCalculator sha1Calc = new JcaPGPDigestCalculatorProviderBuilder().build().get(HashAlgorithmTags.SHA1);
             PGPKeyPair keyPair = new PGPKeyPair(a,b);
 
-            PGPSecretKey secretKey = new PGPSecretKey(PGPSignature.DEFAULT_CERTIFICATION, keyPair, r.alias, sha1Calc, null, null, new JcaPGPContentSignerBuilder(keyPair.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1), new JcePBESecretKeyEncryptorBuilder(PGPEncryptedData.CAST5, sha1Calc).setProvider(PROVIDER_BOUNCY_CASTLE).build(r.passphrase.toCharArray()));
+            PGPSecretKey secretKey = new PGPSecretKey(
+                    PGPSignature.DEFAULT_CERTIFICATION, keyPair, alias, sha1Calc, null, null,
+                    new JcaPGPContentSignerBuilder(keyPair.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1),
+                    new JcePBESecretKeyEncryptorBuilder(PGPEncryptedData.CAST5, sha1Calc).setProvider(PROVIDER_BOUNCY_CASTLE).build(passphrase));
 
             PGPSecretKeyRing.insertSecretKey(secretKeyRing, secretKey);
 
@@ -246,63 +306,136 @@ public class KeyRingService extends BaseService {
 
     }
 
-    private void storePublicKeys(Envelope e) {
-        StorePublicKeysRequest r = (StorePublicKeysRequest)DLC.getData(StorePublicKeysRequest.class,e);
-
+    private void storePublicKeys(List<PGPPublicKey> publicKeys) {
+        for (PGPPublicKey k : publicKeys) {
+            PGPPublicKeyRing.insertPublicKey(publicKeyRing, k);
+        }
+        // Ensure they're persisted
+        saveKeyRings();
     }
 
-    private void getPublicKeys(Envelope e) {
-        GetPublicKeyRequest r = (GetPublicKeyRequest)DLC.getData(GetPublicKeyRequest.class,e);
+    private List<PGPPublicKey> getPublicKeys(String alias) {
         List<PGPPublicKey> publicKeys = new ArrayList<>();
         Iterator<PGPPublicKey> i = publicKeyRing.getPublicKeys();
-        while(i.hasNext()) {
-            publicKeys.add(i.next());
+        if(alias != null) {
+            while(i.hasNext()) {
+                PGPPublicKey k = i.next();
+                Iterator<String> aliases = k.getUserIDs();
+                while(aliases.hasNext()) {
+                    if(alias.equals(aliases.next())) {
+                        publicKeys.add(k);
+                        break;
+                    }
+                }
+            }
+        } else {
+            while(i.hasNext()) {
+                publicKeys.add(i.next());
+            }
         }
-        DLC.addData(PGPPublicKey.class, publicKeys, e);
+        return publicKeys;
     }
 
-    private void encrypt(Envelope e) {
-        DID didToEncrypt = e.getDID();
-        byte[] contentToEncrypt = (byte[])DLC.getContent(e);
+    private byte[] encrypt(byte[] plainTextContent, String alias, char[] passphrase) {
+        byte[] encryptedContent = new byte[]{};
 
+        return encryptedContent;
     }
 
-    private void decrypt(Envelope e) {
+    private byte[] decrypt(byte[] encryptedContent, String alias, char[] passphrase) {
+        byte[] cleartextContent = new byte[]{};
 
+        return cleartextContent;
     }
 
-    private void sign(Envelope e) {
-        DID didToSign = e.getDID();
-        byte[] contentToSign = (byte[])DLC.getContent(e);
-//        PGPPrivateKey privateKey = getPrivateKey(didToSign.getAlias(), didToSign.getPassphrase().toCharArray());
-//        PGPSignatureGenerator sGen = new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(pgpSecKey.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1).setProvider(PROVIDER_BOUNCY_CASTLE));
-    }
+    private byte[] sign(byte[] contentToSign, String alias, char[] passphrase) throws IOException, PGPException {
 
-    private void verifySignature(Envelope e) {
-
-    }
-
-    private PGPPublicKey getPublicKey(String alias) {
-        PGPPublicKey key = null;
-        if(publicKeyRing != null) {
-
+        PGPSecretKey secretKey = getSecretKey(alias, passphrase);
+        if(secretKey == null) {
+            LOG.warning("Secret Key not found for alias.");
+            return null;
         }
-        return key;
+
+        PGPPrivateKey privateKey = getPrivateKey(secretKey, passphrase);
+        if(privateKey == null) {
+            LOG.warning("Private Key not found for secret key.");
+            return null;
+        }
+        PGPSignatureGenerator sGen = new PGPSignatureGenerator(
+                new JcaPGPContentSignerBuilder(
+                        secretKey.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1).setProvider(PROVIDER_BOUNCY_CASTLE));
+        sGen.init(PGPSignature.BINARY_DOCUMENT, privateKey);
+
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ArmoredOutputStream aOut = new ArmoredOutputStream(byteOut);
+        BCPGOutputStream bOut = new BCPGOutputStream(byteOut);
+
+        sGen.update(contentToSign);
+
+        aOut.endClearText();
+        sGen.generate().encode(bOut);
+        aOut.close();
+
+        return byteOut.toByteArray();
+    }
+
+    private boolean verifySignature(byte[] contentSigned, byte[] signature, String alias) throws IOException, PGPException {
+        PGPObjectFactory pgpFact = new PGPObjectFactory(signature, new BcKeyFingerprintCalculator());
+        PGPSignatureList p3 = null;
+        Object o = pgpFact.nextObject();
+        if (o instanceof PGPCompressedData) {
+            PGPCompressedData c1 = (PGPCompressedData)o;
+            pgpFact = new PGPObjectFactory(c1.getDataStream(), new BcKeyFingerprintCalculator());
+            p3 = (PGPSignatureList)pgpFact.nextObject();
+        } else {
+            p3 = (PGPSignatureList)o;
+        }
+
+        PGPSignature sig = p3.get(0);
+        List<PGPPublicKey> publicKeys = getPublicKeys(alias);
+        if(publicKeys == null || publicKeys.size() == 0) {
+            LOG.warning("Unable to find public key to verify signature.");
+            return false;
+        }
+        PGPPublicKey publicKey = publicKeys.get(0);
+        sig.init(new JcaPGPContentVerifierBuilderProvider().setProvider(PROVIDER_BOUNCY_CASTLE), publicKey);
+
+        sig.update(contentSigned);
+
+        return sig.verify();
+    }
+
+    private PGPPrivateKey getPrivateKey(PGPSecretKey secretKey, char[] pass) throws PGPException {
+        return secretKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider(PROVIDER_BOUNCY_CASTLE).build(pass));
     }
 
     private PGPPrivateKey getPrivateKey(String alias, char[] pass) throws PGPException {
         PGPSecretKey secretKey = getSecretKey(alias, pass);
-        return secretKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider(PROVIDER_BOUNCY_CASTLE).build(pass));
+        if(secretKey == null) {
+            LOG.warning("Secret Key not found for alias.");
+            return null;
+        }
+        return getPrivateKey(secretKey, pass);
     }
 
     private PGPSecretKey getSecretKey(String alias, char[] pass) {
-        PGPSecretKey key = null;
         Iterator<PGPSecretKey> i = secretKeyRing.getSecretKeys();
         while(i.hasNext()) {
             PGPSecretKey secretKey = i.next();
-//            if(secretKey.getPublicKey().)
+            if(containsAlias(secretKey.getPublicKey(), alias)) {
+                return secretKey;
+            }
         }
-        return key;
+        return null;
+    }
+
+    private boolean containsAlias(PGPPublicKey k, String alias) {
+        Iterator<String> i = k.getUserIDs();
+        while(i.hasNext()) {
+            if(i.next().equals(alias))
+                return true;
+        }
+        return false;
     }
 
     private PGPKeyRingGenerator generateKeyRingGenerator(String alias, char[] passphrase, int s2kCount) {
@@ -377,7 +510,7 @@ public class KeyRingService extends BaseService {
             // Objects used to encrypt the secret key.
             PGPDigestCalculator sha1Calc = new BcPGPDigestCalculatorProvider().get(HashAlgorithmTags.SHA1);
             PGPDigestCalculator sha256Calc = new BcPGPDigestCalculatorProvider().get(HashAlgorithmTags.SHA256);
-            PGPDigestCalculator sha512Calc = new BcPGPDigestCalculatorProvider().get(HashAlgorithmTags.SHA512);
+//            PGPDigestCalculator sha512Calc = new BcPGPDigestCalculatorProvider().get(HashAlgorithmTags.SHA512);
 
             // bcpg 1.48 exposes this API that includes s2kcount. Earlier
             // versions use a default of 0x60.
