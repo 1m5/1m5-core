@@ -15,10 +15,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
 import org.bouncycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
-import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyEncryptorBuilder;
-import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
-import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
-import org.bouncycastle.openpgp.operator.bc.BcPGPKeyPair;
+import org.bouncycastle.openpgp.operator.bc.*;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 
@@ -59,16 +56,8 @@ public class KeyRingService extends BaseService {
 
     private Properties properties = new Properties();
 
-    // Key Rings
-    private String alias = "default";
-    private char[] passphrase = "changeme".toCharArray();
-    private int s2kCont = PASSWORD_HASH_STRENGTH_130k;
-
-    private String skrPath = "skr";
     private File skr;
     private PGPSecretKeyRing secretKeyRing;
-
-    private String pkrPath = "pkr";
     private File pkr;
     private PGPPublicKeyRing publicKeyRing;
 
@@ -94,25 +83,30 @@ public class KeyRingService extends BaseService {
     }
 
     private void loadKeyRings(LoadKeyRingsRequest r) {
-        if(r != null) {
-            if(r.publicKeyRingCollectionFileLocation != null) {
-                pkrPath = r.publicKeyRingCollectionFileLocation;
-            }
-            if(r.secretKeyRingCollectionFileLocation != null) {
-                skrPath = r.secretKeyRingCollectionFileLocation;
-            }
-            if(r.hashStrength > 0) {
-                s2kCont = r.hashStrength;
-            }
-            if(r.alias != null) {
-                alias = r.alias;
-            }
-            if(r.passphrase != null) {
-                passphrase = r.passphrase;
-            }
+        if(r == null) {
+            LOG.warning(LoadKeyRingsRequest.class.getName() + " required as parameter.");
+            return;
         }
 
-        skr = new File(skrPath);
+        if(r.alias == null) {
+            LOG.warning("Alias is required.");
+            return;
+        }
+        if(r.passphrase == null) {
+            LOG.warning("Passphrase is required.");
+            return;
+        }
+        if(r.hashStrength < PASSWORD_HASH_STRENGTH_64) {
+            r.hashStrength = PASSWORD_HASH_STRENGTH_130k;
+        }
+        if(r.secretKeyRingCollectionFileLocation == null) {
+            r.secretKeyRingCollectionFileLocation = "skr";
+        }
+        if(r.publicKeyRingCollectionFileLocation == null) {
+            r.publicKeyRingCollectionFileLocation = "pkr";
+        }
+
+        skr = new File(r.secretKeyRingCollectionFileLocation);
         if(!skr.exists()) {
             try {
                 if (!skr.createNewFile())
@@ -123,7 +117,7 @@ public class KeyRingService extends BaseService {
             }
         }
 
-        pkr = new File(pkrPath);
+        pkr = new File(r.publicKeyRingCollectionFileLocation);
         if(!pkr.exists()) {
             try {
                 if (!pkr.createNewFile())
@@ -134,13 +128,14 @@ public class KeyRingService extends BaseService {
             }
         }
 
-        // Try to load keys from current files
+        // Try to load keys from files
         try {
+
             FileInputStream fis = new FileInputStream(skr);
-            secretKeyRing = new PGPSecretKeyRing(fis, new JcaKeyFingerprintCalculator());
+            secretKeyRing = new PGPSecretKeyRing(fis, new BcKeyFingerprintCalculator());
 
             fis = new FileInputStream(pkr);
-            publicKeyRing = new PGPPublicKeyRing(fis, new JcaKeyFingerprintCalculator());
+            publicKeyRing = new PGPPublicKeyRing(fis, new BcKeyFingerprintCalculator());
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -148,50 +143,50 @@ public class KeyRingService extends BaseService {
             ex.printStackTrace();
         }
 
-        // If rings could not be loaded then generate them.
-        if(secretKeyRing == null || publicKeyRing == null) {
-            PGPKeyRingGenerator krgen = generateKeyRingGenerator(alias, passphrase, s2kCont);
-            if (secretKeyRing == null) {
-                // Create and save the Key Rings
-                secretKeyRing = krgen.generateSecretKeyRing();
-                try {
-                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
-                    secretKeyRing.encode(bos);
-                    bos.close();
-                } catch (IOException e) {
-                    LOG.warning(e.getLocalizedMessage());
-                }
+        // If rings could not be loaded then generate them if an alias and passphrase are provided.
+        if(secretKeyRing == null || publicKeyRing == null && r.autoGenerate) {
+            PGPKeyRingGenerator krgen = generateKeyRingGenerator(r.alias, r.passphrase, r.hashStrength);
+            // Create and save the Key Rings
+            secretKeyRing = krgen.generateSecretKeyRing();
+            try {
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
+                secretKeyRing.encode(bos);
+                bos.close();
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
             }
 
-            if (publicKeyRing == null) {
-                // Create and save the Key Rings
-                publicKeyRing = krgen.generatePublicKeyRing();
-                try {
-                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pkr));
-                    publicKeyRing.encode(bos);
-                    bos.close();
-                } catch (IOException e) {
-                    LOG.warning(e.getLocalizedMessage());
-                }
+            // Create and save the Key Rings
+            publicKeyRing = krgen.generatePublicKeyRing();
+            try {
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pkr));
+                publicKeyRing.encode(bos);
+                bos.close();
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
             }
         }
     }
 
     private void saveKeyRings() {
-        try {
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
-            secretKeyRing.encode(bos);
-            bos.close();
-        } catch (IOException e) {
-            LOG.warning(e.getLocalizedMessage());
+        if(secretKeyRing != null && skr != null) {
+            try {
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
+                secretKeyRing.encode(bos);
+                bos.close();
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
+            }
         }
 
-        try {
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pkr));
-            publicKeyRing.encode(bos);
-            bos.close();
-        } catch (IOException e) {
-            LOG.warning(e.getLocalizedMessage());
+        if(publicKeyRing != null && pkr != null) {
+            try {
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pkr));
+                publicKeyRing.encode(bos);
+                bos.close();
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
+            }
         }
     }
 
@@ -228,7 +223,7 @@ public class KeyRingService extends BaseService {
         DID didToSign = e.getDID();
         byte[] contentToSign = (byte[])DLC.getContent(e);
 //        PGPPrivateKey privateKey = getPrivateKey(didToSign.getAlias(), didToSign.getPassphrase().toCharArray());
-//        PGPSignatureGenerator sGen = new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(pgpSecKey.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1).setProvider("BC"));
+//        PGPSignatureGenerator sGen = new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(pgpSecKey.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1).setProvider(PROVIDER_BOUNCY_CASTLE));
     }
 
     private void verifySignature(Envelope e) {
@@ -245,7 +240,7 @@ public class KeyRingService extends BaseService {
 
     private PGPPrivateKey getPrivateKey(String alias, char[] pass) throws PGPException {
         PGPSecretKey secretKey = getSecretKey(alias, pass);
-        return secretKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(pass));
+        return secretKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider(PROVIDER_BOUNCY_CASTLE).build(pass));
     }
 
     private PGPSecretKey getSecretKey(String alias, char[] pass) {
@@ -262,7 +257,7 @@ public class KeyRingService extends BaseService {
         PGPKeyRingGenerator keyRingGen = null;
         try {
             RSAKeyPairGenerator kpg = new RSAKeyPairGenerator();
-            /**
+            /*
              * This value should be a Fermat number. 0x10001 (F4) is current recommended value. 3 (F1) is known to be safe also.
              * 3, 5, 17, 257, 65537, 4294967297, 18446744073709551617,
              * <p>
@@ -273,12 +268,12 @@ public class KeyRingService extends BaseService {
              */
             BigInteger publicExponent = BigInteger.valueOf(0x10001);
 
-            /**
-             * As of 2018: 2048 is common value, 4096 is uncommon
+            /*
+             * As of 2018: 2048 is common value - safe until 2030, 3072 is uncommon - safe until 2040, 4096 is rare - safe until 2040+
              */
             int bitStrength = 4096;
 
-            /**
+            /*
              * How certain do we want to be that the chosen primes are really primes.
              * <p>
              * The higher this number, the more tests are done to make sure they are primes (and not composites).
@@ -369,16 +364,6 @@ public class KeyRingService extends BaseService {
 
         Security.addProvider(new BouncyCastleProvider());
 
-        String skrPath = (String)properties.get("1m5.keyring.secret.file");
-        if(skrPath != null) {
-            this.skrPath = skrPath;
-        }
-        String pkrPath = (String)properties.get("1m5.keyring.public.file");
-        if(pkrPath != null) {
-            this.pkrPath = pkrPath;
-        }
-
-        loadKeyRings(null);
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started");
         return true;

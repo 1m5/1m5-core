@@ -16,6 +16,7 @@ public class LoadKeyRingsRequest extends ServiceRequest {
      * or about 2 million iterations. These values are constants in the KeyRingService class as helpers.
      */
     public int hashStrength = KeyRingService.PASSWORD_HASH_STRENGTH_130k;
-    public String secretKeyRingCollectionFileLocation;
-    public String publicKeyRingCollectionFileLocation;
+    public String secretKeyRingCollectionFileLocation = "skr";
+    public String publicKeyRingCollectionFileLocation = "pkr";
+    public boolean autoGenerate = true;
 }
