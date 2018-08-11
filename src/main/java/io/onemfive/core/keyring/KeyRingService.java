@@ -12,8 +12,10 @@ import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
+import org.bouncycastle.openpgp.operator.PublicKeyDataDecryptorFactory;
 import org.bouncycastle.openpgp.operator.bc.*;
 import org.bouncycastle.openpgp.operator.jcajce.*;
 
@@ -148,7 +150,13 @@ public class KeyRingService extends BaseService {
             }
             case OPERATION_DECRYPT: {
                 DecryptRequest r = (DecryptRequest)DLC.getData(DecryptRequest.class, e);
-                r.plaintextContent = decrypt(r.encryptedContent, r.alias, r.passphrase);
+                try {
+                    r.plaintextContent = decrypt(r.encryptedContent, r.alias, r.passphrase);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (PGPException e1) {
+                    e1.printStackTrace();
+                }
                 break;
             }
             case OPERATION_SIGN: {
@@ -403,10 +411,73 @@ public class KeyRingService extends BaseService {
         return content.toByteArray();
     }
 
-    private byte[] decrypt(byte[] encryptedContent, String alias, char[] passphrase) {
-        byte[] cleartextContent = new byte[]{};
+    private byte[] decrypt(byte[] encryptedContent, String alias, char[] passphrase) throws IOException, PGPException {
 
-        return cleartextContent;
+        InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(encryptedContent));
+        PGPObjectFactory pgpF = new PGPObjectFactory(in, new BcKeyFingerprintCalculator());
+        PGPEncryptedDataList enc;
+        Object o = pgpF.nextObject();
+        //
+        // the first object might be a PGP marker packet.
+        //
+        if (o instanceof  PGPEncryptedDataList) {
+            enc = (PGPEncryptedDataList) o;
+        } else {
+            enc = (PGPEncryptedDataList) pgpF.nextObject();
+        }
+        //
+        // find the secret key
+        //
+        Iterator<PGPPublicKeyEncryptedData> it = enc.getEncryptedDataObjects();
+        PGPPrivateKey privKey = null;
+        PGPPublicKeyEncryptedData pbe = null;
+        PGPSecretKey secKey = null;
+        while (privKey == null && it.hasNext()) {
+            pbe = it.next();
+            secKey = getSecretKey(pbe.getKeyID());
+            if(secKey != null) {
+                PBESecretKeyDecryptor a = new JcePBESecretKeyDecryptorBuilder(
+                        new JcaPGPDigestCalculatorProviderBuilder()
+                                .setProvider(PROVIDER_BOUNCY_CASTLE).build())
+                        .setProvider(PROVIDER_BOUNCY_CASTLE).build(passphrase);
+                privKey = secKey.extractPrivateKey(a);
+            }
+        }
+
+        PublicKeyDataDecryptorFactory b = new JcePublicKeyDataDecryptorFactoryBuilder()
+                .setProvider(PROVIDER_BOUNCY_CASTLE).setContentProvider(PROVIDER_BOUNCY_CASTLE).build(privKey);
+
+        InputStream clear = pbe.getDataStream(b);
+
+        PGPObjectFactory plainFact = new PGPObjectFactory(clear,new BcKeyFingerprintCalculator());
+
+        Object message = plainFact.nextObject();
+
+        if (message instanceof  PGPCompressedData) {
+            PGPCompressedData cData = (PGPCompressedData) message;
+            PGPObjectFactory pgpFact = new PGPObjectFactory(cData.getDataStream(), new BcKeyFingerprintCalculator());
+            message = pgpFact.nextObject();
+        }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (message instanceof  PGPLiteralData) {
+            PGPLiteralData ld = (PGPLiteralData) message;
+            InputStream unc = ld.getInputStream();
+            int ch;
+            while ((ch = unc.read()) >= 0) {
+                baos.write(ch);
+            }
+        } else if (message instanceof  PGPOnePassSignatureList) {
+            throw new PGPException("Encrypted message contains a signed message - not literal data.");
+        } else {
+            throw new PGPException("Message is not a simple encrypted file - type unknown.");
+        }
+
+        if (pbe.isIntegrityProtected()) {
+            if (!pbe.verify()) {
+                throw new PGPException("Message failed integrity check");
+            }
+        }
+        return baos.toByteArray();
     }
 
     private byte[] sign(byte[] contentToSign, String alias, char[] passphrase) throws IOException, PGPException {
@@ -470,13 +541,15 @@ public class KeyRingService extends BaseService {
         return secretKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider(PROVIDER_BOUNCY_CASTLE).build(pass));
     }
 
-    private PGPPrivateKey getPrivateKey(String alias, char[] pass) throws PGPException {
-        PGPSecretKey secretKey = getSecretKey(alias, pass);
-        if(secretKey == null) {
-            LOG.warning("Secret Key not found for alias.");
-            return null;
+    private PGPSecretKey getSecretKey(long keyId) {
+        Iterator<PGPSecretKey> i = secretKeyRing.getSecretKeys();
+        PGPSecretKey k;
+        while(i.hasNext()) {
+            k = i.next();
+            if(keyId == k.getKeyID())
+                return k;
         }
-        return getPrivateKey(secretKey, pass);
+        return null;
     }
 
     private PGPSecretKey getSecretKey(String alias, char[] pass) {
