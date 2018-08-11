@@ -1,8 +1,8 @@
 # Key Ring Service
 Manages keys for the bus and its user. 
-Multiple users are not supported for identities.
+Multiple users are not supported for identities (this is client-to-client software not server based).
 Creates, persists, and deletes identity keys (OpenPGP). 
-Wraps them with a symmetric key (AES).
+Wraps them with a symmetric key (AES) - TODO.
 Provides identity keys for DID Service.
 Storage currently local hard drive but slated to support external usb drives.
 
@@ -13,3 +13,8 @@ No certificate authorities will be used in 1M5 as it would require divulging an 
  
 ### Availability
 Cipher flexibility is important as 1M5 is a platform for integrating service providers and sensors.
+As of 0.5.2, it is only supporting:
+
+* RSA 2048 for asymmetric identities
+* AES 256 for secret symmetric keys
+* SHA1 for signatures

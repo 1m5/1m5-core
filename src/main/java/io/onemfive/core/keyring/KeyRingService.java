@@ -590,7 +590,7 @@ public class KeyRingService extends BaseService {
             /*
              * As of 2018: 2048 is common value - safe until 2030, 3072 is uncommon - safe until 2040, 4096 is rare - safe until 2040+
              */
-            int bitStrength = 4096;
+            int bitStrength = 2048;
 
             /*
              * How certain do we want to be that the chosen primes are really primes.
@@ -603,7 +603,7 @@ public class KeyRingService extends BaseService {
              *
              * As of 2018: 12 is common value, 16 uncommon, 80 rare
              */
-            final int certainty = 80;
+            final int certainty = 12;
 
             kpg.init(new RSAKeyGenerationParameters(publicExponent, new SecureRandom(), bitStrength, certainty));
 
@@ -657,9 +657,7 @@ public class KeyRingService extends BaseService {
                     new PGPKeyRingGenerator
                             (PGPSignature.POSITIVE_CERTIFICATION, rsakp_sign,
                                     alias, sha1Calc, signhashgen.generate(), null,
-                                    new BcPGPContentSignerBuilder
-                                            (rsakp_sign.getPublicKey().getAlgorithm(),
-                                                    HashAlgorithmTags.SHA1),
+                                    new BcPGPContentSignerBuilder(rsakp_sign.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1),
                                     pske);
 
             // Add our encryption subkey, together with its signature.
@@ -711,6 +709,22 @@ public class KeyRingService extends BaseService {
     public static void main(String[] args) {
         KeyRingService s = new KeyRingService(null, null);
         s.start(null);
+        boolean isArmored = false;
+        String alias = "Alice";
+        char[] passphrase = "1234".toCharArray();
+        boolean integrityCheck = true;
+        int s3kCount = 80;
+        String pubKeyFile = "/tmp/pub.dat";
+        String privKeyFile = "/tmp/secret.dat";
+
+        String plainTextFile = "/tmp/plain-text.txt"; //create a text file to be encripted, before run the tests
+        String cipherTextFile = "/tmp/cypher-text.dat";
+        String decPlainTextFile = "/tmp/dec-plain-text.txt";
+        String signatureFile = "/tmp/signature.txt";
+
+        s.loadKeyRings(alias, passphrase, PASSWORD_HASH_STRENGTH_64, "skr", "pkr", true);
+
+        System.out.println("done");
     }
 
 }
