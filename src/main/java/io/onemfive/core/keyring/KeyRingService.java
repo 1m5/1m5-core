@@ -137,7 +137,13 @@ public class KeyRingService extends BaseService {
             }
             case OPERATION_ENCRYPT: {
                 EncryptRequest r = (EncryptRequest)DLC.getData(EncryptRequest.class, e);
-                r.encryptedContent = encrypt(r.plainTextContent, r.alias, r.passphrase);
+                try {
+                    r.encryptedContent = encrypt(r.plainTextContent, r.alias, r.passphrase);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (PGPException e1) {
+                    e1.printStackTrace();
+                }
                 break;
             }
             case OPERATION_DECRYPT: {
@@ -314,6 +320,14 @@ public class KeyRingService extends BaseService {
         saveKeyRings();
     }
 
+    private PGPPublicKey getFirstPublicKey(String alias) {
+        List<PGPPublicKey> publicKeys = getPublicKeys(alias);
+        if(publicKeys != null && publicKeys.size() > 0)
+            return publicKeys.get(0);
+        else
+            return null;
+    }
+
     private List<PGPPublicKey> getPublicKeys(String alias) {
         List<PGPPublicKey> publicKeys = new ArrayList<>();
         Iterator<PGPPublicKey> i = publicKeyRing.getPublicKeys();
@@ -336,10 +350,57 @@ public class KeyRingService extends BaseService {
         return publicKeys;
     }
 
-    private byte[] encrypt(byte[] plainTextContent, String alias, char[] passphrase) {
-        byte[] encryptedContent = new byte[]{};
+    private byte[] encrypt(byte[] plainTextContent, String alias, char[] passphrase) throws IOException, PGPException {
 
-        return encryptedContent;
+        PGPPublicKey publicKey = getFirstPublicKey(alias);
+        if(publicKey == null) {
+            LOG.warning("Unable to find publicKey for alias.");
+            return null;
+        }
+
+        boolean withIntegrityCheck = true;
+
+        ByteArrayOutputStream content = new ByteArrayOutputStream();
+
+        OutputStream out = new ArmoredOutputStream(content);
+
+        // Compress content
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+        PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(PGPCompressedData.ZIP);
+
+        PGPLiteralDataGenerator lData = new PGPLiteralDataGenerator();
+        OutputStream pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY, "sec", plainTextContent.length, new Date());
+        pOut.write(plainTextContent);
+
+        lData.close();
+        comData.close();
+
+        // Encrypt content
+        JcePGPDataEncryptorBuilder c = new JcePGPDataEncryptorBuilder(PGPEncryptedData.CAST5)
+                .setWithIntegrityPacket(withIntegrityCheck)
+                .setSecureRandom(new SecureRandom())
+                .setProvider(PROVIDER_BOUNCY_CASTLE);
+
+        PGPEncryptedDataGenerator cPk = new PGPEncryptedDataGenerator(c);
+
+        JcePublicKeyKeyEncryptionMethodGenerator d = new JcePublicKeyKeyEncryptionMethodGenerator(publicKey)
+                .setProvider(PROVIDER_BOUNCY_CASTLE)
+                .setSecureRandom(new SecureRandom());
+
+        cPk.addMethod(d);
+
+        byte[] bytes = bOut.toByteArray();
+
+        OutputStream cOut = cPk.open(out, bytes.length);
+
+        cOut.write(bytes);
+
+        cOut.close();
+
+        out.close();
+
+        return content.toByteArray();
     }
 
     private byte[] decrypt(byte[] encryptedContent, String alias, char[] passphrase) {
@@ -392,12 +453,12 @@ public class KeyRingService extends BaseService {
         }
 
         PGPSignature sig = p3.get(0);
-        List<PGPPublicKey> publicKeys = getPublicKeys(alias);
-        if(publicKeys == null || publicKeys.size() == 0) {
+
+        PGPPublicKey publicKey = getFirstPublicKey(alias);
+        if(publicKey == null) {
             LOG.warning("Unable to find public key to verify signature.");
             return false;
         }
-        PGPPublicKey publicKey = publicKeys.get(0);
         sig.init(new JcaPGPContentVerifierBuilderProvider().setProvider(PROVIDER_BOUNCY_CASTLE), publicKey);
 
         sig.update(contentSigned);
