@@ -3,6 +3,10 @@ package io.onemfive.core.keyring;
 import io.onemfive.core.ServiceRequest;
 
 public class LoadKeyRingsRequest extends ServiceRequest {
+    public static int ALIAS_REQUIRED = 1;
+    public static int PASSPHRASE_REQUIRED = 2;
+    public static int AUTOGENERATE_REMOVE_OLD_KEYS_CONFLICT = 3;
+
     public String alias;
     public char[] passphrase;
     /**
@@ -15,8 +19,9 @@ public class LoadKeyRingsRequest extends ServiceRequest {
      * and so on till 0xf0, or about 1 million iterations. The maximum you can go to is 0xff,
      * or about 2 million iterations. These values are constants in the KeyRingService class as helpers.
      */
-    public int hashStrength = KeyRingService.PASSWORD_HASH_STRENGTH_130k;
-    public String secretKeyRingCollectionFileLocation = "skr";
-    public String publicKeyRingCollectionFileLocation = "pkr";
+    public int hashStrength = KeyRingService.PASSWORD_HASH_STRENGTH_64;
+    public String secretKeyRingCollectionFileLocation = "1m5.skr";
+    public String publicKeyRingCollectionFileLocation = "1m5.pkr";
     public boolean autoGenerate = true;
+    public boolean removeOldKeys = false;
 }

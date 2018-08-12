@@ -3,10 +3,13 @@ package io.onemfive.core.keyring;
 import io.onemfive.core.ServiceRequest;
 import org.bouncycastle.openpgp.PGPPublicKey;
 
-import java.util.List;
-
 public class GetPublicKeyRequest extends ServiceRequest {
+    public static int ALIAS_OR_FINGERPRINT_REQUIRED = 1;
+
+    // Alias used to retrieve master public key
     public String alias;
+    // Fingerprint used to retrieve sub public key
+    public byte[] fingerprint;
     // Response
-    List<PGPPublicKey> publicKeys;
+    PGPPublicKey publicKey;
 }

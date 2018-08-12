@@ -6,17 +6,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class ServiceRequest implements JSONSerializable {
+    public static int REQUEST_REQUIRED = 0;
+
+    public int errorCode;
     public String errorMessage;
     public Exception exception;
 
     public Map<String,Object> toMap() {
         Map<String,Object> m = new HashMap<>();
+        m.put("errorCode",errorCode+"");
         m.put("errorMessage",errorMessage);
         m.put("exception",exception.getLocalizedMessage());
         return m;
     }
 
     public void fromMap(Map<String,Object> m) {
+        if(m.get("errorCode")!=null) this.errorCode = Integer.parseInt((String)m.get("errorCode"));
         if(m.get("errorMessage")!=null) this.errorMessage = (String)m.get("errorMessage");
         if(m.get("exception")!=null) {
             exception = new Exception((String)m.get("exception"));

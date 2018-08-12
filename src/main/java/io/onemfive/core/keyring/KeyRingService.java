@@ -22,7 +22,6 @@ import org.bouncycastle.openpgp.operator.jcajce.*;
 import java.io.*;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.interfaces.RSAPrivateCrtKey;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -37,7 +36,7 @@ public class KeyRingService extends BaseService {
     public static final String OPERATION_SAVE_KEY_RINGS = "SAVE_KEY_RINGS";
     public static final String OPERATION_GENERATE_KEY_PAIR = "GENERATE_KEY_PAIR";
     public static final String OPERATION_STORE_PUBLIC_KEYS = "STORE_PUBLIC_KEYS";
-    public static final String OPERATION_GET_PUBLIC_KEYS = "GET_PUBLIC_KEYS";
+    public static final String OPERATION_GET_PUBLIC_KEY = "GET_PUBLIC_KEY";
     public static final String OPERATION_ENCRYPT = "ENCRYPT";
     public static final String OPERATION_DECRYPT = "DECRYPT";
     public static final String OPERATION_SIGN = "SIGN";
@@ -58,10 +57,10 @@ public class KeyRingService extends BaseService {
 
     private File skr;
     // a secret key with master key and any sub-keys
-    private PGPSecretKeyRing secretKeyRing;
+    private PGPSecretKeyRingCollection secretKeyRingCollection;
     private File pkr;
     // a public key with master key and any sub-keys
-    private PGPPublicKeyRing publicKeyRing;
+    private PGPPublicKeyRingCollection publicKeyRingCollection;
 
     public KeyRingService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -74,110 +73,167 @@ public class KeyRingService extends BaseService {
             case OPERATION_LOAD_KEY_RINGS: {
                 LoadKeyRingsRequest r = (LoadKeyRingsRequest)DLC.getData(LoadKeyRingsRequest.class,e);
                 if(r == null) {
-                    LOG.warning(LoadKeyRingsRequest.class.getName() + " required as parameter.");
-                    return;
+                    r = new LoadKeyRingsRequest();
+                    r.errorCode = LoadKeyRingsRequest.REQUEST_REQUIRED;
+                    DLC.addData(LoadKeyRingsRequest.class, r, e);
+                    break;
                 }
                 if(r.alias == null) {
-                    LOG.warning("Alias is required.");
-                    return;
+                    r.errorCode = LoadKeyRingsRequest.ALIAS_REQUIRED;
+                    break;
                 }
                 if(r.passphrase == null) {
-                    LOG.warning("Passphrase is required.");
-                    return;
+                    r.errorCode = LoadKeyRingsRequest.PASSPHRASE_REQUIRED;
+                    break;
+                }
+                if(!r.autoGenerate && r.removeOldKeys) {
+                    r.errorCode = LoadKeyRingsRequest.AUTOGENERATE_REMOVE_OLD_KEYS_CONFLICT;
+                    r.errorMessage = "If removeOldKeys is set to true, autoGenerate must also be set to true to generate the keys.";
+                    break;
                 }
                 if(r.hashStrength < PASSWORD_HASH_STRENGTH_64) {
-                    r.hashStrength = PASSWORD_HASH_STRENGTH_130k;
+                    r.hashStrength = PASSWORD_HASH_STRENGTH_64;
                 }
                 if(r.secretKeyRingCollectionFileLocation == null) {
-                    r.secretKeyRingCollectionFileLocation = "skr";
+                    r.secretKeyRingCollectionFileLocation = "1m5.skr";
                 }
                 if(r.publicKeyRingCollectionFileLocation == null) {
-                    r.publicKeyRingCollectionFileLocation = "pkr";
+                    r.publicKeyRingCollectionFileLocation = "1m5.pkr";
                 }
-                loadKeyRings(r.alias, r.passphrase, r.hashStrength, r.secretKeyRingCollectionFileLocation, r.publicKeyRingCollectionFileLocation, r.autoGenerate);
+                loadKeyRings(r.alias, r.passphrase, r.hashStrength, r.secretKeyRingCollectionFileLocation, r.publicKeyRingCollectionFileLocation, r.autoGenerate, r.removeOldKeys);
                 break;
             }
             case OPERATION_SAVE_KEY_RINGS: { saveKeyRings();break; }
             case OPERATION_GENERATE_KEY_PAIR: {
                 GenerateKeyPairRequest r = (GenerateKeyPairRequest)DLC.getData(GenerateKeyPairRequest.class,e);
                 if(r == null) {
-                    LOG.warning(GenerateKeyPairRequest.class.getName()+" required in Envelope data.");
-                    return;
+                    r = new GenerateKeyPairRequest();
+                    r.errorCode = GenerateKeyPairRequest.REQUEST_REQUIRED;
+                    break;
                 }
-                if(r.alias == null) {
-                    LOG.warning("Alias required.");
-                    return;
+                if(r.alias == null || r.alias.isEmpty()) {
+                    r.errorCode = GenerateKeyPairRequest.ALIAS_REQUIRED;
+                    break;
                 }
-                if(r.passphrase == null) {
-                    LOG.warning("Passphrase required.");
-                    return;
+                if(r.passphrase == null || r.passphrase.length == 0) {
+                    r.errorCode = GenerateKeyPairRequest.PASSPHRASE_REQUIRED;
+                    break;
                 }
-                generateKeyPair(r.alias, r.passphrase);
+                generateKeyRings(r.alias, r.passphrase, r.hashStrength);
                 break;
             }
             case OPERATION_STORE_PUBLIC_KEYS: {
                 StorePublicKeysRequest r = (StorePublicKeysRequest)DLC.getData(StorePublicKeysRequest.class,e);
                 if(r == null) {
-                    LOG.warning(StorePublicKeysRequest.class.getName()+" required.");
-                    return;
+                    r = new StorePublicKeysRequest();
+                    r.errorCode = StorePublicKeysRequest.REQUEST_REQUIRED;
+                    break;
+                }
+                if(r.keyId == 0) {
+                    r.errorCode = StorePublicKeysRequest.KEYID_REQUIRED;
+                    break;
                 }
                 if(r.publicKeys == null || r.publicKeys.size() == 0) {
-                    LOG.warning("A list of PGPPublicKeys greater than 0 is required to store.");
-                    return;
+                    r.errorCode = StorePublicKeysRequest.PUBLIC_KEYS_LIST_REQUIRED;
+                    break;
                 }
-                if(publicKeyRing == null) {
-                    LOG.warning(PGPPublicKeyRing.class.getName()+" must be created first.");
-                    return;
+                if(publicKeyRingCollection == null) {
+                    r.errorCode = StorePublicKeysRequest.NON_EXISTANT_PUBLIC_KEY_RING_COLLECTION;
+                    break;
                 }
-                storePublicKeys(r.publicKeys);
+                try {
+                    storePublicKeys(r, r.keyId, r.publicKeys);
+                } catch (PGPException e1) {
+                    r.exception = e1;
+                }
                 break;
             }
-            case OPERATION_GET_PUBLIC_KEYS: {
+            case OPERATION_GET_PUBLIC_KEY: {
                 GetPublicKeyRequest r = (GetPublicKeyRequest)DLC.getData(GetPublicKeyRequest.class,e);
-                r.publicKeys = getPublicKeys(r.alias);
+                if(r == null) {
+                    r = new GetPublicKeyRequest();
+                    r.errorCode = GetPublicKeyRequest.REQUEST_REQUIRED;
+                    break;
+                }
+                if((r.alias == null || r.alias.isEmpty()) && (r.fingerprint == null || r.fingerprint.length == 0)) {
+                    r.errorCode = GetPublicKeyRequest.ALIAS_OR_FINGERPRINT_REQUIRED;
+                    break;
+                }
+                try {
+                    if(r.alias != null)
+                        r.publicKey = getMasterPublicKey(r.alias);
+                    else
+                        r.publicKey = getPublicKey(r.fingerprint);
+                } catch (PGPException e1) {
+                    r.exception = e1;
+                }
                 break;
             }
             case OPERATION_ENCRYPT: {
                 EncryptRequest r = (EncryptRequest)DLC.getData(EncryptRequest.class, e);
+                if(r == null) {
+                    r = new EncryptRequest();
+                    r.errorCode = EncryptRequest.REQUEST_REQUIRED;
+                    DLC.addData(EncryptRequest.class, r, e);
+                    break;
+                }
+                if(r.alias == null || r.alias.isEmpty()) {
+                    r.errorCode = EncryptRequest.ALIAS_REQUIRED;
+                    break;
+                }
+                if(r.textToEncrypt == null || r.textToEncrypt.length == 0) {
+                    r.errorCode = EncryptRequest.TEXT_TO_ENCRYPT_REQUIRED;
+                    break;
+                }
                 try {
-                    r.encryptedContent = encrypt(r.plainTextContent, r.alias, r.passphrase);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (PGPException e1) {
-                    e1.printStackTrace();
+                    r.encryptedContent = encrypt(r, r.textToEncrypt, r.alias);
+                } catch (Exception e1) {
+                    r.exception = e1;
                 }
                 break;
             }
             case OPERATION_DECRYPT: {
                 DecryptRequest r = (DecryptRequest)DLC.getData(DecryptRequest.class, e);
+                if(r == null) {
+                    r = new DecryptRequest();
+                    r.errorCode = DecryptRequest.REQUEST_REQUIRED;
+                    DLC.addData(DecryptRequest.class, r, e);
+                    break;
+                }
                 try {
-                    r.plaintextContent = decrypt(r.encryptedContent, r.alias, r.passphrase);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (PGPException e1) {
-                    e1.printStackTrace();
+                    r.plaintextContent = decrypt(r, r.encryptedContent, r.alias, r.passphrase);
+                } catch (Exception e1) {
+                    r.exception = e1;
                 }
                 break;
             }
             case OPERATION_SIGN: {
                 SignRequest r = (SignRequest)DLC.getData(SignRequest.class, e);
+                if(r == null) {
+                    r = new SignRequest();
+                    r.errorCode = SignRequest.REQUEST_REQUIRED;
+                    DLC.addData(SignRequest.class, r, e);
+                    break;
+                }
                 try {
-                    r.signature = sign(r.contentToSign, r.alias, r.passphrase);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (PGPException e1) {
-                    e1.printStackTrace();
+                    r.signature = sign(r, r.contentToSign, r.alias, r.passphrase);
+                } catch (Exception e1) {
+                    r.exception = e1;
                 }
                 break;
             }
             case OPERATION_VERIFY_SIGNATURE: {
                 VerifySignatureRequest r = (VerifySignatureRequest)DLC.getData(VerifySignatureRequest.class,e);
+                if(r == null) {
+                    r = new VerifySignatureRequest();
+                    r.errorCode = VerifySignatureRequest.REQUEST_REQUIRED;
+                    DLC.addData(VerifySignatureRequest.class, r, e);
+                    break;
+                }
                 try {
-                    r.verified = verifySignature(r.contentSigned, r.signature, r.alias);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (PGPException e1) {
-                    e1.printStackTrace();
+                    r.verified = verifySignature(r, r.contentSigned, r.signature, r.fingerprint);
+                } catch (Exception e1) {
+                    r.exception = e1;
                 }
                 break;
             }
@@ -190,10 +246,13 @@ public class KeyRingService extends BaseService {
                               int hashStrength,
                               String secretKeyRingCollectionFileLocation,
                               String publicKeyRingCollectionFileLocation,
-                              boolean autoGenerate) {
+                              boolean autoGenerate,
+                              boolean removeOldKeys) {
 
         boolean newFiles = false;
         skr = new File(secretKeyRingCollectionFileLocation);
+        if(removeOldKeys)
+            skr.delete();
         if(!skr.exists()) {
             newFiles = true;
             try {
@@ -206,6 +265,8 @@ public class KeyRingService extends BaseService {
         }
 
         pkr = new File(publicKeyRingCollectionFileLocation);
+        if(removeOldKeys)
+            pkr.delete();
         if(!pkr.exists()) {
             newFiles = true;
             try {
@@ -222,10 +283,10 @@ public class KeyRingService extends BaseService {
             try {
                 // TODO: Decrypt files
                 FileInputStream fis = new FileInputStream(skr);
-                secretKeyRing = new PGPSecretKeyRing(fis, new BcKeyFingerprintCalculator());
+                secretKeyRingCollection = new PGPSecretKeyRingCollection(fis, new BcKeyFingerprintCalculator());
 
                 fis = new FileInputStream(pkr);
-                publicKeyRing = new PGPPublicKeyRing(fis, new BcKeyFingerprintCalculator());
+                publicKeyRingCollection = new PGPPublicKeyRingCollection(fis, new BcKeyFingerprintCalculator());
 
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -234,48 +295,28 @@ public class KeyRingService extends BaseService {
             }
         }
 
-        // If rings could not be loaded then generate them if an alias and passphrase are provided.
-        if(secretKeyRing == null || publicKeyRing == null && autoGenerate) {
-            // TODO: Encrypt files
-            PGPKeyRingGenerator krgen = generateKeyRingGenerator(alias, passphrase, hashStrength);
-            // Create and save the Key Rings
-            secretKeyRing = krgen.generateSecretKeyRing();
-            try {
-                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
-                secretKeyRing.encode(bos);
-                bos.close();
-            } catch (IOException e) {
-                LOG.warning(e.getLocalizedMessage());
-            }
-
-            // Create and save the Key Rings
-            publicKeyRing = krgen.generatePublicKeyRing();
-            try {
-                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pkr));
-                publicKeyRing.encode(bos);
-                bos.close();
-            } catch (IOException e) {
-                LOG.warning(e.getLocalizedMessage());
-            }
+        // If collection could not be loaded then generate them
+        if(secretKeyRingCollection == null || publicKeyRingCollection == null && autoGenerate) {
+            generateKeyRings(alias, passphrase, hashStrength);
         }
     }
 
     private void saveKeyRings() {
         // TODO: Encrypt files
-        if(secretKeyRing != null && skr != null) {
+        if(secretKeyRingCollection != null && skr != null) {
             try {
                 BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
-                secretKeyRing.encode(bos);
+                secretKeyRingCollection.encode(bos);
                 bos.close();
             } catch (IOException e) {
                 LOG.warning(e.getLocalizedMessage());
             }
         }
 
-        if(publicKeyRing != null && pkr != null) {
+        if(publicKeyRingCollection != null && pkr != null) {
             try {
                 BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pkr));
-                publicKeyRing.encode(bos);
+                publicKeyRingCollection.encode(bos);
                 bos.close();
             } catch (IOException e) {
                 LOG.warning(e.getLocalizedMessage());
@@ -283,86 +324,62 @@ public class KeyRingService extends BaseService {
         }
     }
 
-    private void generateKeyPair(String alias, char[] passphrase) {
-        try {
-            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", PROVIDER_BOUNCY_CASTLE);
-            kpg.initialize(1024);
-            KeyPair kp = kpg.generateKeyPair();
-            PublicKey publicKey = kp.getPublic();
-            PrivateKey privateKey = kp.getPrivate();
+    private void generateKeyRings(String alias, char[] passphrase, int hashStrength) {
 
-            PGPPublicKey a = (new JcaPGPKeyConverter().getPGPPublicKey(PGPPublicKey.RSA_GENERAL, publicKey, new Date()));
-            RSAPrivateCrtKey rsK = (RSAPrivateCrtKey)privateKey;
-            RSASecretBCPGKey privPk = new RSASecretBCPGKey(rsK.getPrivateExponent(), rsK.getPrimeP(), rsK.getPrimeQ());
-            PGPPrivateKey b = new PGPPrivateKey(a.getKeyID(), a.getPublicKeyPacket(), privPk);
+        PGPKeyRingGenerator krgen = generateKeyRingGenerator(alias, passphrase, hashStrength);
 
-            PGPDigestCalculator sha1Calc = new JcaPGPDigestCalculatorProviderBuilder().build().get(HashAlgorithmTags.SHA1);
-            PGPKeyPair keyPair = new PGPKeyPair(a,b);
+        // Create and save the Secret Key Ring
+        PGPSecretKeyRing secretKeyRing = krgen.generateSecretKeyRing();
+        secretKeyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(secretKeyRingCollection, secretKeyRing);
 
-            PGPSecretKey secretKey = new PGPSecretKey(
-                    PGPSignature.DEFAULT_CERTIFICATION, keyPair, alias, sha1Calc, null, null,
-                    new JcaPGPContentSignerBuilder(keyPair.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1),
-                    new JcePBESecretKeyEncryptorBuilder(PGPEncryptedData.CAST5, sha1Calc).setProvider(PROVIDER_BOUNCY_CASTLE).build(passphrase));
+        // Create and save the Public Key Ring
+        PGPPublicKeyRing publicKeyRing = krgen.generatePublicKeyRing();
+        publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
 
-            PGPSecretKeyRing.insertSecretKey(secretKeyRing, secretKey);
-
-            PGPPublicKey key = secretKey.getPublicKey();
-
-            PGPPublicKeyRing.insertPublicKey(publicKeyRing, key);
-
-        } catch (NoSuchAlgorithmException e1) {
-            e1.printStackTrace();
-        } catch (NoSuchProviderException e1) {
-            e1.printStackTrace();
-        } catch (PGPException e1) {
-            e1.printStackTrace();
-        }
-
-    }
-
-    private void storePublicKeys(List<PGPPublicKey> publicKeys) {
-        for (PGPPublicKey k : publicKeys) {
-            PGPPublicKeyRing.insertPublicKey(publicKeyRing, k);
-        }
-        // Ensure they're persisted
         saveKeyRings();
     }
 
-    private PGPPublicKey getFirstPublicKey(String alias) {
-        List<PGPPublicKey> publicKeys = getPublicKeys(alias);
-        if(publicKeys != null && publicKeys.size() > 0)
-            return publicKeys.get(0);
-        else
-            return null;
-    }
-
-    private List<PGPPublicKey> getPublicKeys(String alias) {
-        List<PGPPublicKey> publicKeys = new ArrayList<>();
-        Iterator<PGPPublicKey> i = publicKeyRing.getPublicKeys();
-        if(alias != null) {
-            while(i.hasNext()) {
-                PGPPublicKey k = i.next();
-                Iterator<String> aliases = k.getUserIDs();
-                while(aliases.hasNext()) {
-                    if(alias.equals(aliases.next())) {
-                        publicKeys.add(k);
-                        break;
-                    }
-                }
-            }
-        } else {
-            while(i.hasNext()) {
-                publicKeys.add(i.next());
+    private void storePublicKeys(StorePublicKeysRequest r, long keyId, List<PGPPublicKey> publicKeys) throws PGPException {
+        boolean updated = false;
+        PGPPublicKeyRing pkr = publicKeyRingCollection.getPublicKeyRing(keyId);
+        PGPPublicKeyRing pkrNew = pkr;
+        if(pkr == null) {
+            r.errorCode = StorePublicKeysRequest.NON_EXISTANT_PUBLIC_KEY_RING;
+            return;
+        }
+        for (PGPPublicKey k : publicKeys) {
+            if(pkrNew.getPublicKey(k.getKeyID()) == null && !k.isMasterKey()) {
+                pkrNew = PGPPublicKeyRing.insertPublicKey(pkr, k);
+                updated = true;
             }
         }
-        return publicKeys;
+        if(updated) {
+            publicKeyRingCollection = PGPPublicKeyRingCollection.removePublicKeyRing(publicKeyRingCollection, pkr);
+            publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, pkrNew);
+            saveKeyRings();
+        }
     }
 
-    private byte[] encrypt(byte[] plainTextContent, String alias, char[] passphrase) throws IOException, PGPException {
+    private PGPPublicKey getMasterPublicKey(String alias) throws PGPException {
+        Iterator<PGPPublicKeyRing> i = publicKeyRingCollection.getKeyRings(alias);
+        while(i.hasNext()) {
+            PGPPublicKeyRing k = i.next();
+            if(k.getPublicKey() != null)
+                return k.getPublicKey();
+        }
+        return null;
+    }
 
-        PGPPublicKey publicKey = getFirstPublicKey(alias);
+    private PGPPublicKey getPublicKey(byte[] fingerprint) throws PGPException {
+        return publicKeyRingCollection.getPublicKey(fingerprint);
+    }
+
+
+    private byte[] encrypt(EncryptRequest r, byte[] plainTextContent, String alias) throws IOException, PGPException {
+
+        PGPPublicKey publicKey = getMasterPublicKey(alias);
         if(publicKey == null) {
-            LOG.warning("Unable to find publicKey for alias.");
+            r.errorCode = EncryptRequest.PUBLIC_KEY_NOT_FOUND;
             return null;
         }
 
@@ -411,7 +428,7 @@ public class KeyRingService extends BaseService {
         return content.toByteArray();
     }
 
-    private byte[] decrypt(byte[] encryptedContent, String alias, char[] passphrase) throws IOException, PGPException {
+    private byte[] decrypt(DecryptRequest r, byte[] encryptedContent, String alias, char[] passphrase) throws IOException, PGPException {
 
         InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(encryptedContent));
         PGPObjectFactory pgpF = new PGPObjectFactory(in, new BcKeyFingerprintCalculator());
@@ -434,7 +451,8 @@ public class KeyRingService extends BaseService {
         PGPSecretKey secKey = null;
         while (privKey == null && it.hasNext()) {
             pbe = it.next();
-            secKey = getSecretKey(pbe.getKeyID());
+//            secKey = getSecretKey(pbe.getKeyID());
+            secKey = getSecretKey(alias);
             if(secKey != null) {
                 PBESecretKeyDecryptor a = new JcePBESecretKeyDecryptorBuilder(
                         new JcaPGPDigestCalculatorProviderBuilder()
@@ -480,11 +498,11 @@ public class KeyRingService extends BaseService {
         return baos.toByteArray();
     }
 
-    private byte[] sign(byte[] contentToSign, String alias, char[] passphrase) throws IOException, PGPException {
+    private byte[] sign(SignRequest r, byte[] contentToSign, String alias, char[] passphrase) throws IOException, PGPException {
 
-        PGPSecretKey secretKey = getSecretKey(alias, passphrase);
+        PGPSecretKey secretKey = getSecretKey(alias);
         if(secretKey == null) {
-            LOG.warning("Secret Key not found for alias.");
+            r.errorCode = SignRequest.SECRET_KEY_NOT_FOUND;
             return null;
         }
 
@@ -511,7 +529,8 @@ public class KeyRingService extends BaseService {
         return byteOut.toByteArray();
     }
 
-    private boolean verifySignature(byte[] contentSigned, byte[] signature, String alias) throws IOException, PGPException {
+    private boolean verifySignature(VerifySignatureRequest r, byte[] contentSigned, byte[] signature, byte[] fingerprint) throws IOException, PGPException {
+
         PGPObjectFactory pgpFact = new PGPObjectFactory(signature, new BcKeyFingerprintCalculator());
         PGPSignatureList p3 = null;
         Object o = pgpFact.nextObject();
@@ -525,7 +544,7 @@ public class KeyRingService extends BaseService {
 
         PGPSignature sig = p3.get(0);
 
-        PGPPublicKey publicKey = getFirstPublicKey(alias);
+        PGPPublicKey publicKey = getPublicKey(fingerprint);
         if(publicKey == null) {
             LOG.warning("Unable to find public key to verify signature.");
             return false;
@@ -541,24 +560,13 @@ public class KeyRingService extends BaseService {
         return secretKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider(PROVIDER_BOUNCY_CASTLE).build(pass));
     }
 
-    private PGPSecretKey getSecretKey(long keyId) {
-        Iterator<PGPSecretKey> i = secretKeyRing.getSecretKeys();
-        PGPSecretKey k;
-        while(i.hasNext()) {
-            k = i.next();
-            if(keyId == k.getKeyID())
-                return k;
-        }
-        return null;
-    }
+    private PGPSecretKey getSecretKey(String alias) throws PGPException {
 
-    private PGPSecretKey getSecretKey(String alias, char[] pass) {
-        Iterator<PGPSecretKey> i = secretKeyRing.getSecretKeys();
+        Iterator<PGPSecretKeyRing> i = secretKeyRingCollection.getKeyRings(alias);
         while(i.hasNext()) {
-            PGPSecretKey secretKey = i.next();
-            if(containsAlias(secretKey.getPublicKey(), alias)) {
-                return secretKey;
-            }
+            PGPSecretKeyRing k = i.next();
+            if(k.getSecretKey() != null)
+                return k.getSecretKey();
         }
         return null;
     }
@@ -713,18 +721,30 @@ public class KeyRingService extends BaseService {
         String alias = "Alice";
         char[] passphrase = "1234".toCharArray();
         boolean integrityCheck = true;
-        int s3kCount = 80;
-        String pubKeyFile = "/tmp/pub.dat";
-        String privKeyFile = "/tmp/secret.dat";
+        int s3kCount = 12;
+        String pubKeyFile = "/tmp/1m5/kr/pub.dat";
+        String privKeyFile = "/tmp/1m5/kr/secret.dat";
 
-        String plainTextFile = "/tmp/plain-text.txt"; //create a text file to be encripted, before run the tests
-        String cipherTextFile = "/tmp/cypher-text.dat";
-        String decPlainTextFile = "/tmp/dec-plain-text.txt";
-        String signatureFile = "/tmp/signature.txt";
+        String plainTextFile = "/tmp/1m5/kr/plain-text.txt"; //create a text file to be encripted, before run the tests
+        String cipherTextFile = "/tmp/1m5/kr/cypher-text.dat";
+        String decPlainTextFile = "/tmp/1m5/kr/dec-plain-text.txt";
+        String signatureFile = "/tmp/s1m5/kr/signature.txt";
 
-        s.loadKeyRings(alias, passphrase, PASSWORD_HASH_STRENGTH_64, "skr", "pkr", true);
+        // Load Key Rings
+        long start = new Date().getTime();
+        s.loadKeyRings(alias, passphrase, PASSWORD_HASH_STRENGTH_64, "skr", "pkr", true, false);
+        long end = new Date().getTime();
+        long duration = end - start;
+        System.out.println("Load KeyRings Duration: "+duration);
 
-        System.out.println("done");
+
+
+        // Generate New Alias Key Ring
+        start = new Date().getTime();
+        s.generateKeyRings("Bob",passphrase, KeyRingService.PASSWORD_HASH_STRENGTH_64);
+        end = new Date().getTime();
+        duration = end - start;
+        System.out.println("Generate New Alias Key Ring Duration: "+duration);
     }
 
 }

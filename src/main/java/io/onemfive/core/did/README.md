@@ -1,7 +1,7 @@
 # Decentralized IDentification (DID) Service
 Implementing [Web Of Trust](https://en.wikipedia.org/wiki/Web_of_trust) with Self Sovereign Identity
  
-Uses Key Ring Service to Manage the Physical Persistence of Keys
+Uses Key Ring Service to Manage the Physical Persistence, Generation, Revocation, and Destruction of Keys
 
 ## Bill of Rights
 
@@ -105,7 +105,14 @@ independent, and free of censorship.
 
 * Decentralized: 1M5 only uses P2P open source free software systems
 * Independent: 1M5 is a DAO with no jurisdiction oversight, only member oversight
-* Free of Censorship: 1M5's bread and butter - anonymous highly censorship resistant communications with strong at-rest data encryption
+* Free of Censorship: anonymous highly censorship resistant communications with strong at-rest data encryption
 
 ## Features and Roadmap
 The DID Service is being implemented as individual projects needs arise.
+The following projects are currently being worked in:
+
+* [Inkrypt](https://inkrypt.io)
+* [Dragonsbane](https://dragonsbane.io)
+* [Dgramz](https://dgramz.io)
+* [V4D](https://v4d.io)
+* [460R4](https://460r4.io)
