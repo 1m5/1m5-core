@@ -6,9 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class ServiceRequest implements JSONSerializable {
+    public static int NO_ERROR = -1;
     public static int REQUEST_REQUIRED = 0;
 
-    public int errorCode;
+    public int errorCode = NO_ERROR;
     public String errorMessage;
     public Exception exception;
 

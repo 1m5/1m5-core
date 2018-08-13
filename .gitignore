@@ -37,3 +37,5 @@ hs_err_pid*
 .ndb
 i2pbote
 libs/flexi-gmss-1.7p1.jar
+*.pkr
+*.skr

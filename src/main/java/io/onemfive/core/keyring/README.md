@@ -18,3 +18,6 @@ As of 0.5.2, it is only supporting:
 * RSA 2048, 3072, 4096 for asymmetric identities
 * AES 128, 192, 256 for secret symmetric keys
 * SHA1, SHA256, SHA512 for signatures and integrity
+
+## TODO
+* Key Revocation
