@@ -1,9 +1,6 @@
 package io.onemfive.core.infovault;
 
-import io.onemfive.core.BaseService;
-import io.onemfive.core.MessageProducer;
-import io.onemfive.core.ServiceStatus;
-import io.onemfive.core.ServiceStatusListener;
+import io.onemfive.core.*;
 import io.onemfive.data.*;
 import io.onemfive.data.health.HealthRecord;
 import io.onemfive.data.health.mental.memory.MemoryTest;
@@ -120,4 +117,36 @@ public class InfoVaultService extends BaseService {
     public boolean gracefulShutdown() {
         return shutdown();
     }
+
+//    public static void main(String[] args) {
+//        // kick start things
+//        OneMFiveAppContext ctx = OneMFiveAppContext.getInstance();
+//        InfoVaultService s = new InfoVaultService(null, null);
+//        s.start(null);
+//        DID did = new DID();
+//        did.setId(1L);
+//        MemoryTest t = MemoryTest.newInstance("test",did.getId());
+//        t.setBaseline(false);
+//        t.setTimeStarted(new Date(new Date().getTime() - (5 * 60 * 1000)));
+//        t.setTimeEnded(new Date());
+//        t.setDifficulty(1);
+//        t.addSuccess(1000);
+//        t.addMiss(5000);
+//        t.addNegative(3000);
+//        t.addInappropriate(500);
+//        t.setBloodAlcoholContent(0.08);
+//        t.setCardsUsed(Arrays.asList(1,2,3,4,5,6));
+//        Envelope saveEnv = Envelope.documentFactory();
+//        DLC.addEntity(t, saveEnv);
+//        s.save(saveEnv);
+//
+//        Envelope loadEnv = Envelope.documentFactory();
+//        MemoryTest t2 = new MemoryTest();
+//        t2.setId(t.getId());
+//        DLC.addEntity(t2, loadEnv);
+//        s.load(loadEnv);
+//        t2 = (MemoryTest)DLC.getEntity(loadEnv);
+//        assert("test".equals(t2.getName()));
+//        assert(t2.getBloodAlcoholContent() == 0.08);
+//    }
 }
