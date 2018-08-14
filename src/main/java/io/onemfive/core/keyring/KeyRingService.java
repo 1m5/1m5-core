@@ -1,6 +1,7 @@
 package io.onemfive.core.keyring;
 
 import io.onemfive.core.*;
+import io.onemfive.core.util.SystemVersion;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
@@ -729,7 +730,10 @@ public class KeyRingService extends BaseService {
             LOG.warning(e.getLocalizedMessage());
         }
 
-        Security.addProvider(new BouncyCastleProvider());
+        // Android apps set SpongyCastle as the default provider
+        if(!SystemVersion.isAndroid()) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
 
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started");
