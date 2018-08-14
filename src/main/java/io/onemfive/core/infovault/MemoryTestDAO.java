@@ -5,6 +5,7 @@ import io.onemfive.data.health.mental.memory.MemoryTest;
 import org.dizitart.no2.FindOptions;
 import org.dizitart.no2.SortOrder;
 import org.dizitart.no2.objects.Cursor;
+import org.dizitart.no2.objects.ObjectFilter;
 import org.dizitart.no2.objects.ObjectRepository;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
@@ -34,9 +35,21 @@ public class MemoryTestDAO {
         r.insert(memoryTest);
     }
 
+    public MemoryTest load(Long id) {
+        ObjectRepository<MemoryTest> r = dbMgr.getDb().getRepository(MemoryTest.class);
+        Cursor<MemoryTest> tests = r.find(ObjectFilters.eq("id",id));
+        return tests.firstOrDefault();
+    }
+
     public List<MemoryTest> loadListByDID(Long did, int offset, int size) {
         ObjectRepository<MemoryTest> r = dbMgr.getDb().getRepository(MemoryTest.class);
         Cursor<MemoryTest> tests = r.find(ObjectFilters.eq("did",did), FindOptions.sort("timeEnded",SortOrder.Descending).thenLimit(offset, size));
+        return tests.toList();
+    }
+
+    public List<MemoryTest> loadListByDID(Long did) {
+        ObjectRepository<MemoryTest> r = dbMgr.getDb().getRepository(MemoryTest.class);
+        Cursor<MemoryTest> tests = r.find(ObjectFilters.eq("did",did), FindOptions.sort("timeEnded",SortOrder.Descending));
         return tests.toList();
     }
 

@@ -10,10 +10,7 @@ import io.onemfive.data.health.mental.memory.MemoryTest;
 import io.onemfive.data.health.mental.memory.MemoryTestPopScores;
 import io.onemfive.data.util.DLC;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -58,34 +55,42 @@ public class InfoVaultService extends BaseService {
                 }
             } else if(entity instanceof MemoryTest) {
                 if(list == null) {
-//                    MemoryTest test = (MemoryTest) entity;
-//                    if (test.getPopScores() == null) {
-//                        // New Test -> Load scores
-//                        double borderline = infoVault.getMemoryTestDAO().minBorderlineImpairedScore(test.getDifficulty());
-//                        double impaired = infoVault.getMemoryTestDAO().minImpairedScore(test.getDifficulty());
-//                        double gross = infoVault.getMemoryTestDAO().minGrosslyImpairedScore(test.getDifficulty());
-//                        MemoryTestPopScores popScores = new MemoryTestPopScores(borderline, impaired, gross);
-//                        test.setPopScores(popScores);
-//                    }
+                    MemoryTest test = (MemoryTest) entity;
+                    DLC.addEntity(infoVault.getMemoryTestDAO().load(test.getId()),e);
                 } else {
-                    DLC.addEntity(infoVault.getMemoryTestDAO().loadListByDID(e.getDID().getId(), 0, 10), e);
+                    int offset = Integer.parseInt((String)DLC.getValue("offset",e));
+                    int max = Integer.parseInt((String)DLC.getValue("max",e));
+                    if(max == 0) max = 10; // default
+                    if(max > 0)
+                        DLC.addEntity(infoVault.getMemoryTestDAO().loadListByDID(e.getDID().getId(), offset, max), e);
+                    else
+                        DLC.addEntity(infoVault.getMemoryTestDAO().loadListByDID(e.getDID().getId()), e);
+
                 }
             }
         }
     }
 
     private void save(Envelope e) {
-        List<Map<String,Object>> maps = ((DocumentMessage)e.getMessage()).data;
-        Object entity;
-        for(Map<String,Object> map : maps) {
-            entity = map.get(DLC.ENTITY);
-            if(entity != null) {
-                if(entity instanceof HealthRecord) {
-                    infoVault.getHealthDAO().saveHealthRecord((HealthRecord) entity);
-                } else if(entity instanceof MemoryTest) {
-                    MemoryTest test = (MemoryTest)entity;
-                    infoVault.getMemoryTestDAO().create(test);
-                    map.put(DLC.ENTITY, test);
+        Object entity = DLC.getEntity(e);
+        if(entity != null) {
+            if(entity instanceof HealthRecord) {
+                infoVault.getHealthDAO().saveHealthRecord((HealthRecord) entity);
+            } else if(entity instanceof MemoryTest) {
+                MemoryTest test = (MemoryTest)entity;
+                infoVault.getMemoryTestDAO().create(test);
+                DLC.addEntity(test,e);
+            } else if(entity instanceof List) {
+                List l = (List)entity;
+                if(l.size() > 0) {
+                    if(l.get(0) instanceof MemoryTest) {
+                        Iterator i = l.iterator();
+                        MemoryTest test;
+                        while(i.hasNext()) {
+                            test = (MemoryTest)i.next();
+                            infoVault.getMemoryTestDAO().create(test);
+                        }
+                    }
                 }
             }
         }
