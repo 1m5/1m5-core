@@ -151,12 +151,16 @@ public class DIDService extends BaseService {
         LOG.info("Received create DID request.");
         DID did = e.getDID();
         // make sure we don't already have a key
-        if(contacts.get(did.getAlias()) == null) {
-
+//        if(contacts.get(did.getAlias()) == null) {
+//
+//        }
+        try {
+            DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase(), did.getHashAlgorithm());
+            didCreated.setAuthenticated(true);
+            e.setDID(didCreated);
+        } catch (NoSuchAlgorithmException e1) {
+            LOG.warning(e1.getLocalizedMessage());
         }
-//        DID didCreated = infoVault.getDidDAO().createDID(did.getAlias(), did.getPassphrase());
-//        didCreated.setAuthenticated(true);
-//        e.setDID(didCreated);
     }
 
     /**
