@@ -43,7 +43,7 @@ public class OneMFiveAppContext {
 
     /** the context that components without explicit root are bound */
     protected static OneMFiveAppContext globalAppContext;
-    protected final OneMFiveConfig config;
+//    protected final OneMFiveConfig config;
 
     protected final Properties overrideProps;
 
@@ -114,7 +114,7 @@ public class OneMFiveAppContext {
      *               Will only apply if there is no global context now.
      */
     private OneMFiveAppContext(boolean doInit, java.util.Properties envProps) {
-        config = new OneMFiveConfig();
+
         overrideProps = new Properties();
         if (envProps != null)
             overrideProps.putAll(envProps);
@@ -204,6 +204,8 @@ public class OneMFiveAppContext {
                 (new Exception("I did it")).printStackTrace();
             }
         }
+
+//        config = new OneMFiveConfig();
     }
 
     public ClientAppManager getClientAppManager() {
