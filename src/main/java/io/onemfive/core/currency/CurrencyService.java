@@ -25,6 +25,7 @@ public class CurrencyService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
+        super.start(properties);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
         this.properties = properties;
@@ -35,6 +36,7 @@ public class CurrencyService extends BaseService {
 
     @Override
     public boolean shutdown() {
+        super.shutdown();
         LOG.info("Shutting down...");
         updateStatus(ServiceStatus.SHUTTING_DOWN);
 
@@ -45,6 +47,7 @@ public class CurrencyService extends BaseService {
 
     @Override
     public boolean gracefulShutdown() {
+        super.gracefulShutdown();
         LOG.info("Gracefully shutting down...");
         updateStatus(ServiceStatus.GRACEFULLY_SHUTTING_DOWN);
 

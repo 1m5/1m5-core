@@ -2,8 +2,9 @@ package io.onemfive.core.contract;
 
 import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
+import io.onemfive.core.ServiceStatus;
 import io.onemfive.core.ServiceStatusListener;
-import io.onemfive.core.contract.omni.OmniContract;
+import io.onemfive.core.contract.bitcoin.BitcoinContract;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
@@ -34,7 +35,7 @@ public class ContractService extends BaseService {
     public static final String OPERATION_REMOVE_VOTER = "REMOVE_VOTER";
     public static final String OPERATION_KILL_CONTRACT = "KILL_CONTRACT";
 
-    private OmniContract contract;
+    private BitcoinContract contract;
 
     public ContractService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -73,10 +74,30 @@ public class ContractService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
-        LOG.info("Starting...");
-        contract = new OmniContract();
-        LOG.info("Started");
+        super.start(properties);
+        LOG.info("Starting....");
+        updateStatus(ServiceStatus.STARTING);
+
+        contract = new BitcoinContract();
+
+        updateStatus(ServiceStatus.RUNNING);
+        LOG.info("Started.");
         return true;
     }
 
+    @Override
+    public boolean shutdown() {
+        super.shutdown();
+        LOG.info("Shutting down....");
+        updateStatus(ServiceStatus.SHUTTING_DOWN);
+
+        updateStatus(ServiceStatus.SHUTDOWN);
+        LOG.info("Shutdown.");
+        return true;
+    }
+
+    @Override
+    public boolean gracefulShutdown() {
+        return shutdown();
+    }
 }

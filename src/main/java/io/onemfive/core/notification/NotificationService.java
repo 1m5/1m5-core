@@ -137,8 +137,16 @@ public class NotificationService extends BaseService {
         }
     }
 
+    private Map<String,List<Subscription>> buildNewMap() {
+        List<Subscription> l = new ArrayList<>();
+        Map<String,List<Subscription>> m = new HashMap<>();
+        m.put(null,l);
+        return m;
+    }
+
     @Override
     public boolean start(Properties properties) {
+        super.start(properties);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
 
@@ -160,15 +168,9 @@ public class NotificationService extends BaseService {
         return true;
     }
 
-    private Map<String,List<Subscription>> buildNewMap() {
-        List<Subscription> l = new ArrayList<>();
-        Map<String,List<Subscription>> m = new HashMap<>();
-        m.put(null,l);
-        return m;
-    }
-
     @Override
     public boolean shutdown() {
+        super.shutdown();
         LOG.info("Shutting down....");
         updateStatus(ServiceStatus.SHUTTING_DOWN);
 

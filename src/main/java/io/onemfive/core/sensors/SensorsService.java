@@ -348,6 +348,7 @@ public class SensorsService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
+        super.start(properties);
         LOG.setLevel(Level.INFO);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
@@ -445,6 +446,7 @@ public class SensorsService extends BaseService {
 
     @Override
     public boolean shutdown() {
+        super.shutdown();
         if(getServiceStatus() != ServiceStatus.RESTARTING)
             updateStatus(ServiceStatus.SHUTTING_DOWN);
         if(registeredSensors.containsKey(SensorID.CLEARNET)) {

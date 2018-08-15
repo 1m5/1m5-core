@@ -142,6 +142,8 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean start(Properties properties) {
+        if(infoVault.getStatus() == InfoVault.Status.Shutdown)
+            infoVault.start(properties);
         return true;
     }
 
@@ -162,6 +164,8 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean shutdown() {
+        if(infoVault.getStatus() == InfoVault.Status.Running)
+            infoVault.shutdown();
         return true;
     }
 

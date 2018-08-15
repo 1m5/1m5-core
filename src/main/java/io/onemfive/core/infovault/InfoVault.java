@@ -21,10 +21,14 @@ import java.util.logging.Logger;
  */
 public class InfoVault implements LifeCycle {
 
+    public enum Status {Starting,Running,Shutdown,StartupFailed}
+
     private static final Logger LOG = Logger.getLogger(InfoVault.class.getName());
 
     private static InfoVault instance;
-    private static Object lock = new Object();
+    private static final Object lock = new Object();
+
+    private Status status = Status.Shutdown;
 
     private Properties props;
     private NitriteDBManager db;
@@ -56,8 +60,13 @@ public class InfoVault implements LifeCycle {
         return memoryTestDAO;
     }
 
+    public Status getStatus() {
+        return status;
+    }
+
     @Override
     public boolean start(Properties properties) {
+        status = Status.Starting;
         LOG.info("Starting...");
         try {
             props = Config.loadFromClasspath("infovault.config", properties, false);
@@ -67,12 +76,13 @@ public class InfoVault implements LifeCycle {
             didDAO = new DIDDAO(db);
             healthDAO = new HealthDAO(db);
             memoryTestDAO = new MemoryTestDAO(db);
-
         } catch (Exception e) {
+            status = Status.StartupFailed;
             e.printStackTrace();
             LOG.warning("Failed to start: "+e.getLocalizedMessage());
             return false;
         }
+        status = Status.Running;
         LOG.info("Started.");
         return true;
     }

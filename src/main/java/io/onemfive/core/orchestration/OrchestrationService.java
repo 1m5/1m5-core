@@ -106,6 +106,7 @@ public class OrchestrationService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
+        super.start(properties);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
         activeRoutes = 0;
@@ -117,6 +118,7 @@ public class OrchestrationService extends BaseService {
 
     @Override
     public boolean shutdown() {
+        super.shutdown();
         LOG.info("Shutting down...");
         updateStatus(ServiceStatus.SHUTTING_DOWN);
         // Give it 3 seconds
@@ -132,6 +134,7 @@ public class OrchestrationService extends BaseService {
 
     @Override
     public boolean gracefulShutdown() {
+        super.gracefulShutdown();
         LOG.info("Gracefully shutting down...");
         updateStatus(ServiceStatus.GRACEFULLY_SHUTTING_DOWN);
         // Give it 30 seconds

@@ -721,6 +721,7 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean start(Properties p) {
+        super.start(p);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
 
@@ -742,6 +743,7 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean shutdown() {
+        super.shutdown();
         LOG.info("Shutting down...");
         updateStatus(ServiceStatus.SHUTTING_DOWN);
 
@@ -752,6 +754,7 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean gracefulShutdown() {
+        super.gracefulShutdown();
         LOG.info("Gracefully shutting down...");
         updateStatus(ServiceStatus.GRACEFULLY_SHUTTING_DOWN);
 

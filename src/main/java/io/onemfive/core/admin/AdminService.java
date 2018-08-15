@@ -63,6 +63,7 @@ public class AdminService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
+        super.start(properties);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
 
@@ -73,6 +74,7 @@ public class AdminService extends BaseService {
 
     @Override
     public boolean shutdown() {
+        super.shutdown();
         LOG.info("Shutting down...");
         updateStatus(ServiceStatus.SHUTTING_DOWN);
 

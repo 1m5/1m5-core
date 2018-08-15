@@ -32,6 +32,7 @@ public class MemoryTestDAO {
     public void create(MemoryTest memoryTest) {
         ObjectRepository<MemoryTest> r = dbMgr.getDb().getRepository(MemoryTest.class);
         memoryTest.setId(random.nextLong());
+        LOG.info("MemoryTest.id: "+memoryTest.getId());
         r.insert(memoryTest);
     }
 

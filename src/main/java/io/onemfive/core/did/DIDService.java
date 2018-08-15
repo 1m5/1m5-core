@@ -8,7 +8,6 @@ import io.onemfive.data.util.DLC;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -38,6 +37,8 @@ public class DIDService extends BaseService {
     public static final String OPERATION_GET_CONTACT = "GET_CONTACT";
 
     private static final Pattern layout = Pattern.compile("\\$31\\$(\\d\\d?)\\$(.{43})");
+
+    private static SecureRandom random = new SecureRandom();
 
     private DID localDefaultDID;
     private Map<String,DID> localUserDIDs = new HashMap<>();
@@ -217,10 +218,12 @@ public class DIDService extends BaseService {
     private DID create(String alias, String passphrase, String passphraseHashAlgorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
         LOG.info("Received create DID request.");
         DID did = new DID();
+        did.setId(random.nextLong());
         did.setAlias(alias);
         did.setPassphraseHash(generateHash(passphrase, passphraseHashAlgorithm).getBytes());
         did.setAuthenticated(true);
         did.setVerified(true);
+        did.setStatus(DID.Status.ACTIVE);
         infoVault.getDidDAO().saveDID(did);
         return did;
     }
@@ -251,7 +254,8 @@ public class DIDService extends BaseService {
         int size = 128;
         int cost = 16;
         int iterations = 1 << cost;
-        byte[] hash = Base64.getUrlDecoder().decode(m.group(2));
+        byte[] hash = io.onemfive.core.util.data.Base64.decode(m.group(2));
+//        byte[] hash = Base64.getUrlDecoder().decode(m.group(2));
         byte[] salt = Arrays.copyOfRange(hash, 0, size / 8);
         KeySpec spec = new PBEKeySpec(r.did.getPassphrase().toCharArray(), salt, iterations, size);
         SecretKeyFactory f = SecretKeyFactory.getInstance(r.did.getPassphraseHashAlgorithm());
@@ -274,8 +278,9 @@ public class DIDService extends BaseService {
         byte[] hash = new byte[salt.length + dk.length];
         System.arraycopy(salt, 0, hash, 0, salt.length);
         System.arraycopy(dk, 0, hash, salt.length, dk.length);
-        Base64.Encoder enc = Base64.getUrlEncoder().withoutPadding();
-        return "$31$" + cost + '$' + enc.encodeToString(hash);
+//        Base64.Encoder enc = Base64.getUrlEncoder().withoutPadding();
+//        return "$31$" + cost + '$' + enc.encodeToString(hash);
+        return "$31$" + cost + '$' + io.onemfive.core.util.data.Base64.encode(hash);
     }
 
     private void authenticateOrCreate(AuthenticateDIDRequest r) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -297,6 +302,7 @@ public class DIDService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
+        super.start(properties);
         LOG.info("Starting....");
         updateStatus(ServiceStatus.STARTING);
 
@@ -307,6 +313,7 @@ public class DIDService extends BaseService {
 
     @Override
     public boolean shutdown() {
+        super.shutdown();
         LOG.info("Shutting down....");
         updateStatus(ServiceStatus.SHUTTING_DOWN);
 
@@ -319,4 +326,20 @@ public class DIDService extends BaseService {
     public boolean gracefulShutdown() {
         return shutdown();
     }
+
+//    public static void main(String[] args) {
+//        OneMFiveAppContext ctx = OneMFiveAppContext.getInstance();
+//        DIDService s = new DIDService(null, null);
+//        s.start(null);
+//        DID did = new DID();
+//        try {
+//            did = s.create("Ben","1234",did.getPassphraseHashAlgorithm());
+//            did = s.verify(did);
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//        } catch (InvalidKeySpecException e) {
+//            e.printStackTrace();
+//        }
+//        assert (did.getStatus() == DID.Status.ACTIVE);
+//    }
 }

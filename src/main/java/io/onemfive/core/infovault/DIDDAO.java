@@ -27,7 +27,7 @@ public class DIDDAO {
         if(did == null) {
             dbMgr.getDb().getRepository(DID.class).insert(d);
         } else {
-            dbMgr.getDb().getRepository(DID.class).update(did);
+            dbMgr.getDb().getRepository(DID.class).update(d);
         }
     }
 

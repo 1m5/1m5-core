@@ -4,14 +4,18 @@ import io.onemfive.core.*;
 import io.onemfive.data.*;
 import io.onemfive.data.health.HealthRecord;
 import io.onemfive.data.health.mental.memory.MemoryTest;
-import io.onemfive.data.health.mental.memory.MemoryTestPopScores;
 import io.onemfive.data.util.DLC;
 
 import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * TODO: Add Description
+ * Asynchronous access to persistence.
+ * Access to the instance of InfoVault is provided in each Service too (by BaseService) for synchronous access.
+ * Developer's choice to which to use on a per-case basis by Services extending BaseService.
+ * Clients always use this as they do not have direct access to InfoVault.
+ * Consider using this service for heavier higher-latency work by Services extending BaseService vs using their
+ * synchronous access.`
  *
  * @author objectorange
  */
@@ -74,9 +78,11 @@ public class InfoVaultService extends BaseService {
             if(entity instanceof HealthRecord) {
                 infoVault.getHealthDAO().saveHealthRecord((HealthRecord) entity);
             } else if(entity instanceof MemoryTest) {
+                LOG.info("Saving MemoryTest...");
                 MemoryTest test = (MemoryTest)entity;
                 infoVault.getMemoryTestDAO().create(test);
                 DLC.addEntity(test,e);
+                LOG.info("MemoryTest saved.");
             } else if(entity instanceof List) {
                 List l = (List)entity;
                 if(l.size() > 0) {
@@ -95,9 +101,10 @@ public class InfoVaultService extends BaseService {
 
     @Override
     public boolean start(Properties properties) {
+        super.start(properties);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
-        infoVault.start(properties);
+
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("Started.");
         return true;
@@ -105,9 +112,10 @@ public class InfoVaultService extends BaseService {
 
     @Override
     public boolean shutdown() {
+        super.shutdown();
         LOG.info("Shutting down...");
         updateStatus(ServiceStatus.SHUTTING_DOWN);
-        infoVault.shutdown();
+
         updateStatus(ServiceStatus.SHUTDOWN);
         LOG.info("Shutdown.");
         return true;

@@ -248,9 +248,13 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         registeredServices = new HashMap<>(15);
         runningServices = new HashMap<>(15);
 
+        final Properties props = this.properties;
         // Register Core Services - Place slowest to RUNNING services first
         InfoVaultService infoVaultService = new InfoVaultService(this, this);
         registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
+        // Start InfoVaultService first to ensure InfoVault gets initialized before Services begin using it.
+        infoVaultService.start(props);
+        runningServices.put(InfoVaultService.class.getName(),infoVaultService);
 
         SensorsService sensorsService = new SensorsService(this, this);
         registeredServices.put(SensorsService.class.getName(), sensorsService);
@@ -300,17 +304,19 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 //        registeredServices.put(SecureDropService.class.getName(), secureDropService);
 
         // Start Registered Services
-        final Properties props = this.properties;
         for(final String serviceName : registeredServices.keySet()) {
-            new AppThread(new Runnable() {
-                @Override
-                public void run() {
-                    BaseService service = registeredServices.get(serviceName);
-                    if(service.start(props)) {
-                        runningServices.put(serviceName, service);
+            if(!serviceName.equals(InfoVaultService.class.getName())) {
+                // InfoVaultService already started above
+                new AppThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        BaseService service = registeredServices.get(serviceName);
+                        if (service.start(props)) {
+                            runningServices.put(serviceName, service);
+                        }
                     }
-                }
-            }, serviceName+"-StartupThread").start();
+                }, serviceName + "-StartupThread").start();
+            }
         }
 
         pool = new WorkerThreadPool(clientAppManager, runningServices, channel, maxThreads, maxThreads, properties);
