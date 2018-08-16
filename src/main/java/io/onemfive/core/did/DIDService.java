@@ -98,7 +98,7 @@ public class DIDService extends BaseService {
             case OPERATION_ADD_CONTACT: {addContact(e);break;}
             case OPERATION_GET_CONTACT: {getContact(e);break;}
             case OPERATION_VERIFY: {
-                verify(e.getDID());
+                e.setDID(verify(e.getDID()));
                 break;
             }
             case OPERATION_AUTHENTICATE: {
@@ -137,7 +137,8 @@ public class DIDService extends BaseService {
             case OPERATION_CREATE: {
                 DID did = (DID)DLC.getData(DID.class,e);
                 try {
-                    create(did.getAlias(), did.getPassphrase(), did.getPassphraseHashAlgorithm());
+                    did = create(did.getAlias(), did.getPassphrase(), did.getPassphraseHashAlgorithm());
+                    e.setDID(did);
                 } catch (NoSuchAlgorithmException e1) {
                     LOG.warning(e1.getLocalizedMessage());
                 } catch (InvalidKeySpecException e1) {

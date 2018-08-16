@@ -1,12 +1,12 @@
 package io.onemfive.core.infovault;
 
+import io.onemfive.core.infovault.nitrite.BaseDAO;
 import io.onemfive.core.infovault.nitrite.NitriteDBManager;
 import io.onemfive.data.health.HealthRecord;
 import org.dizitart.no2.objects.Cursor;
 import org.dizitart.no2.objects.ObjectRepository;
 import org.dizitart.no2.objects.filters.ObjectFilters;
 
-import java.security.SecureRandom;
 import java.util.logging.Logger;
 
 /**
@@ -14,15 +14,13 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class HealthDAO {
+public class HealthDAO extends BaseDAO {
 
     private static final Logger LOG = Logger.getLogger(HealthDAO.class.getName());
 
-    private NitriteDBManager dbMgr;
-    private SecureRandom random = new SecureRandom(new byte[2398]);
-
     HealthDAO(NitriteDBManager dbMgr) {
-        this.dbMgr = dbMgr;
+        super(dbMgr);
+//        dbMgr.getDb().getRepository(HealthRecord.class).drop();
     }
 
     public HealthRecord loadHealthRecord(Long did) {
@@ -46,7 +44,7 @@ public class HealthDAO {
         LOG.info("Saving Health Record: did="+healthRecord.getDid());
         ObjectRepository<HealthRecord> r = dbMgr.getDb().getRepository(HealthRecord.class);
         if(healthRecord.getId() == null) {
-            healthRecord.setId(random.nextLong());
+            healthRecord.setId(nextId());
             r.insert(healthRecord);
         } else {
             r.update(healthRecord);

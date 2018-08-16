@@ -10,10 +10,7 @@ import org.dizitart.no2.objects.Cursor;
 import org.dizitart.no2.objects.ObjectRepository;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -36,8 +33,21 @@ public class NitriteDBManager implements LifeCycle {
     private static String encryptPassword = "fNoaizM!5rsKt726newjxYpU3";
     private static String encryptPasswordCipher = "AES-256";
 
+    private NitriteCollection idCollection;
+
     public Nitrite getDb() {
         return db;
+    }
+
+    synchronized long nextId(String name) {
+        Document d = idCollection.find().firstOrDefault();
+        Long nextId = (Long) d.get(name);
+        if (nextId == null) {
+            nextId = 1L;
+        }
+        d.put(name, nextId + 1);
+        idCollection.update(d);
+        return nextId;
     }
 
     public boolean saveObject(Persistable persistable) {
@@ -140,6 +150,21 @@ public class NitriteDBManager implements LifeCycle {
                 .compressed()
                 .filePath(dbFullPath+dbName)
                 .openOrCreate(dbUsername, dbUserPassword);
+//        db.getCollection("id").drop();
+        idCollection = db.getCollection("id");
+        // ensure primed
+        org.dizitart.no2.Cursor c = idCollection.find();
+        if(c.size() == 0) {
+            idCollection.insert(new Document());
+        }
+        // observe any change to the collection
+//        idCollection.register(new ChangeListener() {
+//
+//            @Override
+//            public void onChange(ChangeInfo changeInfo) {
+//
+//            }
+//        });
         LOG.info("Started.");
         return true;
     }
