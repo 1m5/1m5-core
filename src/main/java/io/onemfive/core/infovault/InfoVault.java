@@ -2,7 +2,7 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.Config;
 import io.onemfive.core.LifeCycle;
-import io.onemfive.core.infovault.nitrite.NitriteDBManager;
+import io.onemfive.core.infovault.neo4j.NEO4JDBManager;
 
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -31,7 +31,7 @@ public class InfoVault implements LifeCycle {
     private Status status = Status.Shutdown;
 
     private Properties props;
-    private NitriteDBManager db;
+    private NEO4JDBManager gdbMgr;
 
     private DIDDAO didDAO;
     private HealthDAO healthDAO;
@@ -70,12 +70,11 @@ public class InfoVault implements LifeCycle {
         LOG.info("Starting...");
         try {
             props = Config.loadFromClasspath("infovault.config", properties, false);
-            db = new NitriteDBManager();
-            db.start(properties);
-
-            didDAO = new DIDDAO(db);
-            healthDAO = new HealthDAO(db);
-            memoryTestDAO = new MemoryTestDAO(db);
+            gdbMgr = new NEO4JDBManager();
+            gdbMgr.start(properties);
+            didDAO = new DIDDAO(gdbMgr);
+            healthDAO = new HealthDAO(gdbMgr);
+            memoryTestDAO = new MemoryTestDAO(gdbMgr);
         } catch (Exception e) {
             status = Status.StartupFailed;
             e.printStackTrace();
@@ -105,7 +104,7 @@ public class InfoVault implements LifeCycle {
     @Override
     public boolean shutdown() {
         LOG.info("Shutting down...");
-        boolean shutdown = db.shutdown();
+        boolean shutdown = gdbMgr.shutdown();
         LOG.info("Shutdown.");
         return shutdown;
     }
