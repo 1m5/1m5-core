@@ -39,7 +39,7 @@ public class EmailIdentity extends EmailDestination {
     /**
      * Creates a random <code>EmailIdentity</code>.
      * @param cryptoImpl
-     * @param vanityPrefix Base64 chars that the Email Destination should start with; <code>null</code> or an empty string for no vanity Destination.
+     * @param vanityPrefix Base64 chars that the Email Destination should init with; <code>null</code> or an empty string for no vanity Destination.
      * @throws GeneralSecurityException
      * @throws IllegalDestinationParametersException if <code>cryptoImpl</code> and <code>vanityPrefix</code> aren't compatible
      */
@@ -86,9 +86,9 @@ public class EmailIdentity extends EmailDestination {
         if (cryptoImpl == null)
             throw new InvalidKeyException("Not a valid Email Identity, no CryptoImplementation (out of " + CryptoFactory.getInstances().size() + ") matches length " + base64Key.length() + ": <" + base64Key + ">");
 
-        String base64PublicKeys = base64Key.substring(0, cryptoImpl.getBase64PublicKeyPairLength()); // the two private keys start after the two public keys
+        String base64PublicKeys = base64Key.substring(0, cryptoImpl.getBase64PublicKeyPairLength()); // the two private keys init after the two public keys
         PublicKeyPair publicKeys = cryptoImpl.createPublicKeyPair(base64PublicKeys);
-        String base64PrivateKeys = base64Key.substring(cryptoImpl.getBase64PublicKeyPairLength());   // the two private keys start after the two public keys
+        String base64PrivateKeys = base64Key.substring(cryptoImpl.getBase64PublicKeyPairLength());   // the two private keys init after the two public keys
         PrivateKeyPair privateKeys = cryptoImpl.createPrivateKeyPair(base64PrivateKeys);
 
         publicEncryptionKey = publicKeys.encryptionKey;

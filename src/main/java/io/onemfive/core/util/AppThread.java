@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Like {@link OOMHandledThread} but with per-thread OOM listeners,
  * rather than a static router-wide listener list,
  * so that an OOM in an app won't call the sc listener
- * to shutdown the whole application.
+ * to teardown the whole application.
  *
  * This is preferred for application use.
  * See {@link OOMHandledThread} for features.

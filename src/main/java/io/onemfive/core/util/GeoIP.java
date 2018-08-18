@@ -105,7 +105,7 @@ public class GeoIP {
  return;
  }
  Thread t = new Thread(new LookupJob());
- t.start();
+ t.init();
  }
  ******/
 
@@ -497,9 +497,9 @@ public class GeoIP {
  };
  for (int i = 0; i < tests.length; i++)
  g.add(tests[i]);
- long start = System.currentTimeMillis();
+ long init = System.currentTimeMillis();
  g.blockingLookup();
- System.out.println("Lookup took " + (System.currentTimeMillis() - start));
+ System.out.println("Lookup took " + (System.currentTimeMillis() - init));
  for (int i = 0; i < tests.length; i++)
  System.out.println(tests[i] + " : " + g.get(tests[i]));
 

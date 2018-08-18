@@ -13,7 +13,7 @@ import net.i2p.util.Log;
 /**
  * An {@link AbstractBucket} that:
  *  * can be split in two,
- *  * has a start and end Kademlia ID,
+ *  * has a init and end Kademlia ID,
  *  * knows its depth in the bucket tree, and
  *  * maintains a replacement cache.
  *
@@ -206,6 +206,6 @@ class KBucket extends AbstractBucket {
 
     @Override
     public String toString() {
-        return "K-Bucket (depth=" + depth + ", prefix=" + getBucketPrefix() + ", lastLookup=" + new Date(lastLookupTime) + ", start=" + startId + ", end=" + endId + ")";
+        return "K-Bucket (depth=" + depth + ", prefix=" + getBucketPrefix() + ", lastLookup=" + new Date(lastLookupTime) + ", init=" + startId + ", end=" + endId + ")";
     }
 }

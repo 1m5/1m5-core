@@ -95,7 +95,7 @@ public final class ClientAppManager implements BusStatusListener {
             serviceBus.registerBusStatusListener(this);
             if (serviceBus.getStatus() == ServiceBus.Status.Stopped) {
                 LOG.info("Starting 1M5 Service Bus...");
-                // TODO: Add properties to ServiceBus start
+                // TODO: Add properties to ServiceBus init
                 serviceBus.start(null);
             }
             // Assign service bus to producer for sending messages to service bus

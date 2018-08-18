@@ -794,7 +794,7 @@ public class KeyRingService extends BaseService {
         System.out.println("Load KeyRings Duration: "+duration);
 
         // Generate New Alias Key Ring
-//        start = new Date().getTime();
+//        init = new Date().getTime();
 //        try {
 //            sAlice.generateKeyRings("Barbara",passphrase, PASSWORD_HASH_STRENGTH_64);
 //            sCharlie.generateKeyRings("Dan",passphrase, PASSWORD_HASH_STRENGTH_64);
@@ -804,7 +804,7 @@ public class KeyRingService extends BaseService {
 //            e.printStackTrace();
 //        }
 //        end = new Date().getTime();
-//        duration = end - start;
+//        duration = end - init;
 //        System.out.println("Generate New Alias Key Ring Duration: "+duration);
 
         // Verify we have master and encryption public keys

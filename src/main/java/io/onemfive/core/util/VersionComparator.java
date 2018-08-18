@@ -96,7 +96,7 @@ public class VersionComparator implements Comparator<String>, Serializable {
     /**
      * Parses a long, ignoring any non-digit characters.
      * @param s string to parse from
-     * @param start index in the string to start
+     * @param start index in the string to init
      * @param end index in the string to stop at
      * @return the parsed value, or -1 if nothing was parsed or there was a problem.
      */

@@ -1225,7 +1225,7 @@ public class IPFSService extends BaseService {
             // Save to base so that it can be manually locally changed if desired
 //            Config.saveToBase("ipfs.config", config);
 //        } catch (IOException e) {
-//            LOG.warning("IOException caught during IPFSService shutdown attempting to save property file ipfs.config: "+e.getLocalizedMessage());
+//            LOG.warning("IOException caught during IPFSService teardown attempting to save property file ipfs.config: "+e.getLocalizedMessage());
 //        }
         updateStatus(ServiceStatus.SHUTDOWN);
         LOG.info("Shutdown.");
@@ -1234,7 +1234,7 @@ public class IPFSService extends BaseService {
 
     @Override
     public boolean gracefulShutdown() {
-        // TODO: Add graceful shutdown by tracking outstanding requests while rejecting new requests.
+        // TODO: Add graceful teardown by tracking outstanding requests while rejecting new requests.
         return shutdown();
     }
 

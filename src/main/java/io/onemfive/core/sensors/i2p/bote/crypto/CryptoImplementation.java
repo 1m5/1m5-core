@@ -45,7 +45,7 @@ public interface CryptoImplementation {
 
     KeyPair generateSigningKeyPair() throws GeneralSecurityException;
 
-    /** Returns all possible characters that a Base64-encoded Email Destination can start with. */
+    /** Returns all possible characters that a Base64-encoded Email Destination can init with. */
     String getBase64InitialCharacters();
 
     //

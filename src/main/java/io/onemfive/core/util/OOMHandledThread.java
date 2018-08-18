@@ -123,7 +123,7 @@ public class OOMHandledThread extends Thread {
  throw new NullPointerException("blah");
  }
  });
- t.start();
+ t.init();
  try {
  Thread.sleep(10000);
  } catch (Throwable tt) { // nop

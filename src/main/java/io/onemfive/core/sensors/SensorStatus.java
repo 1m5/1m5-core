@@ -26,8 +26,8 @@ public enum SensorStatus {
     UNPAUSING, // Unblocking queued requests to allow them to continue on and not queueing further requests.
     // Sensor Shutdown
     SHUTTING_DOWN, // Shutdown imminent - not clean, process likely getting killed - perform the minimum ASAP
-    GRACEFULLY_SHUTTING_DOWN, // Ideal clean shutdown
-    SHUTDOWN, // Was shutdown forcefully - expect potential file / state corruption
+    GRACEFULLY_SHUTTING_DOWN, // Ideal clean teardown
+    SHUTDOWN, // Was teardown forcefully - expect potential file / state corruption
     GRACEFULLY_SHUTDOWN, // Shutdown was graceful - safe to assume no file / state corruption
     // Sensor Restarting
     RESTARTING, // Short for GRACEFULLY_SHUTTING_DOWN then STARTING back up.

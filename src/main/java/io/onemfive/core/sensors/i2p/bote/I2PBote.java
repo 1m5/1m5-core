@@ -282,7 +282,7 @@ public class I2PBote implements NetworkStatusSource, EmailFolderManager, MailSen
     }
 
     /**
-     * Initializes daemon threads, doesn't start them yet.
+     * Initializes daemon threads, doesn't init them yet.
      */
     private void initializeServices() {
         I2PPacketDispatcher dispatcher = new I2PPacketDispatcher();

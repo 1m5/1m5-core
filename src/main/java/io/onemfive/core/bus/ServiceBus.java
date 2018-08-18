@@ -4,15 +4,10 @@ import io.onemfive.core.*;
 import io.onemfive.core.admin.AdminService;
 import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVaultService;
-import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.notification.NotificationService;
-import io.onemfive.core.prana.PranaService;
 import io.onemfive.core.client.ClientAppManager;
-import io.onemfive.core.repository.RepositoryService;
 import io.onemfive.core.orchestration.OrchestrationService;
-import io.onemfive.core.infovault.InfoVault;
-import io.onemfive.core.securedrop.SecureDropService;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
@@ -104,7 +99,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             registeredServices.put(serviceClass.getName(), service);
             service.registerServiceStatusListener(this);
             LOG.finer("Service registered successfully: "+serviceName);
-            // start registered service
+            // init registered service
             new AppThread(new Runnable() {
                 @Override
                 public void run() {
@@ -241,7 +236,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             LOG.warning("Failed to load bus.config in ServiceBus.");
         }
 
-        // TODO: should we start the pool before the channel?
+        // TODO: should we init the pool before the channel?
         channel = new MessageChannel(maxMessagesCached);
         channel.start(properties);
 
@@ -252,7 +247,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         // Register Core Services - Place slowest to RUNNING services first
         InfoVaultService infoVaultService = new InfoVaultService(this, this);
         registeredServices.put(InfoVaultService.class.getName(), infoVaultService);
-        // Start InfoVaultService first to ensure InfoVault gets initialized before Services begin using it.
+        // Start InfoVaultService first to ensure InfoVaultDB gets initialized before Services begin using it.
         infoVaultService.start(props);
         runningServices.put(InfoVaultService.class.getName(),infoVaultService);
 
@@ -352,7 +347,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         updateStatus(Status.Stopping);
         spin.set(false);
         pool.shutdown();
-        channel.shutdown(); // TODO: Should we shutdown channel before pool?
+        channel.shutdown(); // TODO: Should we teardown channel before pool?
         for(final String serviceName : runningServices.keySet()) {
             new AppThread(new Runnable() {
                 @Override
@@ -368,7 +363,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     }
 
     /**
-     * Ensure shutdown is graceful by waiting until all Services indicate graceful shutdown complete or timeout
+     * Ensure teardown is graceful by waiting until all Services indicate graceful teardown complete or timeout
      *
      * TODO: Implement
      *
@@ -379,7 +374,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         updateStatus(Status.Stopping);
         spin.set(false);
         pool.shutdown();
-        channel.shutdown(); // TODO: Should we shutdown channel before pool?
+        channel.shutdown(); // TODO: Should we teardown channel before pool?
         for(final String serviceName : runningServices.keySet()) {
             new AppThread(new Runnable() {
                 @Override

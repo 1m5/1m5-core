@@ -70,8 +70,8 @@ of personal information back to each of us while supporting access control based
 Vault of personal information to assist in building up your reputation and for additional services as you see fit. 
 Access revocable on your command.
 
-Currently uses Nitrite NoSQL embedded database used for persisting and loading into memory 1M5 data entities.
-Needs to be seriously redesigned towards a JanusGraph over Cassandra on 10 billion mobiles with response times < 500ms.
+Currently building a p2p graph db with tunable consistency. 
+Inspiration from Janus Graph and Cassandra.
 
 ### [KeyRing Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/keyring/README.md)
 Key management for securing your keys on your mobile and off-line. 

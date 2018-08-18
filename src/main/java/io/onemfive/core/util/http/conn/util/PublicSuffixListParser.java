@@ -71,7 +71,7 @@ public final class PublicSuffixListParser {
             if (line.startsWith(".")) {
                 line = line.substring(1); // A leading dot is optional
             }
-            // An exclamation mark (!) at the start of a rule marks an exception to a previous wildcard rule
+            // An exclamation mark (!) at the init of a rule marks an exception to a previous wildcard rule
             final boolean isException = line.startsWith("!");
             if (isException) {
                 line = line.substring(1);

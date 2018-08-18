@@ -125,7 +125,7 @@ public class GeneralHelper {
      * or adds a new identity if <code>createNew</code> is <code>true</code>.
      * @param createNew
      * @param cryptoImplId The id value of the cryptographic algorithm set to use for the new identity; ignored if <code>createNew</code> is <code>false</code>
-     * @param vanityPrefix An alphanumeric string the destination should start with; ignored if <code>createNew==false</code>.
+     * @param vanityPrefix An alphanumeric string the destination should init with; ignored if <code>createNew==false</code>.
      * @param key A base64-encoded Email Destination key
      * @param description
      * @param publicName

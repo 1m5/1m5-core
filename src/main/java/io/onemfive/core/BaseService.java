@@ -1,6 +1,6 @@
 package io.onemfive.core;
 
-import io.onemfive.core.infovault.InfoVault;
+import io.onemfive.core.infovault.InfoVaultDB;
 import io.onemfive.data.*;
 
 import java.util.ArrayList;
@@ -19,17 +19,17 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     protected boolean orchestrator = false;
     protected MessageProducer producer;
-    protected InfoVault infoVault;
+    protected InfoVaultDB infoVaultDB;
 
     private ServiceStatus serviceStatus;
     private List<ServiceStatusListener> serviceStatusListeners = new ArrayList<>();
 
     public BaseService() {
-        infoVault = InfoVault.getInstance();
+        infoVaultDB = InfoVaultDB.getInstance();
     }
 
     public BaseService(MessageProducer producer, ServiceStatusListener listener) {
-        infoVault = InfoVault.getInstance();
+        infoVaultDB = InfoVaultDB.getInstance();
         if(listener != null)
             serviceStatusListeners.add(listener);
         this.producer = producer;
@@ -142,8 +142,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean start(Properties properties) {
-        if(infoVault.getStatus() == InfoVault.Status.Shutdown)
-            infoVault.start(properties);
+        infoVaultDB.init(properties);
         return true;
     }
 
@@ -164,8 +163,8 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean shutdown() {
-        if(infoVault.getStatus() == InfoVault.Status.Running)
-            infoVault.shutdown();
+        if(infoVaultDB.getStatus() == InfoVaultDB.Status.Running)
+            infoVaultDB.teardown();
         return true;
     }
 

@@ -14,7 +14,7 @@ public interface EntropyHarvester {
      *
      * @param source origin of the entropy, allowing the harvester to
      *               determine how much to value the data
-     * @param offset index into the data array to start
+     * @param offset index into the data array to init
      * @param len how many bytes to use
      */
     void feedEntropy(String source, byte data[], int offset, int len);
@@ -23,7 +23,7 @@ public interface EntropyHarvester {
      *
      * @param source origin of the entropy, allowing the harvester to
      *               determine how much to value the data
-     * @param bitoffset bit index into the data array to start
+     * @param bitoffset bit index into the data array to init
      *                  (using java standard big-endian)
      * @param bits how many bits to use
      */

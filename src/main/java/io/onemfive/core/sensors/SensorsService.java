@@ -431,7 +431,7 @@ public class SensorsService extends BaseService {
             LOG.info("Started.");
         } catch (Exception e) {
             e.printStackTrace();
-            LOG.warning("Failed to start.");
+            LOG.warning("Failed to init.");
             return false;
         }
         return true;

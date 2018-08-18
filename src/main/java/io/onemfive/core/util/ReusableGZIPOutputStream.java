@@ -61,7 +61,7 @@ public class ReusableGZIPOutputStream extends ResettableGZIPOutputStream {
         _buffer = (ByteArrayOutputStream)out;
     }
 
-    /** clear the data so we can start again afresh */
+    /** clear the data so we can init again afresh */
     @Override
     public void reset() {
         super.reset();

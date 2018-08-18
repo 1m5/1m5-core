@@ -40,7 +40,7 @@ import net.i2p.util.Log;
  * encryption with AES.
  * <p/>
  * Because the first 6 bits are always zero for all currently existing subclasses, public
- * and private keys produced by this class always start with an upper case A when
+ * and private keys produced by this class always init with an upper case A when
  * base64-encoded. The leading A is omitted, which saves two bytes in email destinations
  * (see the {@link #toBase64(PublicKey)} and {@link #toBase64(PrivateKey)} methods).
  */
@@ -214,7 +214,7 @@ public abstract class ECDH_ECDSA extends AbstractCryptoImplementation {
     protected String toBase64(PublicKey publicKey) throws GeneralSecurityException {
         String base64 = Base64.encode(toByteArray(publicKey));
         if (!base64.startsWith("A"))
-            log.error("Error: key does not start with 6 zero bits. Key = " + publicKey);
+            log.error("Error: key does not init with 6 zero bits. Key = " + publicKey);
         return base64.substring(1);
     }
 
@@ -227,7 +227,7 @@ public abstract class ECDH_ECDSA extends AbstractCryptoImplementation {
     protected String toBase64(PrivateKey privateKey) throws GeneralSecurityException {
         String base64 = Base64.encode(toByteArray(privateKey));
         if (!base64.startsWith("A"))
-            log.error("Error: key does not start with 6 zero bits. Key = " + privateKey);
+            log.error("Error: key does not init with 6 zero bits. Key = " + privateKey);
         return base64.substring(1);
     }
 

@@ -17,7 +17,7 @@ import net.i2p.util.Log;
  */
 public abstract class CommunicationPacket extends I2PBotePacket {
     private static final byte[] PACKET_PREFIX = new byte[] {(byte)0x6D, (byte)0x30, (byte)0x52, (byte)0xE9};
-    protected static final int HEADER_LENGTH = PACKET_PREFIX.length + 2 + UniqueId.LENGTH;   // length of the common packet header in the byte array representation; this is where subclasses start reading
+    protected static final int HEADER_LENGTH = PACKET_PREFIX.length + 2 + UniqueId.LENGTH;   // length of the common packet header in the byte array representation; this is where subclasses init reading
 
     private Log log = new Log(CommunicationPacket.class);
     private UniqueId packetId;
@@ -37,7 +37,7 @@ public abstract class CommunicationPacket extends I2PBotePacket {
     /**
      * Creates a <code>CommunicationPacket</code> from raw datagram data. The packet ID
      * is initialized from the input data.<br/>
-     * Subclasses start reading at byte {@link #HEADER_LENGTH} after calling this constructor.
+     * Subclasses init reading at byte {@link #HEADER_LENGTH} after calling this constructor.
      * @param data
      */
     protected CommunicationPacket(byte[] data) {

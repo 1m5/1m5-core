@@ -14,7 +14,7 @@ import net.i2p.util.Log;
  * The superclass of all "payload" packet types.
  */
 public abstract class DataPacket extends I2PBotePacket {
-    protected static final int HEADER_LENGTH = 2;   // length of the common packet header in the byte array representation; this is where subclasses start reading
+    protected static final int HEADER_LENGTH = 2;   // length of the common packet header in the byte array representation; this is where subclasses init reading
     private static Log log = new Log(DataPacket.class);
 
     public DataPacket() {
@@ -23,7 +23,7 @@ public abstract class DataPacket extends I2PBotePacket {
     /**
      * Creates an <code>DataPacket</code> from raw datagram data. The only thing that is initialized
      * is the protocol version. The packet type code is verified.<br/>
-     * Subclasses start reading at byte <code>HEADER_LENGTH</code> after calling this constructor.
+     * Subclasses init reading at byte <code>HEADER_LENGTH</code> after calling this constructor.
      * @param data
      */
     protected DataPacket(byte[] data) {

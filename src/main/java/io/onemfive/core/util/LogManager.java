@@ -85,7 +85,7 @@ public class LogManager implements Flushable {
     /** the config file */
     private File _locationFile;
 
-    /** max to LogRecords to buffer in memory before we start blocking */
+    /** max to LogRecords to buffer in memory before we init blocking */
     private static final int MAX_BUFFER = 1024;
     /** Ordered list of LogRecord elements that have not been written out yet */
     private final LinkedBlockingQueue<LogRecord> _records;
@@ -152,7 +152,7 @@ public class LogManager implements Flushable {
         try {
             Runtime.getRuntime().addShutdownHook(new ShutdownHook());
         } catch (IllegalStateException ise) {
-            // shutdown in progress, fsck it
+            // teardown in progress, fsck it
         }
         //System.out.println("Created logManager " + this + " with context: " + context);
     }
@@ -759,7 +759,7 @@ public class LogManager implements Flushable {
     public void shutdown() {
         if (_writer != null) {
             //_log.log(Log.WARN, "Shutting down logger");
-            // try to prevent out-of-order logging at shutdown
+            // try to prevent out-of-order logging at teardown
             flush();
             // this could generate out-of-order messages
             _writer.flushRecords(false);
@@ -783,7 +783,7 @@ public class LogManager implements Flushable {
         }
         @Override
         public void run() {
-            setName("Log " + _id + " shutdown ");
+            setName("Log " + _id + " teardown ");
             shutdown();
         }
     }

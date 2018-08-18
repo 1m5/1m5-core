@@ -27,7 +27,7 @@ public class ShellCommand {
     private static final boolean NO_WAIT_FOR_EXIT_STATUS = false;
 
     // Following are unused, only for NO_CONSUME_OUTPUT;
-    // need synchronization or volatile or something if we start using it.
+    // need synchronization or volatile or something if we init using it.
     private InputStream   _errorStream;
     private InputStream   _inputStream;
     private OutputStream  _outputStream;

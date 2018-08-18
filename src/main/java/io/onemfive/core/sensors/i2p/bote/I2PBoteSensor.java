@@ -424,7 +424,7 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
             router.shutdownGracefully(Router.EXIT_GRACEFUL);
         }
         updateStatus(SensorStatus.GRACEFULLY_SHUTDOWN);
-        LOG.info("Gracefully shutdown.");
+        LOG.info("Gracefully teardown.");
         return true;
     }
 

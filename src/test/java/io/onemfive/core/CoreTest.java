@@ -3,7 +3,7 @@ package io.onemfive.core;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.did.DIDService;
-import io.onemfive.core.infovault.InfoVault;
+import io.onemfive.core.infovault.InfoVaultDB;
 import io.onemfive.core.ipfs.IPFSRequest;
 import io.onemfive.core.ipfs.IPFSResponse;
 import io.onemfive.core.ipfs.IPFSService;
@@ -11,12 +11,9 @@ import io.onemfive.data.*;
 import io.onemfive.data.health.mental.memory.MemoryTest;
 import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
-import io.onemfive.data.util.FileWrapper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
-import java.io.File;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -120,50 +117,50 @@ public class CoreTest {
     }
 
 //    @Test
-    public void testDIDCreate() {
-        DID did = null;
-        try {
-            did = DID.create("Alice", "1234", DID.MESSAGE_DIGEST_SHA512);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            assert false;
-        }
-        ServiceCallback cb = new ServiceCallback() {
-            @Override
-            public void reply(Envelope envelope) {
-                DID did = envelope.getDID();
-                assert(did.getStatus() == DID.Status.ACTIVE);
-                lock.countDown();
-            }
-        };
-        Envelope e = Envelope.headersOnlyFactory();
-        e.setDID(did);
-        DLC.addRoute(DIDService.class, DIDService.OPERATION_CREATE, e);
-        client.request(e, cb);
-    }
+//    public void testDIDCreate() {
+//        DID did = null;
+//        try {
+//            did = DID.create("Alice", "1234", DID.MESSAGE_DIGEST_SHA512);
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//            assert false;
+//        }
+//        ServiceCallback cb = new ServiceCallback() {
+//            @Override
+//            public void reply(Envelope envelope) {
+//                DID did = envelope.getDID();
+//                assert(did.getStatus() == DID.Status.ACTIVE);
+//                lock.countDown();
+//            }
+//        };
+//        Envelope e = Envelope.headersOnlyFactory();
+//        e.setDID(did);
+//        DLC.addRoute(DIDService.class, DIDService.OPERATION_CREATE, e);
+//        client.request(e, cb);
+//    }
 
 //    @Test
-    public void testDIDAuthN() {
-        DID did = null;
-        try {
-            did = DID.create("Alice", "1234", DID.MESSAGE_DIGEST_SHA512);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            assert false;
-        }
-        ServiceCallback cb = new ServiceCallback() {
-            @Override
-            public void reply(Envelope envelope) {
-                DID did = envelope.getDID();
-                assert(did != null && did.getAuthenticated());
-                lock.countDown();
-            }
-        };
-        Envelope e = Envelope.headersOnlyFactory();
-        e.setDID(did);
-        DLC.addRoute(DIDService.class, DIDService.OPERATION_AUTHENTICATE,e);
-        client.request(e, cb);
-    }
+//    public void testDIDAuthN() {
+//        DID did = null;
+//        try {
+//            did = DID.create("Alice", "1234", DID.MESSAGE_DIGEST_SHA512);
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//            assert false;
+//        }
+//        ServiceCallback cb = new ServiceCallback() {
+//            @Override
+//            public void reply(Envelope envelope) {
+//                DID did = envelope.getDID();
+//                assert(did != null && did.getAuthenticated());
+//                lock.countDown();
+//            }
+//        };
+//        Envelope e = Envelope.headersOnlyFactory();
+//        e.setDID(did);
+//        DLC.addRoute(DIDService.class, DIDService.OPERATION_AUTHENTICATE,e);
+//        client.request(e, cb);
+//    }
 
     public void testAten() {
 
@@ -186,21 +183,21 @@ public class CoreTest {
     }
 
 //    @Test
-    public void testInfoVault() {
-        System.out.println("Starting InfoVault test...");
-        InfoVault infoVault = InfoVault.getInstance();
-        infoVault.start(null);
-        DID did = infoVault.getDidDAO().load("Alice");
-        List<MemoryTest> tests = infoVault.getMemoryTestDAO().loadListByDID(did.getId(), 0, 10);
-        for(MemoryTest t : tests) {
-            System.out.println("MemoryTest: name="+t.getName()
-                    +", ended="+new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(t.getTimeEnded())
-                    +", bac="+t.getBloodAlcoholContent()
-                    +", difficulty="+t.getDifficulty());
-        }
-        infoVault.shutdown();
-        System.out.println("InfoVault test finished.");
-    }
+//    public void testInfoVault() {
+//        System.out.println("Starting InfoVaultDB test...");
+//        InfoVaultDB infoVaultDB = InfoVaultDB.getInstance();
+//        infoVaultDB.init(null);
+//        DID did = infoVaultDB.getDidDAO().load("Alice");
+//        List<MemoryTest> tests = infoVaultDB.getMemoryTestDAO().loadListByDID(did.getId(), 0, 10);
+//        for(MemoryTest t : tests) {
+//            System.out.println("MemoryTest: name="+t.getName()
+//                    +", ended="+new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(t.getTimeEnded())
+//                    +", bac="+t.getBloodAlcoholContent()
+//                    +", difficulty="+t.getDifficulty());
+//        }
+//        infoVaultDB.teardown();
+//        System.out.println("InfoVaultDB test finished.");
+//    }
 
     public void testKeyRing() {
 

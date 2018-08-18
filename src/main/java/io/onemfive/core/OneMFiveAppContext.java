@@ -439,7 +439,7 @@ public class OneMFiveAppContext {
     /**
      *  WARNING - Shutdown tasks are not executed in an I2PAppContext.
      *  You must be in a RouterContext for the tasks to be executed
-     *  at shutdown.
+     *  at teardown.
      *  This method moved from Router in 0.7.1 so that clients
      *  may use it without depending on router.jar.
      */

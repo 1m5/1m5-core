@@ -364,7 +364,7 @@ public class KademliaDHT extends I2PAppThread implements DHT, PacketListener {
 
         @Override
         public void run() {
-            log.info("Bootstrap start");
+            log.info("Bootstrap init");
             i2pReceiver.addPacketListener(this);
             outerLoop:
             while (!Thread.interrupted())

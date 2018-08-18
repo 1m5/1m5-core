@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 /**
  * Thread pool for WorkerThreads.
  *
- * TODO: Improve shutdown
+ * TODO: Improve teardown
  * TODO: Improve configuration options
  *
  * @author objectorange

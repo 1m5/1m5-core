@@ -20,9 +20,9 @@ public enum ServiceStatus {
     PAUSED, // Service is queueing new requests and pre-pausing requests have completed
     UNPAUSING, // Service has stopped queueing new requests and is starting to resume normal operations
     // Service Shutdown
-    SHUTTING_DOWN, // Service shutdown imminent - not clean, process likely getting killed - perform the minimum ASAP
-    GRACEFULLY_SHUTTING_DOWN, // Ideal clean shutdown
-    SHUTDOWN, // Was shutdown forcefully - expect potential file / state corruption
+    SHUTTING_DOWN, // Service teardown imminent - not clean, process likely getting killed - perform the minimum ASAP
+    GRACEFULLY_SHUTTING_DOWN, // Ideal clean teardown
+    SHUTDOWN, // Was teardown forcefully - expect potential file / state corruption
     GRACEFULLY_SHUTDOWN, // Shutdown was graceful - safe to assume no file / state corruption
     // Restarting
     RESTARTING, // Short for GRACEFULLY_SHUTTING_DOWN followed by INITIALIZING on up

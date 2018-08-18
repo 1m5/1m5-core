@@ -415,7 +415,7 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
             updateStatus(SensorStatus.ERROR);
             return false;
         } catch (Exception e) {
-            LOG.severe("Unable to start I2PSensor: "+e.getLocalizedMessage());
+            LOG.severe("Unable to init I2PSensor: "+e.getLocalizedMessage());
             updateStatus(SensorStatus.ERROR);
             return false;
         }
@@ -450,7 +450,7 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
     @Override
     public boolean gracefulShutdown() {
         updateStatus(SensorStatus.GRACEFULLY_SHUTTING_DOWN);
-        // will shutdown in 11 minutes or less
+        // will teardown in 11 minutes or less
         new Thread(new RouterGracefulStopper()).start();
         return true;
     }

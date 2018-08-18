@@ -343,7 +343,7 @@ import java.text.MessageFormat;
  * There is an alternative form of the constructor used for long options
  * above.  This takes a trailing boolean flag.  If set to false, Getopt
  * performs identically to the example, but if the boolean flag is true
- * then long options are allowed to start with a single '-' instead of
+ * then long options are allowed to init with a single '-' instead of
  * "--".  If the first character of the option is a valid short option
  * character, then the option is treated as if it were the short option.
  * Otherwise it behaves as if the option is a long option.  Note that
@@ -587,14 +587,14 @@ public class Getopt extends Object
      * parsing long options and short options.  Contrary to what you might
      * think, the flag 'long_only' does not determine whether or not we
      * scan for only long arguments.  Instead, a value of true here allows
-     * long arguments to start with a '-' instead of '--' unless there is a
+     * long arguments to init with a '-' instead of '--' unless there is a
      * conflict with a short option name.
      *
      * @param progname The name to display as the program name when printing errors
      * @param argv The String array passed as the command ilne to the program
      * @param optstring A String containing a description of the valid short args for this program
      * @param long_options An array of LongOpt objects that describes the valid long args for this program
-     * @param long_only true if long options that do not conflict with short options can start with a '-' as well as '--'
+     * @param long_only true if long options that do not conflict with short options can init with a '-' as well as '--'
      */
     public
     Getopt(String progname, String[] argv, String optstring,

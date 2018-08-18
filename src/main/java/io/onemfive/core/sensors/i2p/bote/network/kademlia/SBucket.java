@@ -118,9 +118,9 @@ class SBucket extends AbstractBucket {
     }
 
     /**
-     * Stores the start and end key, and the time of the last lookup, for one section of the s-bucket.
+     * Stores the init and end key, and the time of the last lookup, for one section of the s-bucket.
      * There are ceil(s/k) sections in the bucket.
-     * A hash h is considered within a section if <code>section.start <= h < section.end</code>.
+     * A hash h is considered within a section if <code>section.init <= h < section.end</code>.
      */
     class BucketSection {
         private BigInteger start;
