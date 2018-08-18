@@ -21,3 +21,4 @@ As of 0.5.2, it is only supporting:
 
 ## TODO
 * Key Revocation
+* Support Android 8 Password Manager
