@@ -1,6 +1,7 @@
 package io.onemfive.core.sensors.i2p;
 
 import io.onemfive.core.Config;
+import io.onemfive.core.ServiceRequest;
 import io.onemfive.core.notification.NotificationService;
 import io.onemfive.core.sensors.*;
 import io.onemfive.core.util.Wait;
@@ -96,6 +97,13 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
         return SensorID.I2P;
     }
 
+    @Override
+    public Map<String, Peer> getPeers() {
+        Map<String, Peer> peers = new HashMap<>();
+
+        return peers;
+    }
+
     /**
      * Sends UTF-8 content to a Destination using I2P.
      * @param envelope Envelope containing destination DID as entity and content in message data.
@@ -109,20 +117,35 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
         Peer toPeer = request.to.getPeer(Peer.NETWORK_I2P);
         if(toPeer == null) {
             LOG.warning("No Peer for I2P found in toDID while sending to I2P.");
+            request.errorCode = SensorRequest.TO_PEER_REQUIRED;
+            return false;
+        }
+        if(!Peer.NETWORK_I2P.equals(toPeer.getNetwork())) {
+            LOG.warning("I2P requires an I2P Peer.");
+            request.errorCode = SensorRequest.TO_PEER_WRONG_NETWORK;
             return false;
         }
         String content = (String) DLC.getContent(envelope);
         if(content == null) {
             LOG.warning("No content found in Envelope while sending to I2P.");
+            request.errorCode = SensorRequest.NO_CONTENT;
             return false;
         }
 
         try {
-            Destination destination = i2pSession.lookupDest(toPeer.toString());
+            Destination destination = i2pSession.lookupDest(toPeer.getAddress());
+            if(destination == null) {
+                LOG.warning("I2P Peer Destination not found.");
+                request.errorCode = SensorRequest.TO_PEER_NOT_FOUND;
+                return false;
+            }
             i2pSession.sendMessage(destination, content.getBytes());
             LOG.info("I2P Message sent.");
         } catch (I2PSessionException e) {
-            LOG.warning("Exception while sending I2P message: " + e.getLocalizedMessage());
+            String errMsg = "Exception while sending I2P message: " + e.getLocalizedMessage();
+            LOG.warning(errMsg);
+            request.exception = e;
+            request.errorMessage = errMsg;
             return false;
         }
         return true;
@@ -278,6 +301,7 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
         LOG.info("I2PSensor Local destination hash (base64): " + localDestination.calculateHash().toBase64());
 
         i2pSession.addMuxedSessionListener(this, I2PSession.PROTO_DATAGRAM, I2PSession.PORT_ANY);
+
     }
 
     @Override

@@ -5,7 +5,10 @@ import io.onemfive.core.sensors.Sensor;
 import io.onemfive.core.sensors.SensorID;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.Peer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -20,6 +23,13 @@ public class NFCSensor extends BaseSensor {
 
     public NFCSensor(SensorsService sensorsService) {
         super(sensorsService);
+    }
+
+    @Override
+    public Map<String, Peer> getPeers() {
+        Map<String, Peer> peers = new HashMap<>();
+
+        return peers;
     }
 
     @Override

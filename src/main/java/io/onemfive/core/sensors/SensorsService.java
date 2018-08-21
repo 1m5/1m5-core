@@ -1,6 +1,7 @@
 package io.onemfive.core.sensors;
 
 import io.onemfive.core.*;
+import io.onemfive.core.infovault.graph.GraphUtil;
 import io.onemfive.core.sensors.clearnet.ClearnetSensor;
 import io.onemfive.core.sensors.i2p.bote.I2PBoteSensor;
 import io.onemfive.core.sensors.tor.TorSensor;
@@ -91,7 +92,6 @@ public class SensorsService extends BaseService {
     private Properties config;
     private Map<SensorID, Sensor> registeredSensors;
     private Map<SensorID, Sensor> activeSensors;
-    private Map<String,Peer> peers;
 
     public SensorsService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -516,8 +516,21 @@ public class SensorsService extends BaseService {
         }
     }
 
-    private void loadPeers() {
-        peers = new HashMap<>();
+    public void updatePeer(Peer peer) {
+        try (Transaction tx = infoVaultDB.getGraphDb().beginTx()) {
+            Node n = infoVaultDB.getGraphDb().findNode(LABEL_PEER,"address",peer.getAddress());
+            if(n != null) {
+                GraphUtil.updateProperties(n, peer.toMap());
+                peer.fromMap(n.getAllProperties());
+            } else {
+                n = infoVaultDB.getGraphDb().createNode(LABEL_PEER);
+                GraphUtil.updateProperties(n, peer.toMap());
+            }
+        }
+    }
+
+    public Map<String,Peer> getAllPeers() {
+        Map<String,Peer> peers = new HashMap<>();
         try (Transaction tx = infoVaultDB.getGraphDb().beginTx();
             ResourceIterator<Node> i = infoVaultDB.getGraphDb().findNodes(LABEL_PEER)) {
             Peer p;
@@ -531,5 +544,6 @@ public class SensorsService extends BaseService {
             }
             tx.success();
         }
+        return peers;
     }
 }

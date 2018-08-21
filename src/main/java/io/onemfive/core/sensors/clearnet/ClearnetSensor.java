@@ -4,6 +4,7 @@ import io.onemfive.core.sensors.BaseSensor;
 import io.onemfive.core.sensors.SensorID;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Message;
+import io.onemfive.data.Peer;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
@@ -84,6 +85,13 @@ public final class ClearnetSensor extends BaseSensor {
     @Override
     protected SensorID getSensorID() {
         return SensorID.CLEARNET;
+    }
+
+    @Override
+    public Map<String, Peer> getPeers() {
+        Map<String, Peer> peers = new HashMap<>();
+
+        return peers;
     }
 
     @Override

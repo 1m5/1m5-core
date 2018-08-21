@@ -7,7 +7,7 @@ As long as enough people still have their device, the network survives.
 ## Sensor Service
 
 ### TODO
-* Build Peer Graph from all active Sensors
+* Build and maintain Peer Graph from all active Sensors
 
 ## Configuration
 

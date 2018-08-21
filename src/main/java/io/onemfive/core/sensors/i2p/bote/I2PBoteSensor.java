@@ -52,6 +52,13 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
         return SensorID.I2PBOTE;
     }
 
+    @Override
+    public Map<String, Peer> getPeers() {
+        Map<String, Peer> peers = new HashMap<>();
+
+        return peers;
+    }
+
     /**
      * Sends an Envelope as an Email through I2P Bote.
      * @param e Envelope contains io.onemfive.data.Email in Data
@@ -120,14 +127,14 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
             LOG.warning("To DID required to send I2P Bote message (no destination).");
             return false;
         }
-        Peer toPeer = toDID.getPeer(Peer.NETWORK_I2P);
+        Peer toPeer = toDID.getPeer(Peer.NETWORK_I2PBOTE);
         if(toPeer==null) {
             if(toDID.getAlias() != null) {
                 try {
                     Set<Contact> contacts = I2PBote.getInstance().getAddressBook().getAll();
                     for(Contact c : contacts) {
                         if(toDID.getAlias().equals(c.getName())) {
-                            toPeer = new Peer(Peer.NETWORK_I2P, c.getBase64Dest());
+                            toPeer = new Peer(Peer.NETWORK_I2PBOTE, c.getBase64Dest());
                             toDID.addPeer(toPeer);
                         }
                     }

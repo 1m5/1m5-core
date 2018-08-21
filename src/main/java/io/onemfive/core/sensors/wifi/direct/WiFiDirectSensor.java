@@ -17,7 +17,10 @@ import io.onemfive.core.sensors.Sensor;
 import io.onemfive.core.sensors.SensorID;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.Peer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -52,6 +55,13 @@ public class WiFiDirectSensor extends BaseSensor
     @Override
     protected SensorID getSensorID() {
         return SensorID.WIFIDIRECT;
+    }
+
+    @Override
+    public Map<String, Peer> getPeers() {
+        Map<String, Peer> peers = new HashMap<>();
+
+        return peers;
     }
 
     @Override
