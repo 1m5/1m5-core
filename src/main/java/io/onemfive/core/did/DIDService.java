@@ -8,13 +8,11 @@ import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
+import org.neo4j.graphdb.Label;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -201,7 +199,7 @@ public class DIDService extends BaseService {
 
     private DID verify(DID did) {
         LOG.info("Received verify DID request.");
-        LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, did);
+        LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, did, false);
         dao.execute();
         DID didLoaded = dao.getLoadedDID();
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())) {
@@ -240,7 +238,7 @@ public class DIDService extends BaseService {
      * @param r AuthenticateDIDRequest
      */
     private void authenticate(AuthenticateDIDRequest r) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, r.did);
+        LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, r.did, false);
         dao.execute();
         DID loadedDID = dao.getLoadedDID();
         String token = new String(loadedDID.getPassphraseHash());

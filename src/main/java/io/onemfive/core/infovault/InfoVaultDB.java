@@ -4,6 +4,7 @@ import io.onemfive.core.Config;
 import io.onemfive.core.infovault.graph.GraphEngine;
 import io.onemfive.core.infovault.storage.StorageEngine;
 import io.onemfive.data.JSONSerializable;
+import org.neo4j.graphdb.GraphDatabaseService;
 
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -52,6 +53,10 @@ public class InfoVaultDB {
 
     public GraphEngine getGraphEngine() {
         return graphEngine;
+    }
+
+    public GraphDatabaseService getGraphDb() {
+        return graphEngine.getGraphDb();
     }
 
     public StorageEngine getStorageEngine() {

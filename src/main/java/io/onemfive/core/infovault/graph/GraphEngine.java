@@ -2,15 +2,16 @@ package io.onemfive.core.infovault.graph;
 
 
 import io.onemfive.core.OneMFiveAppContext;
-import io.onemfive.data.Peer;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import io.onemfive.core.did.dao.LoadDIDDAO;
+import io.onemfive.core.infovault.InfoVaultDB;
+import io.onemfive.data.DID;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.Schema;
 
 import java.io.File;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class GraphEngine {
@@ -19,6 +20,10 @@ public class GraphEngine {
 
     private Properties properties;
     private GraphDatabaseService graphDb;
+
+    public GraphDatabaseService getGraphDb() {
+        return graphDb;
+    }
 
     public boolean init(Properties properties) {
         this.properties = properties;
@@ -44,33 +49,10 @@ public class GraphEngine {
         return true;
     }
 
-    public GraphDatabaseService getGraphDb() {
-        return graphDb;
-    }
-
-    public void example() {
-        try (Transaction tx = graphDb.beginTx()) {
-            Node articleOld = graphDb.createNode();
-            articleOld.setProperty("message","Hello, ");
-            Node articleNew = graphDb.createNode();
-            articleNew.setProperty("message","World!");
-            Relationship rel = articleOld.createRelationshipTo(articleNew, RelTypes.KNOWS);
-            rel.setProperty("message","brave Neo4j ");
-            LOG.info((String)articleOld.getProperty("message")+rel.getProperty("message")+articleNew.getProperty("message"));
-            tx.success();
-        }
-    }
-
     public boolean teardown() {
         LOG.info("Tearing down...");
         graphDb.shutdown();
         LOG.info("Torn down.");
         return true;
-    }
-
-    public static void main(String[] args) {
-        GraphEngine graphEngine = new GraphEngine();
-        graphEngine.init(null);
-        graphEngine.example();
     }
 }
