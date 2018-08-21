@@ -4,6 +4,11 @@ The module participates with the DID Service for self-sovereign identity and rep
 The system survives even if the internet goes down or is cut off by supporting peer-to-peer direct wireless mesh networks. 
 As long as enough people still have their device, the network survives.
 
+## Sensor Service
+
+### TODO
+* Build Peer Graph from all active Sensors
+
 ## Configuration
 
 ## Lifecycle
