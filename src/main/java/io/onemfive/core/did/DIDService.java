@@ -222,7 +222,6 @@ public class DIDService extends BaseService {
     private DID create(String alias, String passphrase, String passphraseHashAlgorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
         LOG.info("Received create DID request.");
         DID did = new DID();
-        did.setId(random.nextLong());
         did.setAlias(alias);
         did.setPassphraseHash(HashUtil.generateHash(passphrase, passphraseHashAlgorithm).getBytes());
         did.setAuthenticated(true);
@@ -305,19 +304,4 @@ public class DIDService extends BaseService {
         return shutdown();
     }
 
-    public static void main(String[] args) {
-        OneMFiveAppContext ctx = OneMFiveAppContext.getInstance();
-        DIDService s = new DIDService(null, null);
-        s.start(null);
-        DID did = new DID();
-        try {
-            did = s.create("Ben","1234",did.getPassphraseHashAlgorithm());
-            did = s.verify(did);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
-            e.printStackTrace();
-        }
-        assert (did.getStatus() == DID.Status.ACTIVE);
-    }
 }
