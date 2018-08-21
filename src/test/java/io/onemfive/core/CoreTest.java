@@ -2,21 +2,15 @@ package io.onemfive.core;
 
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
-import io.onemfive.core.did.DIDService;
-import io.onemfive.core.infovault.InfoVaultDB;
 import io.onemfive.core.ipfs.IPFSRequest;
 import io.onemfive.core.ipfs.IPFSResponse;
 import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
-import io.onemfive.data.health.mental.memory.MemoryTest;
 import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
