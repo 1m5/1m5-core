@@ -2,7 +2,6 @@ package io.onemfive.core.infovault;
 
 import io.onemfive.core.*;
 import io.onemfive.data.*;
-import io.onemfive.data.health.mental.memory.MemoryTest;
 import io.onemfive.data.util.DLC;
 
 import java.util.*;
@@ -69,57 +68,4 @@ public class InfoVaultService extends BaseService {
         return shutdown();
     }
 
-    public static void main(String[] args) {
-        // kick init things
-        OneMFiveAppContext ctx = OneMFiveAppContext.getInstance();
-        InfoVaultService s = new InfoVaultService(null, null);
-        s.start(null);
-
-        DID did = new DID();
-        did.setId(1L);
-
-        MemoryTest t1 = MemoryTest.newInstance("test1",did.getId());
-        t1.setBaseline(false);
-        t1.setTimeStarted(new Date(new Date().getTime() - (60 * 60 * 1000)));
-        t1.setTimeEnded(new Date(new Date().getTime() - (55 * 60 * 1000)));
-        t1.setDifficulty(1);
-        t1.addSuccess(1000);
-        t1.addMiss(5000);
-        t1.addNegative(3000);
-        t1.addInappropriate(500);
-        t1.setBloodAlcoholContent(0.04);
-        t1.setCardsUsed(Arrays.asList(3,6,7,9,12,22));
-        Envelope saveEnv1 = Envelope.documentFactory();
-        saveEnv1.setDID(did);
-        DLC.addEntity(t1, saveEnv1);
-//        s.save(saveEnv1);
-
-        MemoryTest t2 = MemoryTest.newInstance("test",did.getId());
-        t2.setBaseline(false);
-        t2.setTimeStarted(new Date(new Date().getTime() - (10 * 60 * 1000)));
-        t2.setTimeEnded(new Date());
-        t2.setDifficulty(1);
-        t2.addSuccess(2000);
-        t2.addMiss(10000);
-        t2.addNegative(6000);
-        t2.addInappropriate(1000);
-        t2.setBloodAlcoholContent(0.08);
-        t2.setCardsUsed(Arrays.asList(1,2,3,4,5,6));
-        Envelope saveEnv2 = Envelope.documentFactory();
-        saveEnv2.setDID(did);
-        DLC.addEntity(t1, saveEnv2);
-//        s.save(saveEnv2);
-
-        Envelope l1 = Envelope.documentFactory();
-        l1.setDID(did);
-        MemoryTest lt = new MemoryTest();
-        List<MemoryTest> tests = new ArrayList<>();
-        tests.add(lt);
-        DLC.addEntity(tests,l1);
-//        s.load(l1);
-        List<MemoryTest> tests2 = (List<MemoryTest>)DLC.getEntity(l1);
-        for(MemoryTest t : tests2) {
-            LOG.info(t.toString());
-        }
-    }
 }
