@@ -3,7 +3,6 @@ package io.onemfive.core.infovault;
 import io.onemfive.core.Config;
 import io.onemfive.core.infovault.graph.GraphEngine;
 import io.onemfive.core.infovault.storage.StorageEngine;
-import io.onemfive.data.JSONSerializable;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import java.util.Properties;
@@ -70,7 +69,7 @@ public class InfoVaultDB {
     public boolean init(Properties properties) {
         if(!initialized) {
             status = Status.Starting;
-            LOG.info("Starting...");
+            LOG.info("Initializing...");
             try {
                 props = Config.loadFromClasspath("infovault.config", properties, false);
                 graphEngine = new GraphEngine();
@@ -84,16 +83,17 @@ public class InfoVaultDB {
                 return false;
             }
             status = Status.Running;
-            LOG.info("Started.");
+            LOG.info("Initialized.");
             initialized = true;
         }
         return true;
     }
 
     public boolean teardown() {
-        LOG.info("Cleaning up...");
-
-        LOG.info("Cleaned up.");
+        LOG.info("Tearing down...");
+        graphEngine.teardown();
+        storageEngine.teardown();
+        LOG.info("Torn down.");
         return true;
     }
 

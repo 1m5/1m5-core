@@ -2,13 +2,8 @@ package io.onemfive.core.infovault.graph;
 
 
 import io.onemfive.core.OneMFiveAppContext;
-import io.onemfive.core.did.dao.LoadDIDDAO;
-import io.onemfive.core.infovault.InfoVaultDB;
-import io.onemfive.data.DID;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.graphdb.schema.Schema;
 
 import java.io.File;
 import java.util.*;

@@ -10,4 +10,6 @@ public class StorageEngine {
         this.properties = properties;
     }
 
+    public boolean teardown() {return true;}
+
 }
