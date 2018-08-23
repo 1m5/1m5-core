@@ -69,6 +69,14 @@ networks, using them intelligently as one dynamic network, and providing easy to
 applications. In addition, it provides access to commonly desired decentralized services in an anonymous fashion including
 self-sovereign identities, GitLab, Monero, and other privacy preserving services in the future making integration a snap.
 
+We provide a Maneuver Condition status to signal what level of maneuvering is required to prevent censorship. They are:
+
+* **MANCON 5**: No Security - open/normal SSL based communications with no expected censorship or privacy intrusion attempts.
+* **MANCON 4**: Low Security - normal censorship attempts by states on reading news (public web sites getting blocked, government shutdown of cloud cdn content): Offer Tor hidden services so that people can still access information
+* **MANCON 3**: Medium Security - Tor hidden services discovered with targeted takedowns. I2P hidden services for those few who know how to access those on all devices.
+* **MANCON 2**: Medium-High Security - I2P hidden services getting attacked/targeted. Use 1M5 mainly with I2P.
+* **MANCON 1**: Highest of Security - whistleblower with deep state top secrets or strong censorship attempts (Tor Nodes blocking / deep packet inspections / I2P timing attacks) in jurisdictions with no freedom of expression protections (North Korea, China, Syria, Iran): 1M5 with I2P Bote/1MM on Purism Libre Mobile and Laptops.
+
 ## Design
 1M5 is composed of a Service-Oriented Architecture (SOA) design using a service bus for micro-services, 
 a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
