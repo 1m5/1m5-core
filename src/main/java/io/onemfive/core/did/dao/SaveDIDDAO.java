@@ -20,7 +20,10 @@ public class SaveDIDDAO extends BaseDAO {
     @Override
     public void execute() {
         try (Transaction tx = infoVaultDB.getGraphDb().beginTx()) {
-            Node node = infoVaultDB.getGraphDb().createNode(Label.label(DID.class.getName()));
+            Node node = infoVaultDB.getGraphDb().findNode(Label.label(DID.class.getName()), "alias", didToSave.getAlias());
+            if(node == null) {
+                node = infoVaultDB.getGraphDb().createNode(Label.label(DID.class.getName()));
+            }
             GraphUtil.updateProperties(node, didToSave.toMap());
             tx.success();
         }

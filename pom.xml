@@ -37,9 +37,9 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git@github.com/1m5/core</connection>
-		<developerConnection>scm:git@github.com/1m5/core</developerConnection>
-		<url>git@github.com/1m5/core</url>
+		<connection>scm:git@github.com/1m5/1m5-core</connection>
+		<developerConnection>scm:git@github.com/1m5/1m5-core</developerConnection>
+		<url>git@github.com/1m5/1m5-core</url>
 	</scm>
 
 	<profiles>

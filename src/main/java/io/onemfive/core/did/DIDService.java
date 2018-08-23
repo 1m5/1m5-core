@@ -8,7 +8,6 @@ import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
-import org.neo4j.graphdb.Label;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
