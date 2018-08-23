@@ -1,6 +1,8 @@
 package io.onemfive.core;
 
 import io.onemfive.core.infovault.InfoVaultDB;
+import io.onemfive.core.infovault.InfoVaultService;
+import io.onemfive.core.infovault.LocalFileSystemDB;
 import io.onemfive.data.*;
 
 import java.util.ArrayList;
@@ -19,17 +21,16 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     protected boolean orchestrator = false;
     protected MessageProducer producer;
-    protected InfoVaultDB infoVaultDB;
+    protected LocalFileSystemDB localFileSystemDB;
 
     private ServiceStatus serviceStatus;
     private List<ServiceStatusListener> serviceStatusListeners = new ArrayList<>();
 
     public BaseService() {
-        infoVaultDB = InfoVaultDB.getInstance();
+
     }
 
     public BaseService(MessageProducer producer, ServiceStatusListener listener) {
-        infoVaultDB = InfoVaultDB.getInstance();
         if(listener != null)
             serviceStatusListeners.add(listener);
         this.producer = producer;
@@ -142,7 +143,19 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean start(Properties properties) {
-        infoVaultDB.init(properties);
+        try {
+            localFileSystemDB = (LocalFileSystemDB)InfoVaultService.getInstance(LocalFileSystemDB.class.getName());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            return false;
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            return false;
+        }
+        localFileSystemDB.init(properties);
         return true;
     }
 
@@ -163,8 +176,8 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean shutdown() {
-        if(infoVaultDB.getStatus() == InfoVaultDB.Status.Running)
-            infoVaultDB.teardown();
+        if(localFileSystemDB.getStatus() == InfoVaultDB.Status.Running)
+            localFileSystemDB.teardown();
         return true;
     }
 

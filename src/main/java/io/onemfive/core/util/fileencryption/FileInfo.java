@@ -1,4 +1,4 @@
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
 import net.i2p.data.Base64;
 

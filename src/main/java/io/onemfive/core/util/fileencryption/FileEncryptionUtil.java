@@ -1,4 +1,4 @@
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
 import com.lambdaworks.crypto.SCrypt;
 import io.onemfive.core.Util;
@@ -8,9 +8,9 @@ import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.DEFAULT_PASSWORD;
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.KEY_LENGTH;
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.PASSWORD_FILE_PLAIN_TEXT;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.DEFAULT_PASSWORD;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.KEY_LENGTH;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.PASSWORD_FILE_PLAIN_TEXT;
 
 public class FileEncryptionUtil {
 

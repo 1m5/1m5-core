@@ -1,31 +1,32 @@
 package io.onemfive.core.did.dao;
 
 import io.onemfive.core.infovault.BaseDAO;
-import io.onemfive.core.infovault.InfoVaultDB;
-import io.onemfive.core.infovault.graph.GraphUtil;
+import io.onemfive.core.infovault.LocalFileSystemDB;
 import io.onemfive.data.DID;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
+import io.onemfive.data.util.JSONParser;
+
+import java.io.FileNotFoundException;
 
 public class SaveDIDDAO extends BaseDAO {
 
     private DID didToSave;
+    private Boolean autoCreate = true;
 
-    public SaveDIDDAO(InfoVaultDB infoVaultDB, DID did) {
-        super(infoVaultDB);
+    public SaveDIDDAO(LocalFileSystemDB localFileSystemDB, DID did, Boolean autoCreate) {
+        super(localFileSystemDB);
         this.didToSave = did;
+        if(autoCreate != null) this.autoCreate = autoCreate;
     }
 
     @Override
     public void execute() {
-        try (Transaction tx = infoVaultDB.getGraphDb().beginTx()) {
-            Node node = infoVaultDB.getGraphDb().findNode(Label.label(DID.class.getName()), "alias", didToSave.getAlias());
-            if(node == null) {
-                node = infoVaultDB.getGraphDb().createNode(Label.label(DID.class.getName()));
-            }
-            GraphUtil.updateProperties(node, didToSave.toMap());
-            tx.success();
+        try {
+            ((LocalFileSystemDB)infoVaultDB).save(
+                    JSONParser.toString(didToSave.toMap()).getBytes(),
+                    new String(didToSave.getIdentityHash()),
+                    autoCreate);
+        } catch (FileNotFoundException e) {
+            exception = e;
         }
     }
 }

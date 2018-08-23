@@ -19,16 +19,14 @@
  * along with I2P-Bote.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
-public interface PasswordCacheListener {
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
-    /**
-     * Called after the user enters a password (which may or may not be correct),
-     * but before any encrypted files are accessed.
-     */
-    void passwordProvided();
+public interface PasswordHolder {
     
-    /** Called when the user chooses to clear the password, or the cache expires. */
-    void passwordCleared();
+    byte[] getPassword();
+    
+    DerivedKey getKey() throws IOException, GeneralSecurityException;
 }

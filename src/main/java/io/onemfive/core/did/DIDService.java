@@ -9,6 +9,7 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
 
+import java.io.FileNotFoundException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -137,7 +138,7 @@ public class DIDService extends BaseService {
             case OPERATION_CREATE: {
                 DID did = (DID)DLC.getData(DID.class,e);
                 try {
-                    did = create(did.getAlias(), did.getPassphrase(), did.getPassphraseHashAlgorithm());
+                    did = create(did);
                     e.setDID(did);
                 } catch (NoSuchAlgorithmException e1) {
                     LOG.warning(e1.getLocalizedMessage());
@@ -185,7 +186,7 @@ public class DIDService extends BaseService {
             r.errorCode = GetLocalDIDRequest.DID_PASSPHRASE_HASH_ALGORITHM_UNKNOWN;
             return r.did;
         }
-        return create(r.did.getAlias(), r.did.getPassphrase(), r.did.getPassphraseHashAlgorithm());
+        return create(r.did);
     }
 
     private void addContact(Envelope e) {
@@ -198,7 +199,7 @@ public class DIDService extends BaseService {
 
     private DID verify(DID did) {
         LOG.info("Received verify DID request.");
-        LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, did, false);
+        LoadDIDDAO dao = new LoadDIDDAO(localFileSystemDB, did);
         dao.execute();
         DID didLoaded = dao.getLoadedDID();
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())) {
@@ -214,19 +215,16 @@ public class DIDService extends BaseService {
     /**
      * Creates and returns identity key using master key for provided alias if one does not exist.
      * If master key is not present, one will be created by the Key Ring Service.
-     * @param alias String
-     * @param passphrase String
-     * @param passphraseHashAlgorithm String
+     * @param did DID
      */
-    private DID create(String alias, String passphrase, String passphraseHashAlgorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private DID create(DID did) throws NoSuchAlgorithmException, InvalidKeySpecException {
         LOG.info("Received create DID request.");
-        DID did = new DID();
-        did.setAlias(alias);
-        did.setPassphraseHash(HashUtil.generateHash(passphrase, passphraseHashAlgorithm).getBytes());
+        did.setPassphraseHash(HashUtil.generateHash(did.getPassphrase(), did.getPassphraseHashAlgorithm()).getBytes());
         did.setAuthenticated(true);
         did.setVerified(true);
         did.setStatus(DID.Status.ACTIVE);
-        SaveDIDDAO dao = new SaveDIDDAO(infoVaultDB, did);
+        did.setIdentityHash(HashUtil.generateHash(did.getAlias(), did.getIdentityHashAlgorithm()).getBytes());
+        SaveDIDDAO dao = new SaveDIDDAO(localFileSystemDB, did, true);
         dao.execute();
         return did;
     }
@@ -236,7 +234,7 @@ public class DIDService extends BaseService {
      * @param r AuthenticateDIDRequest
      */
     private void authenticate(AuthenticateDIDRequest r) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, r.did, false);
+        LoadDIDDAO dao = new LoadDIDDAO(localFileSystemDB, r.did);
         dao.execute();
         DID loadedDID = dao.getLoadedDID();
         String token = new String(loadedDID.getPassphraseHash());
@@ -262,7 +260,7 @@ public class DIDService extends BaseService {
     private void authenticateOrCreate(AuthenticateDIDRequest r) throws NoSuchAlgorithmException, InvalidKeySpecException {
         r.did = verify(r.did);
         if(!r.did.getVerified()) {
-            create(r.did.getAlias(), r.did.getPassphrase(), r.did.getPassphraseHashAlgorithm());
+            create(r.did);
         } else {
             authenticate(r);
         }

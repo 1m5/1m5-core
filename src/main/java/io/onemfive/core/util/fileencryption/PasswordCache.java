@@ -1,4 +1,4 @@
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
 import io.onemfive.core.OneMFiveConfig;
 import io.onemfive.core.Util;
@@ -16,8 +16,8 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.KDF_PARAMETERS;
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.SALT_LENGTH;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.KDF_PARAMETERS;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.SALT_LENGTH;
 
 /**
  * Stores a password in memory so the user doesn't have to re-enter it.

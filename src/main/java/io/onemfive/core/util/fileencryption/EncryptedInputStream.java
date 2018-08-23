@@ -1,4 +1,4 @@
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
 import io.onemfive.core.Util;
 import net.i2p.I2PAppContext;
@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.*;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.*;
 
 /**
  * Decrypts data written via {@link EncryptedOutputStream}.

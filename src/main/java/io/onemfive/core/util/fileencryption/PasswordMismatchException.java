@@ -1,4 +1,4 @@
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
 public class PasswordMismatchException extends PasswordException {
     public PasswordMismatchException() {

@@ -12,14 +12,14 @@ import java.util.regex.Pattern;
 
 public class HashUtil {
 
-    public static String generateHash(String passphrase, String passphraseHashAlgorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static String generateHash(String contentToHash, String hashAlgorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
         int size = 128;
         int cost = 16;
         int iterations = 1 << cost;
         byte[] salt = new byte[size/8];
         new SecureRandom().nextBytes(salt);
-        KeySpec spec = new PBEKeySpec(passphrase.toCharArray(), salt, iterations, size);
-        SecretKeyFactory f = SecretKeyFactory.getInstance(passphraseHashAlgorithm);
+        KeySpec spec = new PBEKeySpec(contentToHash.toCharArray(), salt, iterations, size);
+        SecretKeyFactory f = SecretKeyFactory.getInstance(hashAlgorithm);
         byte[] dk = f.generateSecret(spec).getEncoded();
         byte[] hash = new byte[salt.length + dk.length];
         System.arraycopy(salt, 0, hash, 0, salt.length);
@@ -29,7 +29,7 @@ public class HashUtil {
         return "$31$" + cost + '$' + io.onemfive.core.util.data.Base64.encode(hash);
     }
 
-    public static boolean verifyHash(String passphrase, String passphraseHashAlgorithm, String token) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static boolean verifyHash(String hashToVerify, String hashAlgorithm, String token) throws NoSuchAlgorithmException, InvalidKeySpecException {
         int size = 128;
         int cost = 16;
         int iterations = 1 << cost;
@@ -38,8 +38,8 @@ public class HashUtil {
         byte[] hash = io.onemfive.core.util.data.Base64.decode(m.group(2));
 //        byte[] hash = Base64.getUrlDecoder().decode(m.group(2));
         byte[] salt = Arrays.copyOfRange(hash, 0, size / 8);
-        KeySpec spec = new PBEKeySpec(passphrase.toCharArray(), salt, iterations, size);
-        SecretKeyFactory f = SecretKeyFactory.getInstance(passphraseHashAlgorithm);
+        KeySpec spec = new PBEKeySpec(hashToVerify.toCharArray(), salt, iterations, size);
+        SecretKeyFactory f = SecretKeyFactory.getInstance(hashAlgorithm);
         byte[] check = f.generateSecret(spec).getEncoded();
         int zero = 0;
         for (int idx = 0; idx < check.length; ++idx)

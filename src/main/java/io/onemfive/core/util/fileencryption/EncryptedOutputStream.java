@@ -1,4 +1,4 @@
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
 import io.onemfive.core.OneMFiveAppContext;
 import net.i2p.data.SessionKey;
@@ -12,9 +12,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.BLOCK_SIZE;
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.FORMAT_VERSION;
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.START_OF_FILE;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.BLOCK_SIZE;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.FORMAT_VERSION;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.START_OF_FILE;
 
 
 /**

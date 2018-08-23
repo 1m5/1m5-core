@@ -1,4 +1,4 @@
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
 import io.onemfive.core.Util;
 import net.i2p.I2PAppContext;
@@ -8,7 +8,7 @@ import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
-import static io.onemfive.core.keyring.fileencryption.FileEncryptionConstants.SALT_LENGTH;
+import static io.onemfive.core.util.fileencryption.FileEncryptionConstants.SALT_LENGTH;
 
 
 /**

@@ -19,7 +19,7 @@
  * along with I2P-Bote.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.onemfive.core.keyring.fileencryption;
+package io.onemfive.core.util.fileencryption;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;

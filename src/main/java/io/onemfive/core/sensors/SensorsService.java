@@ -1,7 +1,6 @@
 package io.onemfive.core.sensors;
 
 import io.onemfive.core.*;
-import io.onemfive.core.infovault.graph.GraphUtil;
 import io.onemfive.core.sensors.clearnet.ClearnetSensor;
 import io.onemfive.core.sensors.i2p.bote.I2PBoteSensor;
 import io.onemfive.core.sensors.tor.TorSensor;
@@ -13,10 +12,6 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.Peer;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Transaction;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -78,6 +73,13 @@ import java.util.logging.Logger;
  * at which it will continue until supplied tokens for transaction are exhausted.
  * 4. If I2P fails during any of these attempts and MESH is available, MESH will take over.
  *
+ * This logic is/will be implemented in a Sensor Manager.
+ *
+ * The SensorManagerSimple class is a very basic implementation.
+ *
+ * The SensorManagerNeo4j is more complex using the Neo4j Graph database embedded.
+ * The 1M5 Neo4j library must be included to use this.
+ *
  *  @author objectorange
  */
 public class SensorsService extends BaseService {
@@ -87,11 +89,10 @@ public class SensorsService extends BaseService {
     public static final String OPERATION_SEND = "SEND";
     public static final String OPERATION_REPLY_CLEARNET = "REPLY_CLEARNET";
 
-    public static final Label LABEL_PEER = Label.label(Peer.class.getName());
-
     private Properties config;
     private Map<SensorID, Sensor> registeredSensors;
     private Map<SensorID, Sensor> activeSensors;
+    private SensorManager sensorManager;
 
     public SensorsService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
         super(producer, serviceStatusListener);
@@ -362,6 +363,13 @@ public class SensorsService extends BaseService {
         updateStatus(ServiceStatus.STARTING);
         try {
             config = Config.loadFromClasspath("sensors.config", properties, false);
+            String sensorManagerClass = config.getProperty("1m5.sensors.manager");
+            if(sensorManagerClass != null) {
+                sensorManager = (SensorManager)Class.forName(sensorManagerClass).newInstance();
+            } else {
+                sensorManager = new SensorManagerSimple();
+            }
+            sensorManager.init(properties);
             // TODO: Test loadPeers
 //            loadPeers();
             registerSensors();
@@ -432,6 +440,7 @@ public class SensorsService extends BaseService {
                 }
             }).start();
         }
+        sensorManager.shutdown();
         return true;
     }
 
@@ -516,34 +525,4 @@ public class SensorsService extends BaseService {
         }
     }
 
-    public void updatePeer(Peer peer) {
-        try (Transaction tx = infoVaultDB.getGraphDb().beginTx()) {
-            Node n = infoVaultDB.getGraphDb().findNode(LABEL_PEER,"address",peer.getAddress());
-            if(n != null) {
-                GraphUtil.updateProperties(n, peer.toMap());
-                peer.fromMap(n.getAllProperties());
-            } else {
-                n = infoVaultDB.getGraphDb().createNode(LABEL_PEER);
-                GraphUtil.updateProperties(n, peer.toMap());
-            }
-        }
-    }
-
-    public Map<String,Peer> getAllPeers() {
-        Map<String,Peer> peers = new HashMap<>();
-        try (Transaction tx = infoVaultDB.getGraphDb().beginTx();
-            ResourceIterator<Node> i = infoVaultDB.getGraphDb().findNodes(LABEL_PEER)) {
-            Peer p;
-            Node n;
-            while(i.hasNext()) {
-                n = i.next();
-                p = new Peer();
-                p.fromMap(n.getAllProperties());
-                if(p.getAddress()!=null)
-                    peers.put(p.getAddress(),p);
-            }
-            tx.success();
-        }
-        return peers;
-    }
 }

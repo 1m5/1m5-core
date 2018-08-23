@@ -1,6 +1,6 @@
 package io.onemfive.core.did.crypto;
 
-import io.onemfive.core.keyring.fileencryption.PasswordException;
+import io.onemfive.core.util.fileencryption.PasswordException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
