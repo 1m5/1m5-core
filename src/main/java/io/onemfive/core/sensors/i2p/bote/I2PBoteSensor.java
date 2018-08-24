@@ -267,7 +267,7 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
                 String fromAddress = (i2pEmail.getAllFromAddresses().toArray()[0]).toString();
                 fromAddress = fromAddress.substring(fromAddress.indexOf("<")+1);
                 fromAddress = fromAddress.substring(0,fromAddress.length()-1);
-                fromDID.setIdentityHash(fromAddress.getBytes());
+                fromDID.setIdentityHash(fromAddress);
                 fromDID.setIdentityHashAlgorithm("base64");
                 email.setFromDID(fromDID);
                 LOG.info("From Address: "+fromDID.toString());
@@ -276,7 +276,7 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
                 String toAddress = i2pEmail.getToAddresses()[0].toString();
                 toAddress = toAddress.substring(toAddress.indexOf("<")+1);
                 toAddress = toAddress.substring(0,toAddress.length()-1);
-                toDID.setIdentityHash(toAddress.getBytes());
+                toDID.setIdentityHash(toAddress);
                 toDID.setIdentityHashAlgorithm("base64");
                 email.setToDID(toDID);
                 LOG.info("To Address: "+toDID.toString());

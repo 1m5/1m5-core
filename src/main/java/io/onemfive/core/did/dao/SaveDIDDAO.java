@@ -23,7 +23,7 @@ public class SaveDIDDAO extends BaseDAO {
         try {
             ((LocalFileSystemDB)infoVaultDB).save(
                     JSONParser.toString(didToSave.toMap()).getBytes(),
-                    new String(didToSave.getIdentityHash()),
+                    didToSave.getAlias(),
                     autoCreate);
         } catch (FileNotFoundException e) {
             exception = e;

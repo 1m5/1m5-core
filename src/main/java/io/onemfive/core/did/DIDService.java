@@ -96,8 +96,14 @@ public class DIDService extends BaseService {
                 }
                 break;
             }
-            case OPERATION_ADD_CONTACT: {addContact(e);break;}
-            case OPERATION_GET_CONTACT: {getContact(e);break;}
+            case OPERATION_ADD_CONTACT: {
+                addContact(e);
+                break;
+            }
+            case OPERATION_GET_CONTACT: {
+                getContact(e);
+                break;
+            }
             case OPERATION_VERIFY: {
                 e.setDID(verify(e.getDID()));
                 break;
@@ -127,11 +133,9 @@ public class DIDService extends BaseService {
                     authenticate(r);
                 } catch (NoSuchAlgorithmException e1) {
                     r.errorCode = AuthenticateDIDRequest.DID_PASSPHRASE_HASH_ALGORITHM_UNKNOWN;
-                    break;
                 } catch (InvalidKeySpecException e1) {
                     r.errorCode = AuthenticateDIDRequest.DID_PASSPHRASE_HASH_ALGORITHM_UNKNOWN;
                     LOG.warning(e1.getLocalizedMessage());
-                    break;
                 }
                 break;
             }
@@ -153,22 +157,22 @@ public class DIDService extends BaseService {
                     authenticateOrCreate(r);
                 } catch (NoSuchAlgorithmException e1) {
                     r.errorCode = AuthenticateDIDRequest.DID_PASSPHRASE_HASH_ALGORITHM_UNKNOWN;
-                    break;
                 } catch (InvalidKeySpecException e1) {
                     r.errorCode = AuthenticateDIDRequest.DID_PASSPHRASE_HASH_ALGORITHM_UNKNOWN;
                     LOG.warning(e1.getLocalizedMessage());
-                    break;
                 }
                 break;
             }
             case OPERATION_HASH: {
                 HashRequest r = (HashRequest)DLC.getData(HashRequest.class,e);
-                hash(r);
+                r.hash = HashUtil.generateHash(r.contentToHash);
                 break;
             }
             case OPERATION_VERIFY_HASH:{
                 VerifyHashRequest r = (VerifyHashRequest)DLC.getData(VerifyHashRequest.class,e);
-                verifyHash(r);
+                Boolean isMath = HashUtil.verifyHash(r.content, r.hashToVerify);
+                if(isMath != null)
+                    r.isAMatch = isMath;
                 break;
             }
             default: deadLetter(e); // Operation not supported
@@ -199,17 +203,27 @@ public class DIDService extends BaseService {
 
     private DID verify(DID did) {
         LOG.info("Received verify DID request.");
+        if(did.getIdentityHash() == null) {
+            try {
+                did.setIdentityHash(HashUtil.generateHash(did.getAlias()));
+            } catch (Exception e) {
+                LOG.warning(e.getLocalizedMessage());
+                did.setVerified(false);
+                return did;
+            }
+        }
         LoadDIDDAO dao = new LoadDIDDAO(localFileSystemDB, did);
         dao.execute();
         DID didLoaded = dao.getLoadedDID();
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())) {
-            didLoaded.setVerified(true);
+            did.setVerified(true);
             LOG.info("DID verification successful.");
+            return didLoaded;
         } else {
             did.setVerified(false);
             LOG.info("DID verification unsuccessful.");
+            return did;
         }
-        return didLoaded;
     }
 
     /**
@@ -219,13 +233,16 @@ public class DIDService extends BaseService {
      */
     private DID create(DID did) throws NoSuchAlgorithmException, InvalidKeySpecException {
         LOG.info("Received create DID request.");
-        did.setPassphraseHash(HashUtil.generateHash(did.getPassphrase(), did.getPassphraseHashAlgorithm()).getBytes());
+        did.setPassphraseHash(HashUtil.generateHash(did.getPassphrase()));
         did.setAuthenticated(true);
         did.setVerified(true);
         did.setStatus(DID.Status.ACTIVE);
-        did.setIdentityHash(HashUtil.generateHash(did.getAlias(), did.getIdentityHashAlgorithm()).getBytes());
+        did.setIdentityHash(HashUtil.generateHash(did.getAlias()));
         SaveDIDDAO dao = new SaveDIDDAO(localFileSystemDB, did, true);
         dao.execute();
+        if(dao.getException() != null) {
+            LOG.warning("Create DID threw exception: "+dao.getException().getLocalizedMessage());
+        }
         return did;
     }
 
@@ -237,7 +254,7 @@ public class DIDService extends BaseService {
         LoadDIDDAO dao = new LoadDIDDAO(localFileSystemDB, r.did);
         dao.execute();
         DID loadedDID = dao.getLoadedDID();
-        String token = new String(loadedDID.getPassphraseHash());
+        String passphraseHash = loadedDID.getPassphraseHash();
         if(loadedDID.getAlias().isEmpty()) {
             r.errorCode = AuthenticateDIDRequest.DID_ALIAS_UNKNOWN;
             r.did.setAuthenticated(false);
@@ -248,13 +265,9 @@ public class DIDService extends BaseService {
             r.did.setAuthenticated(false);
             return;
         }
-        Matcher m = layout.matcher(token);
-        if(!m.matches()) {
-            r.errorCode = AuthenticateDIDRequest.DID_TOKEN_FORMAT_MISMATCH;
-            r.did.setAuthenticated(false);
-            return;
-        }
-        r.did.setAuthenticated(HashUtil.verifyHash(r.did.getPassphrase(), r.did.getPassphraseHashAlgorithm(), token));
+        Boolean authN = HashUtil.verifyHash(r.did.getPassphrase(), passphraseHash);
+        LOG.info("AuthN: "+(authN != null && authN));
+        r.did.setAuthenticated(authN != null && authN);
     }
 
     private void authenticateOrCreate(AuthenticateDIDRequest r) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -264,14 +277,6 @@ public class DIDService extends BaseService {
         } else {
             authenticate(r);
         }
-    }
-
-    private void hash(HashRequest r) {
-
-    }
-
-    private void verifyHash(VerifyHashRequest r) {
-
     }
 
     @Override

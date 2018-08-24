@@ -22,7 +22,7 @@ public class LoadDIDDAO extends BaseDAO {
     public void execute() {
         byte[] content;
         try {
-            content = ((LocalFileSystemDB)infoVaultDB).load(new String(providedDID.getIdentityHash()));
+            content = ((LocalFileSystemDB)infoVaultDB).load(providedDID.getAlias());
         } catch (FileNotFoundException e) {
             exception = e;
             return;

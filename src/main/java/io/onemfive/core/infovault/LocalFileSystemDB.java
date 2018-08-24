@@ -1,6 +1,10 @@
 package io.onemfive.core.infovault;
 
 import io.onemfive.core.OneMFiveAppContext;
+import io.onemfive.core.did.dao.LoadDIDDAO;
+import io.onemfive.core.did.dao.SaveDIDDAO;
+import io.onemfive.core.util.HashUtil;
+import io.onemfive.data.DID;
 
 import java.io.*;
 import java.util.Properties;
@@ -98,4 +102,32 @@ public class LocalFileSystemDB implements InfoVaultDB {
         status = Status.Shutdown;
         return true;
     }
+
+//    public static void main(String[] args) {
+//        DID did = new DID();
+//        did.setAlias("Alice");
+//        did.setIdentityHash(HashUtil.generateHash(did.getAlias()));
+//
+//        LocalFileSystemDB s = new LocalFileSystemDB();
+//        s.dbDir = new File("dbDir");
+//        if(!s.dbDir.exists()) {
+//            if (!s.dbDir.mkdir()) {
+//                System.out.println("Unable to make dbDir.");
+//                return;
+//            }
+//        }
+//
+//        SaveDIDDAO saveDIDDAO = new SaveDIDDAO(s, did, true);
+//        saveDIDDAO.execute();
+//
+//        DID did2 = new DID();
+//        did2.setAlias("Alice");
+//
+//        LoadDIDDAO loadDIDDAO = new LoadDIDDAO(s, did2);
+//        loadDIDDAO.execute();
+//        DID didLoaded = loadDIDDAO.getLoadedDID();
+//
+//        System.out.println("did1.hash: "+did.getIdentityHash());
+//        System.out.println("did2.hash: "+didLoaded.getIdentityHash());
+//    }
 }
