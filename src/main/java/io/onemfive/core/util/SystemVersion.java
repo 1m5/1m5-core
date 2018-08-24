@@ -11,8 +11,9 @@ import java.util.TimeZone;
  * @author Public Domain
  */
 public class SystemVersion {
-    public static final String DAEMON_USER = "scsvc";
-    public static final String GENTOO_USER = "sc";
+
+    public static final String DAEMON_USER = "1m5svc";
+    public static final String GENTOO_USER = "1m5";
 
     private static final boolean isWin = System.getProperty("os.name").startsWith("Win");
     private static final boolean isMac = System.getProperty("os.name").startsWith("Mac");
@@ -35,6 +36,8 @@ public class SystemVersion {
     private static final boolean oneDotEight;
     private static final boolean oneDotNine;
     private static final boolean oneDotTen;
+    private static final boolean oneDotEleven;
+    private static final boolean oneDotTwelve;
     private static final int androidSDK;
 
     static {
@@ -77,9 +80,11 @@ public class SystemVersion {
             oneDotSeven = androidSDK >= 19;
             // https://developer.android.com/guide/platform/j8-jack.html
             // some stuff in 23, some in 24
-            oneDotEight = false;
+            oneDotEight = androidSDK >= 26;
             oneDotNine = false;
             oneDotTen = false;
+            oneDotEleven = false;
+            oneDotTwelve = false;
         } else {
             String version = System.getProperty("java.version");
             // handle versions like "8-ea" or "9-internal"
@@ -90,6 +95,8 @@ public class SystemVersion {
             oneDotEight = oneDotSeven && VersionComparator.comp(version, "1.8") >= 0;
             oneDotNine = oneDotEight && VersionComparator.comp(version, "1.9") >= 0;
             oneDotTen = oneDotNine && VersionComparator.comp(version, "1.10") >= 0;
+            oneDotEleven = oneDotTen && VersionComparator.comp(version, "1.11") >= 0;
+            oneDotTwelve = oneDotEleven && VersionComparator.comp(version, "1.12") >= 0;
         }
     }
 
@@ -120,28 +127,28 @@ public class SystemVersion {
     }
 
     /**
-     *  @since 0.9.23
+     *  @since 0.5.0
      */
     public static boolean isGentoo() {
         return isGentoo;
     }
 
     /**
-     *  @since 0.9.26
+     *  @since 0.5.0
      */
     public static boolean isOpenJDK() {
         return isOpenJDK;
     }
 
     /**
-     *  @since 0.9.8
+     *  @since 0.5.0
      */
     public static boolean isARM() {
         return isArm;
     }
 
     /**
-     *  @since 0.9.14
+     *  @since 0.5.0
      */
     public static boolean isX86() {
         return isX86;
@@ -152,11 +159,12 @@ public class SystemVersion {
      *  using some simple heuristics.
      *
      */
-//    public static boolean isSlow() {
-//        // we don't put the NBI call in the static field,
-//        // to prevent a circular initialization with NBI.
+    public static boolean isSlow() {
+        // we don't put the NBI call in the static field,
+        // to prevent a circular initialization with NBI.
 //        return isSlow || !NativeBigInteger.isNative();
-//    }
+        return isSlow;
+    }
 
     /**
      *  Better than (new VersionComparator()).compare(System.getProperty("java.version"), "1.6") &gt;= 0
@@ -181,8 +189,8 @@ public class SystemVersion {
 
     /**
      *
-     *  @return true if Java 1.8 or higher, false for Android.
-     *  @since 0.9.15
+     *  @return true if Java 1.8 or higher, or Android API 26 or higher.
+     *  @since 0.5.2
      */
     public static boolean isJava8() {
         return oneDotEight;
@@ -191,11 +199,32 @@ public class SystemVersion {
     /**
      *
      *  @return true if Java 1.9 or higher, false for Android.
-     *  @since 0.9.23
+     *  @since 0.5.2
      */
     public static boolean isJava9() {
         return oneDotNine;
     }
+
+    /**
+     *
+     *  @return true if Java 1.10 or higher, false for Android.
+     *  @since 0.5.2
+     */
+    public static boolean isJava10() { return oneDotTen; }
+
+    /**
+     *
+     *  @return true if Java 1.11 or higher, false for Android.
+     *  @since 0.5.2
+     */
+    public static boolean isJava11() { return oneDotEleven; }
+
+    /**
+     *
+     *  @return true if Java 1.12 or higher, false for Android.
+     *  @since 0.5.2
+     */
+    public static boolean isJava12() { return oneDotTwelve; }
 
     /**
      * This isn't always correct.
@@ -212,7 +241,7 @@ public class SystemVersion {
     }
 
     /*
-     *  @since 0.9.28
+     *  @since 0.5.0
      */
     public static boolean isLinuxService() {
         return isLinuxService;
@@ -229,7 +258,6 @@ public class SystemVersion {
 
     /**
      *  Is the wrapper present?
-     *  Same as I2PAppContext.hasWrapper()
      */
     public static boolean hasWrapper() {
         return hasWrapper;
@@ -238,23 +266,23 @@ public class SystemVersion {
     /**
      *  Runtime.getRuntime().maxMemory() but check for
      *  bogus values
-     *  @since 0.9.8
+     *  @since 0.5.0
      */
     public static long getMaxMemory() {
         long maxMemory = Runtime.getRuntime().maxMemory();
         if (maxMemory >= Long.MAX_VALUE / 2)
-            maxMemory = 96*1024*1024l;
+            maxMemory = 96*1024*1024L;
         return maxMemory;
     }
 
     /**
      *  The system's time zone, which is probably different from the
-     *  JVM time zone, because Conscious changes the JVM default to GMT.
+     *  JVM time zone, because 1M5 changes the JVM default to GMT.
      *  It saves the old default in the context properties where we can get it.
      *  Use this to format a time in local time zone with DateFormat.setTimeZone().
      *
      *  @return non-null
-     *  @since 0.9.24
+     *  @since 0.5.0
      */
     public static TimeZone getSystemTimeZone() {
         return getSystemTimeZone(OneMFiveAppContext.getInstance());
@@ -262,22 +290,22 @@ public class SystemVersion {
 
     /**
      *  The system's time zone, which is probably different from the
-     *  JVM time zone, because Router changes the JVM default to GMT.
+     *  JVM time zone, because 1M5 changes the JVM default to GMT.
      *  It saves the old default in the context properties where we can get it.
      *  Use this to format a time in local time zone with DateFormat.setTimeZone().
      *
      *  @return non-null
-     *  @since 0.9.24
+     *  @since 0.5.0
      */
     public static TimeZone getSystemTimeZone(OneMFiveAppContext ctx) {
-        String systemTimeZone = ctx.getProperty("i2p.systemTimeZone");
+        String systemTimeZone = ctx.getProperty("1m5.systemTimeZone");
         if (systemTimeZone != null)
             return TimeZone.getTimeZone(systemTimeZone);
         return TimeZone.getDefault();
     }
 
     /**
-     *  @since 0.9.24
+     *  @since 0.5.0
      */
     public static void main(String[] args) {
         System.out.println("64 bit   : " + is64Bit());
@@ -285,6 +313,9 @@ public class SystemVersion {
         System.out.println("Java 7   : " + isJava7());
         System.out.println("Java 8   : " + isJava8());
         System.out.println("Java 9   : " + isJava9());
+        System.out.println("Java 10  : " + isJava10());
+        System.out.println("Java 11  : " + isJava11());
+        System.out.println("Java 12  : " + isJava12());
         System.out.println("Android  : " + isAndroid());
         if (isAndroid())
             System.out.println("  Version: " + getAndroidVersion());
@@ -295,7 +326,7 @@ public class SystemVersion {
         System.out.println("Linux Svc: " + isLinuxService());
         System.out.println("Mac      : " + isMac());
         System.out.println("OpenJDK  : " + isOpenJDK());
-//        System.out.println("Slow     : " + isSlow());
+        System.out.println("Slow     : " + isSlow());
         System.out.println("Windows  : " + isWindows());
         System.out.println("Wrapper  : " + hasWrapper());
         System.out.println("x86      : " + isX86());
