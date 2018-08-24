@@ -7,6 +7,7 @@ import io.onemfive.core.sensors.tor.TorSensor;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.core.sensors.i2p.I2PSensor;
 import io.onemfive.core.sensors.mesh.MeshSensor;
+import io.onemfive.core.util.SystemVersion;
 import io.onemfive.core.util.Wait;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Peer;
@@ -363,23 +364,28 @@ public class SensorsService extends BaseService {
         updateStatus(ServiceStatus.STARTING);
         try {
             config = Config.loadFromClasspath("sensors.config", properties, false);
-            String sensorManagerClass = config.getProperty("1m5.sensors.manager");
-            if(sensorManagerClass != null) {
-                sensorManager = (SensorManager)Class.forName(sensorManagerClass).newInstance();
-            } else {
+            if (SystemVersion.isAndroid()) {
                 sensorManager = new SensorManagerSimple();
+                LOG.info("System is Android, using SensorManagerSimple.");
+            } else {
+                sensorManager = (SensorManager) Class.forName("io.onemfive.neo4j.SensorManagerNeo4j").newInstance();
+                LOG.info("System is not Android, using SensorManagerNeo4j.");
             }
-            sensorManager.init(properties);
             // TODO: Test loadPeers
 //            loadPeers();
             registerSensors();
 
             LOG.info("Started.");
+        } catch (ClassNotFoundException e) {
+            LOG.warning(e.getLocalizedMessage());
+            LOG.warning("SensorManager implementation class not found so defaulting to SensorManagerSimple");
+            sensorManager = new SensorManagerSimple();
         } catch (Exception e) {
             e.printStackTrace();
-            LOG.warning("Failed to init.");
+            LOG.warning("Failed to start.");
             return false;
         }
+        sensorManager.init(properties);
         return true;
     }
 
