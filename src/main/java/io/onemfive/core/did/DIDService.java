@@ -3,19 +3,18 @@ package io.onemfive.core.did;
 import io.onemfive.core.*;
 import io.onemfive.core.did.dao.LoadDIDDAO;
 import io.onemfive.core.did.dao.SaveDIDDAO;
+import io.onemfive.core.infovault.LocalFileSystemDB;
 import io.onemfive.core.util.HashUtil;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
 
-import java.io.FileNotFoundException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -251,7 +250,7 @@ public class DIDService extends BaseService {
      * @param r AuthenticateDIDRequest
      */
     private void authenticate(AuthenticateDIDRequest r) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        LoadDIDDAO dao = new LoadDIDDAO(localFileSystemDB, r.did);
+        LoadDIDDAO dao = new LoadDIDDAO((LocalFileSystemDB)infoVaultDB, r.did);
         dao.execute();
         DID loadedDID = dao.getLoadedDID();
         String passphraseHash = loadedDID.getPassphraseHash();

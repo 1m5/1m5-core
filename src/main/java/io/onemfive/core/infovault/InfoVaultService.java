@@ -46,12 +46,19 @@ public class InfoVaultService extends BaseService {
     public void handleDocument(Envelope e) {
         Route r = e.getRoute();
         switch(r.getOperation()) {
-            case OPERATION_EXECUTE: {execute(e);break;}
+            case OPERATION_EXECUTE: {
+                try {
+                    execute(e);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+                break;
+            }
             default: deadLetter(e);
         }
     }
 
-    private void execute(Envelope e) {
+    private void execute(Envelope e) throws Exception {
         DAO dao = (DAO)DLC.getData(DAO.class, e);
         dao.execute();
     }

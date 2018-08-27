@@ -21,6 +21,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     protected boolean orchestrator = false;
     protected MessageProducer producer;
+    protected InfoVaultDB infoVaultDB;
     protected LocalFileSystemDB localFileSystemDB;
 
     private ServiceStatus serviceStatus;
@@ -145,6 +146,9 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     public boolean start(Properties properties) {
         try {
             localFileSystemDB = (LocalFileSystemDB)InfoVaultService.getInstance(LocalFileSystemDB.class.getName());
+            if(properties.getProperty("1m5.infovault.db.class") != null) {
+                infoVaultDB = InfoVaultService.getInstance(properties.getProperty("1m5.infovault.db.class"));
+            }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             return false;
@@ -155,7 +159,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
             e.printStackTrace();
             return false;
         }
-        localFileSystemDB.init(properties);
+        infoVaultDB.init(properties);
         return true;
     }
 
@@ -176,8 +180,8 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean shutdown() {
-        if(localFileSystemDB.getStatus() == InfoVaultDB.Status.Running)
-            localFileSystemDB.teardown();
+        if(infoVaultDB.getStatus() == InfoVaultDB.Status.Running)
+            infoVaultDB.teardown();
         return true;
     }
 

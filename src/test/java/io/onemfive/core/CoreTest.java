@@ -179,17 +179,17 @@ public class CoreTest {
 //    @Test
 //    public void testInfoVault() {
 //        System.out.println("Starting InfoVaultDB test...");
-//        InfoVaultDB localFileSystemDB = InfoVaultDB.getInstance();
-//        localFileSystemDB.init(null);
-//        DID did = localFileSystemDB.getDidDAO().load("Alice");
-//        List<MemoryTest> tests = localFileSystemDB.getMemoryTestDAO().loadListByDID(did.getId(), 0, 10);
+//        InfoVaultDB infoVaultDB = InfoVaultDB.getInstance();
+//        infoVaultDB.init(null);
+//        DID did = infoVaultDB.getDidDAO().load("Alice");
+//        List<MemoryTest> tests = infoVaultDB.getMemoryTestDAO().loadListByDID(did.getId(), 0, 10);
 //        for(MemoryTest t : tests) {
 //            System.out.println("MemoryTest: name="+t.getName()
 //                    +", ended="+new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(t.getTimeEnded())
 //                    +", bac="+t.getBloodAlcoholContent()
 //                    +", difficulty="+t.getDifficulty());
 //        }
-//        localFileSystemDB.teardown();
+//        infoVaultDB.teardown();
 //        System.out.println("InfoVaultDB test finished.");
 //    }
 

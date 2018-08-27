@@ -1,10 +1,6 @@
 package io.onemfive.core.infovault;
 
 import io.onemfive.core.OneMFiveAppContext;
-import io.onemfive.core.did.dao.LoadDIDDAO;
-import io.onemfive.core.did.dao.SaveDIDDAO;
-import io.onemfive.core.util.HashUtil;
-import io.onemfive.data.DID;
 
 import java.io.*;
 import java.util.Properties;
@@ -16,6 +12,11 @@ public class LocalFileSystemDB implements InfoVaultDB {
 
     private File dbDir;
     private Status status = Status.Shutdown;
+
+    @Override
+    public void execute(DAO dao) throws Exception {
+        dao.execute();
+    }
 
     public void save(byte[] content, String fileName, boolean autoCreate) throws FileNotFoundException {
         File file = new File(dbDir, fileName);
