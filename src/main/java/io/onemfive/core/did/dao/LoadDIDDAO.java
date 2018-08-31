@@ -7,8 +7,11 @@ import io.onemfive.data.util.JSONParser;
 
 import java.io.FileNotFoundException;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class LoadDIDDAO extends LocalFSDAO {
+
+    private Logger LOG = Logger.getLogger(LoadDIDDAO.class.getName());
 
     private DID providedDID;
     private DID loadedDID;
@@ -28,6 +31,7 @@ public class LoadDIDDAO extends LocalFSDAO {
             return;
         }
         String jsonBody = new String(content);
+        LOG.info("JSON loaded: "+jsonBody);
         loadedDID = new DID();
         loadedDID.fromMap((Map<String,Object>)JSONParser.parse(jsonBody));
     }
