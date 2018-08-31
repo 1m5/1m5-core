@@ -1,19 +1,19 @@
 package io.onemfive.core.did.dao;
 
-import io.onemfive.core.infovault.BaseDAO;
-import io.onemfive.core.infovault.LocalFileSystemDB;
+import io.onemfive.core.infovault.InfoVaultDB;
+import io.onemfive.core.infovault.LocalFSDAO;
 import io.onemfive.data.DID;
 import io.onemfive.data.util.JSONParser;
 
 import java.io.FileNotFoundException;
 
-public class SaveDIDDAO extends BaseDAO {
+public class SaveDIDDAO extends LocalFSDAO {
 
     private DID didToSave;
     private Boolean autoCreate = true;
 
-    public SaveDIDDAO(LocalFileSystemDB localFileSystemDB, DID did, Boolean autoCreate) {
-        super(localFileSystemDB);
+    public SaveDIDDAO(InfoVaultDB infoVaultDB, DID did, Boolean autoCreate) {
+        super(infoVaultDB);
         this.didToSave = did;
         if(autoCreate != null) this.autoCreate = autoCreate;
     }
@@ -21,7 +21,7 @@ public class SaveDIDDAO extends BaseDAO {
     @Override
     public void execute() {
         try {
-            ((LocalFileSystemDB)infoVaultDB).save(
+            infoVaultDB.save(
                     JSONParser.toString(didToSave.toMap()).getBytes(),
                     didToSave.getAlias(),
                     autoCreate);

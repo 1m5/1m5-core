@@ -2,7 +2,7 @@ package io.onemfive.core;
 
 import io.onemfive.core.infovault.InfoVaultDB;
 import io.onemfive.core.infovault.InfoVaultService;
-import io.onemfive.core.infovault.LocalFileSystemDB;
+import io.onemfive.core.infovault.LocalFSInfoVaultDB;
 import io.onemfive.data.*;
 
 import java.util.ArrayList;
@@ -22,7 +22,6 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     protected boolean orchestrator = false;
     protected MessageProducer producer;
     protected InfoVaultDB infoVaultDB;
-    protected LocalFileSystemDB localFileSystemDB;
 
     private ServiceStatus serviceStatus;
     private List<ServiceStatusListener> serviceStatusListeners = new ArrayList<>();
@@ -144,22 +143,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean start(Properties properties) {
-        try {
-            localFileSystemDB = (LocalFileSystemDB)InfoVaultService.getInstance(LocalFileSystemDB.class.getName());
-            if(properties.getProperty("1m5.infovault.db.class") != null) {
-                infoVaultDB = InfoVaultService.getInstance(properties.getProperty("1m5.infovault.db.class"));
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return false;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return false;
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-            return false;
-        }
-        infoVaultDB.init(properties);
+        infoVaultDB = OneMFiveAppContext.getInstance().getInfoVaultDB();
         return true;
     }
 
@@ -180,7 +164,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     @Override
     public boolean shutdown() {
-        if(infoVaultDB.getStatus() == InfoVaultDB.Status.Running)
+        if(infoVaultDB != null && infoVaultDB.getStatus() == InfoVaultDB.Status.Running)
             infoVaultDB.teardown();
         return true;
     }

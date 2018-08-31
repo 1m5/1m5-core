@@ -2,6 +2,9 @@ package io.onemfive.core;
 
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.bus.ServiceBus;
+import io.onemfive.core.infovault.InfoVaultDB;
+import io.onemfive.core.infovault.InfoVaultService;
+import io.onemfive.core.infovault.LocalFSInfoVaultDB;
 import io.onemfive.core.util.data.Base64;
 import io.onemfive.core.util.*;
 import io.onemfive.core.util.stat.StatManager;
@@ -52,6 +55,8 @@ public class OneMFiveAppContext {
     private SimpleTimer simpleTimer;
 
     private ServiceBus serviceBus;
+
+    private InfoVaultDB infoVaultDB;
 
     private volatile boolean statManagerInitialized;
     private volatile boolean logManagerInitialized;
@@ -113,7 +118,7 @@ public class OneMFiveAppContext {
      * @param doInit should this context be used as the global one (if necessary)?
      *               Will only apply if there is no global context now.
      */
-    private OneMFiveAppContext(boolean doInit, java.util.Properties envProps) {
+    private OneMFiveAppContext(boolean doInit, Properties envProps) {
 
         overrideProps = new Properties();
         if (envProps != null)
@@ -205,7 +210,23 @@ public class OneMFiveAppContext {
             }
         }
 
+        // InfoVaultDB
+        try {
+            if(envProps.getProperty(InfoVaultDB.class.getName()) != null) {
+                infoVaultDB = InfoVaultService.getInfoVaultDBInstance(envProps.getProperty(InfoVaultDB.class.getName()));
+            } else {
+                infoVaultDB = InfoVaultService.getInfoVaultDBInstance(LocalFSInfoVaultDB.class.getName());
+            }
+            infoVaultDB.init(envProps);
+        } catch (Exception e) {
+            LOG.warning(e.getLocalizedMessage());
+        }
+
 //        config = new OneMFiveConfig();
+    }
+
+    public InfoVaultDB getInfoVaultDB() {
+        return infoVaultDB;
     }
 
     public ClientAppManager getClientAppManager() {

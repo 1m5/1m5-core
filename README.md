@@ -63,6 +63,12 @@ In addition:
 - Smartphone ownership around the world is greater than PC ownership.
 - Smartphones, our primary means of global communication and collaboration, are weak in maintaining our anonymity and privacy - critical to ensuring individual freedom.
 
+## Threats
+
+* [DNS Blocking](https://en.wikipedia.org/wiki/DNS_blocking) - Inbound and outbound blocking of IP addresses by DNS servers.
+* [DNS Poisoning](https://en.wikipedia.org/wiki/DNS_spoofing) - Corruption in a DNS server's resolver cache by swapping out
+valid IP addresses with invalid addresses resulting in traffic divertion.
+
 ## Solution
 1M5 works to solve these issues by providing an intelligent router embedding Tor, I2P, Direct Wireless Mesh, and other
 networks, using them intelligently as one dynamic network, and providing easy to use APIs for developers to embed in their

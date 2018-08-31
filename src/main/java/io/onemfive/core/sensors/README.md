@@ -19,6 +19,8 @@ As long as enough people still have their device, the network survives.
 
 ### Graceful Shutdown
 
+## Sensor Manager
+
 ## [Aggression Filter](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/sensors/aggression/README.md)
 
 ## [Bluetooth Sensor](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/sensors/bluetooth/README.md)

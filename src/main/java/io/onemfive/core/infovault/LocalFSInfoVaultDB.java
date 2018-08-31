@@ -6,21 +6,37 @@ import java.io.*;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-public class LocalFileSystemDB implements InfoVaultDB {
+public class LocalFSInfoVaultDB implements InfoVaultDB {
 
-    private Logger LOG = Logger.getLogger(LocalFileSystemDB.class.getName());
+    private Logger LOG = Logger.getLogger(LocalFSInfoVaultDB.class.getName());
 
     private File dbDir;
     private Status status = Status.Shutdown;
 
     @Override
     public void execute(DAO dao) throws Exception {
-        dao.execute();
+
+    }
+
+    @Override
+    public Status getStatus() {
+        return status;
+    }
+
+    @Override
+    public boolean teardown() {
+
+        return true;
     }
 
     public void save(byte[] content, String fileName, boolean autoCreate) throws FileNotFoundException {
+        LOG.info("Saving content...");
         File file = new File(dbDir, fileName);
         if(!file.exists() && autoCreate) {
+            if(!file.canWrite()) {
+                LOG.warning("No write access for directory: "+dbDir.getAbsolutePath());
+                return;
+            }
             try {
                 if(!file.createNewFile()) {
                     LOG.warning("Unable to create new file.");
@@ -39,6 +55,7 @@ public class LocalFileSystemDB implements InfoVaultDB {
             while ((b = in.read(buffer)) != -1) {
                 out.write(buffer, 0, b);
             }
+            LOG.info("Content saved.");
         } catch (IOException ex) {
             LOG.warning(ex.getLocalizedMessage());
         } finally {
@@ -52,6 +69,7 @@ public class LocalFileSystemDB implements InfoVaultDB {
     }
 
     public byte[] load(String fileName) throws FileNotFoundException {
+        LOG.info("Loading content for fileName: "+fileName);
         File file = new File(dbDir, fileName);
         byte[] buffer = new byte[8 * 1024];
         FileInputStream in = new FileInputStream(file);
@@ -61,6 +79,7 @@ public class LocalFileSystemDB implements InfoVaultDB {
             while((b = in.read(buffer)) != -1) {
                 out.write(buffer, 0, b);
             }
+            LOG.info("Content loaded.");
         } catch (IOException ex) {
             LOG.warning(ex.getLocalizedMessage());
             return null;
@@ -76,31 +95,19 @@ public class LocalFileSystemDB implements InfoVaultDB {
     }
 
     @Override
-    public Status getStatus() {
-        return status;
-    }
-
-    @Override
     public boolean init(Properties properties) {
-        status = Status.Starting;
         File baseDir = OneMFiveAppContext.getInstance().getBaseDir();
+        if(!baseDir.exists()) {
+            LOG.warning("Base directory for 1M5 does not exist.");
+            return false;
+        }
         dbDir = new File(baseDir, "/infovault");
         if(!dbDir.exists()) {
             if(!dbDir.mkdir()) {
                 LOG.warning("Unable to create directory /infovault in 1M5 base directory.");
-                status = Status.StartupFailed;
                 return false;
             }
         }
-        status = Status.Running;
-        return true;
-    }
-
-    @Override
-    public boolean teardown() {
-        status = Status.Stopping;
-
-        status = Status.Shutdown;
         return true;
     }
 
@@ -109,7 +116,7 @@ public class LocalFileSystemDB implements InfoVaultDB {
 //        did.setAlias("Alice");
 //        did.setIdentityHash(HashUtil.generateHash(did.getAlias()));
 //
-//        LocalFileSystemDB s = new LocalFileSystemDB();
+//        LocalFSInfoVaultDB s = new LocalFSInfoVaultDB();
 //        s.dbDir = new File("dbDir");
 //        if(!s.dbDir.exists()) {
 //            if (!s.dbDir.mkdir()) {

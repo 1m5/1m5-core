@@ -1,5 +1,7 @@
 package io.onemfive.core.infovault;
 
-public interface DAO {
+import java.io.Serializable;
+
+public interface DAO extends Serializable {
     void execute() throws Exception;
 }

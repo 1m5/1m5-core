@@ -3,7 +3,6 @@ package io.onemfive.core.did;
 import io.onemfive.core.*;
 import io.onemfive.core.did.dao.LoadDIDDAO;
 import io.onemfive.core.did.dao.SaveDIDDAO;
-import io.onemfive.core.infovault.LocalFileSystemDB;
 import io.onemfive.core.util.HashUtil;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
@@ -141,8 +140,7 @@ public class DIDService extends BaseService {
             case OPERATION_CREATE: {
                 DID did = (DID)DLC.getData(DID.class,e);
                 try {
-                    did = create(did);
-                    e.setDID(did);
+                    e.setDID(create(did));
                 } catch (NoSuchAlgorithmException e1) {
                     LOG.warning(e1.getLocalizedMessage());
                 } catch (InvalidKeySpecException e1) {
@@ -211,11 +209,11 @@ public class DIDService extends BaseService {
                 return did;
             }
         }
-        LoadDIDDAO dao = new LoadDIDDAO(localFileSystemDB, did);
+        LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, did);
         dao.execute();
         DID didLoaded = dao.getLoadedDID();
         if(didLoaded != null && did.getAlias() != null && did.getAlias().equals(didLoaded.getAlias())) {
-            did.setVerified(true);
+            didLoaded.setVerified(true);
             LOG.info("DID verification successful.");
             return didLoaded;
         } else {
@@ -237,7 +235,7 @@ public class DIDService extends BaseService {
         did.setVerified(true);
         did.setStatus(DID.Status.ACTIVE);
         did.setIdentityHash(HashUtil.generateHash(did.getAlias()));
-        SaveDIDDAO dao = new SaveDIDDAO(localFileSystemDB, did, true);
+        SaveDIDDAO dao = new SaveDIDDAO(infoVaultDB, did, true);
         dao.execute();
         if(dao.getException() != null) {
             LOG.warning("Create DID threw exception: "+dao.getException().getLocalizedMessage());
@@ -250,7 +248,7 @@ public class DIDService extends BaseService {
      * @param r AuthenticateDIDRequest
      */
     private void authenticate(AuthenticateDIDRequest r) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        LoadDIDDAO dao = new LoadDIDDAO((LocalFileSystemDB)infoVaultDB, r.did);
+        LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, r.did);
         dao.execute();
         DID loadedDID = dao.getLoadedDID();
         String passphraseHash = loadedDID.getPassphraseHash();
@@ -267,6 +265,10 @@ public class DIDService extends BaseService {
         Boolean authN = HashUtil.verifyHash(r.did.getPassphrase(), passphraseHash);
         LOG.info("AuthN: "+(authN != null && authN));
         r.did.setAuthenticated(authN != null && authN);
+        if(r.did.getAuthenticated()) {
+            r.did = loadedDID;
+            r.did.setAuthenticated(true);
+        }
     }
 
     private void authenticateOrCreate(AuthenticateDIDRequest r) throws NoSuchAlgorithmException, InvalidKeySpecException {

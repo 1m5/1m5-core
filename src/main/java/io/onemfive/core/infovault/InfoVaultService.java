@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 /**
  * Asynchronous access to persistence.
- * Access to an instance of LocalFileSystemDB (InfoVaultDB) is provided in each Service too (by BaseService)
+ * Access to an instance of LocalFSInfoVaultDB (InfoVaultDB) is provided in each Service too (by BaseService)
  * for synchronous access.
  * Developer's choice to which to use on a per-case basis by Services extending BaseService.
  * Clients always use this service as they do not have direct access to InfoVaultDB.
@@ -20,11 +20,11 @@ import java.util.logging.Logger;
  * Maintain thread-safe.
  * Use directly synchronously.
  * InfoVaultDB instances are singleton by type when instantiated through InfoVaultService.getInstance(String className).
- * Multiple types can be instantiated in parallel, e.g. LocalFileSystemDB and Neo4jDB
+ * Multiple types can be instantiated in parallel, e.g. LocalFSInfoVaultDB and Neo4jDB
  * Pass in class name (including package) to get an instance of it.
  * Make sure your class implements the InfoVaultDB interface.
  * Current implementations:
- *      io.onemfive.core.infovault.LocalFileSystemDB (default)
+ *      io.onemfive.core.infovault.LocalFSInfoVaultDB (default)
  *      io.onemfive.infovault.neo4j.Neo4jDB
  *
  * @author objectorange
@@ -63,7 +63,7 @@ public class InfoVaultService extends BaseService {
         dao.execute();
     }
 
-    public static InfoVaultDB getInstance(String infoVaultDBClass) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public static InfoVaultDB getInfoVaultDBInstance(String infoVaultDBClass) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         InfoVaultDB instance = instances.get(infoVaultDBClass);
         if(instance == null) {
             synchronized (lock) {

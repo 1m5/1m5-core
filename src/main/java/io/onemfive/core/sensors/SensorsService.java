@@ -365,11 +365,11 @@ public class SensorsService extends BaseService {
         try {
             config = Config.loadFromClasspath("sensors.config", properties, false);
             if (SystemVersion.isAndroid()) {
-                sensorManager = new SensorManagerSimple();
-                LOG.info("System is Android, using SensorManagerSimple.");
+                LOG.info("System is Android, try to use SensorManagerAndroid...");
+                sensorManager = (SensorManager) Class.forName("io.onemfive.android.api.sensors.SensorManagerAndroid").newInstance();
             } else {
+                LOG.info("System is not Android, try to use SensorManagerNeo4j.");
                 sensorManager = (SensorManager) Class.forName("io.onemfive.neo4j.SensorManagerNeo4j").newInstance();
-                LOG.info("System is not Android, using SensorManagerNeo4j.");
             }
             // TODO: Test loadPeers
 //            loadPeers();
@@ -381,9 +381,9 @@ public class SensorsService extends BaseService {
             LOG.warning("SensorManager implementation class not found so defaulting to SensorManagerSimple");
             sensorManager = new SensorManagerSimple();
         } catch (Exception e) {
-            e.printStackTrace();
-            LOG.warning("Failed to start.");
-            return false;
+            LOG.warning(e.getLocalizedMessage());
+            LOG.warning("General Exception caught: defaulting to SensorManagerSimple");
+            sensorManager = new SensorManagerSimple();
         }
         sensorManager.init(properties);
         return true;
