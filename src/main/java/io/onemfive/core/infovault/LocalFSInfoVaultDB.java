@@ -3,6 +3,8 @@ package io.onemfive.core.infovault;
 import io.onemfive.core.OneMFiveAppContext;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -29,9 +31,24 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
         return true;
     }
 
-    public void save(byte[] content, String fileName, boolean autoCreate) throws FileNotFoundException {
+    public void save(String label, String key, byte[] content, boolean autoCreate) throws FileNotFoundException {
         LOG.info("Saving content...");
-        File file = new File(dbDir, fileName);
+        File path = null;
+        if(label != null) {
+            path = new File(dbDir, label);
+            if(!path.exists()) {
+                if(!autoCreate)
+                    throw new FileNotFoundException("Label doesn't exist and autoCreate = false");
+                else
+                    path.mkdirs();
+            }
+        }
+        File file = null;
+        if(path == null)
+            file = new File(dbDir, key);
+        else
+            file = new File(path, key);
+
         if(!file.exists() && autoCreate) {
             if(!file.canWrite()) {
                 LOG.warning("No write access for directory: "+dbDir.getAbsolutePath());
@@ -68,9 +85,47 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
         }
     }
 
-    public byte[] load(String fileName) throws FileNotFoundException {
-        LOG.info("Loading content for fileName: "+fileName);
-        File file = new File(dbDir, fileName);
+    public byte[] load(String label, String key) throws FileNotFoundException {
+        LOG.info("Loading content for label: "+label+" and key: "+key);
+        File path = null;
+        if(label != null) {
+            path = new File(dbDir, label);
+            if(!path.exists()) {
+                throw new FileNotFoundException("Label doesn't exist");
+            }
+        }
+
+        File file = null;
+        if(path == null)
+            file = new File(dbDir, key);
+        else
+            file = new File(path, key);
+
+        return loadFile(file);
+    }
+
+    @Override
+    public List<byte[]> loadAll(String label) {
+        LOG.info("Loading all content for label: "+label);
+        List<byte[]> contentList = new ArrayList<>();
+        File path = null;
+        if(label != null) {
+            path = new File(dbDir, label);
+            if(path.exists()) {
+                File[] children = path.listFiles();
+                for(File f : children) {
+                    try {
+                        contentList.add(loadFile(f));
+                    } catch (FileNotFoundException e) {
+                        LOG.warning("File not found: "+f.getAbsolutePath());
+                    }
+                }
+            }
+        }
+        return contentList;
+    }
+
+    private byte[] loadFile(File file) throws FileNotFoundException {
         byte[] buffer = new byte[8 * 1024];
         FileInputStream in = new FileInputStream(file);
         ByteArrayOutputStream out = new ByteArrayOutputStream();

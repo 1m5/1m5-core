@@ -25,7 +25,7 @@ public class LoadDIDDAO extends LocalFSDAO {
     public void execute() {
         byte[] content;
         try {
-            content = infoVaultDB.load(providedDID.getAlias());
+            content = infoVaultDB.load(DID.class.getName(), providedDID.getAlias());
         } catch (FileNotFoundException e) {
             exception = e;
             return;

@@ -22,8 +22,9 @@ public class SaveDIDDAO extends LocalFSDAO {
     public void execute() {
         try {
             infoVaultDB.save(
-                    JSONParser.toString(didToSave.toMap()).getBytes(),
+                    DID.class.getName(),
                     didToSave.getAlias(),
+                    JSONParser.toString(didToSave.toMap()).getBytes(),
                     autoCreate);
         } catch (FileNotFoundException e) {
             exception = e;

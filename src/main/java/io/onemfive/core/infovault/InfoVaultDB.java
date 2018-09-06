@@ -1,6 +1,7 @@
 package io.onemfive.core.infovault;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -17,9 +18,11 @@ public interface InfoVaultDB {
 
     void execute(DAO dao) throws Exception;
 
-    void save(byte[] content, String fileName, boolean autoCreate) throws FileNotFoundException;
+    void save(String label, String key, byte[] content, boolean autoCreate) throws FileNotFoundException;
 
-    byte[] load(String fileName) throws FileNotFoundException;
+    byte[] load(String label, String key) throws FileNotFoundException;
+
+    List<byte[]> loadAll(String label);
 
     Status getStatus();
 

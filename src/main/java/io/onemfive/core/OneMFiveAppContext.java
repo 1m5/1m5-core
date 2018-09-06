@@ -124,11 +124,11 @@ public class OneMFiveAppContext {
         if (envProps != null)
             overrideProps.putAll(envProps);
         shutdownTasks = new ConcurrentHashSet<>(10);
-        try {
-            java.util.logging.LogManager.getLogManager().readConfiguration(OneMFiveAppContext.class.getResourceAsStream("/logging.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            java.util.logging.LogManager.getLogManager().readConfiguration(OneMFiveAppContext.class.getResourceAsStream("/logging.properties"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         String baseStr = getProperty("1m5.dir.base", System.getProperty("user.dir")+"/.1m5");
         LOG.info("Base Directory: "+baseStr);
