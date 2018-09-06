@@ -251,8 +251,7 @@ public class DIDService extends BaseService {
         LoadDIDDAO dao = new LoadDIDDAO(infoVaultDB, r.did);
         dao.execute();
         DID loadedDID = dao.getLoadedDID();
-        String passphraseHash = loadedDID.getPassphraseHash();
-        if(loadedDID.getAlias().isEmpty()) {
+        if(loadedDID == null || loadedDID.getAlias() == null || loadedDID.getAlias().isEmpty()) {
             r.errorCode = AuthenticateDIDRequest.DID_ALIAS_UNKNOWN;
             r.did.setAuthenticated(false);
             return;
@@ -262,6 +261,7 @@ public class DIDService extends BaseService {
             r.did.setAuthenticated(false);
             return;
         }
+        String passphraseHash = loadedDID.getPassphraseHash();
         Boolean authN = HashUtil.verifyHash(r.did.getPassphrase(), passphraseHash);
         LOG.info("AuthN: "+(authN != null && authN));
         r.did.setAuthenticated(authN != null && authN);
