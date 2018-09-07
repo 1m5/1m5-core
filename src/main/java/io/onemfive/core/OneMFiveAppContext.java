@@ -130,6 +130,9 @@ public class OneMFiveAppContext {
 //            e.printStackTrace();
 //        }
 
+        String version = getProperty("1m5.version");
+        LOG.info("1M5 Version: "+version);
+
         String baseStr = getProperty("1m5.dir.base", System.getProperty("user.dir")+"/.1m5");
         LOG.info("Base Directory: "+baseStr);
         baseDir = new File(baseStr);
