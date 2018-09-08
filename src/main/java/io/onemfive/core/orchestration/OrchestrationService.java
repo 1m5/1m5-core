@@ -4,10 +4,8 @@ import io.onemfive.core.BaseService;
 import io.onemfive.core.MessageProducer;
 import io.onemfive.core.ServiceStatus;
 import io.onemfive.core.ServiceStatusListener;
-import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 
-import java.net.URL;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -68,15 +66,16 @@ public class OrchestrationService extends BaseService {
             if(rs.peekAtNextRoute() != null) {
                 // slip has routes left, set next route
                 route = rs.nextRoute();
-                if(OrchestrationService.class.getName().equals(route.getService())) {
+                // TODO: Implement URL Router
+//                if(OrchestrationService.class.getName().equals(route.getService())) {
                     // URL Router - need to determine what next route is
-                    String commandPath = e.getCommandPath();
-                    if(commandPath != null && !"".equals(commandPath)) {
-                        if(commandPath.startsWith("/ipfs")) {
-                            route = new SimpleRoute(IPFSService.class.getName(), null);
-                        }
-                    }
-                }
+//                    String commandPath = e.getCommandPath();
+//                    if(commandPath != null && !"".equals(commandPath)) {
+//                        if(commandPath.startsWith("/ipfs")) {
+//                            route = new SimpleRoute(IPFSService.class.getName(), null);
+//                        }
+//                    }
+//                }
                 e.setRoute(route);
                 reply(e);
                 activeRoutes++;

@@ -2,9 +2,6 @@ package io.onemfive.core;
 
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
-import io.onemfive.core.ipfs.IPFSRequest;
-import io.onemfive.core.ipfs.IPFSResponse;
-import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.data.*;
 import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
@@ -48,66 +45,6 @@ public class CoreTest {
 
     public void testOrchestration() {
 
-    }
-
-//    @Test
-    public void testIPFSGatewayListService() {
-        ServiceCallback cb = new ServiceCallback() {
-            @Override
-            public void reply(Envelope envelope) {
-                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-                assert(response != null && response.gateways != null && response.gateways.size() > 0);
-                for(String gateway : response.gateways.keySet()) {
-                    System.out.println("Gateways:");
-                    System.out.println(gateway +":"+response.gateways.get(gateway));
-                }
-                lock.countDown();
-            }
-        };
-        Envelope e = Envelope.documentFactory();
-        assert(DLC.addData(IPFSRequest.class, new IPFSRequest(), e));
-        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_LIST, e);
-        client.request(e, cb);
-    }
-
-//    @Test
-    public void testIPFSGatewayPublishServiceDirectory() {
-        ServiceCallback cb = new ServiceCallback() {
-            @Override
-            public void reply(Envelope envelope) {
-                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-                if(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0) {
-                    System.out.println(response.merkleNodes.get(0).hash.toString());
-                }
-                lock.countDown();
-            }
-        };
-        // Test Directory Persisting
-        Envelope e = Envelope.documentFactory();
-        IPFSRequest ipfsRequest = new IPFSRequest();
-        ipfsRequest.file = new ByteArrayWrapper("TestDirectory");
-        DLC.addData(IPFSRequest.class, ipfsRequest, e);
-        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
-        client.request(e, cb);
-    }
-
-//    @Test
-    public void testIPFSGatewayPublishServiceFile() {
-        ServiceCallback cb = new ServiceCallback() {
-            @Override
-            public void reply(Envelope envelope) {
-                IPFSResponse response = (IPFSResponse)DLC.getData(IPFSResponse.class, envelope);
-                assert(response != null && response.merkleNodes != null && response.merkleNodes.size() > 0);
-                lock.countDown();
-            }
-        };
-        // Test File Persisting
-        Envelope e = Envelope.documentFactory();
-        IPFSRequest ipfsRequest = new IPFSRequest();
-        ipfsRequest.file = new ByteArrayWrapper("TestFile","Hello World!".getBytes());
-        DLC.addData(IPFSRequest.class, ipfsRequest, e);
-        DLC.addRoute(IPFSService.class, IPFSService.OPERATION_GATEWAY_ADD, e);
-        client.request(e, cb);
     }
 
 //    @Test
