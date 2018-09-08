@@ -1,2 +1,0 @@
-# Monero Currency Service
- 

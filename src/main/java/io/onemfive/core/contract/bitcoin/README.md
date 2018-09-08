@@ -1,2 +1,0 @@
-# Omni Contract Service
- 
