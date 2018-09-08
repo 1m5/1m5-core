@@ -269,31 +269,13 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         AdminService adminService = new AdminService(this, this);
         registeredServices.put(AdminService.class.getName(), adminService);
 
-        // Additional Services should be registered by client via Admin Service
-
 //        PranaService pranaService = new PranaService(this, this);
 //        registeredServices.put(PranaService.class.getName(), pranaService);
-
-//        ConsensusService consensusService = new ConsensusService(this, this);
-//        registeredServices.put(ConsensusService.class.getName(), consensusService);
-
-//        ContentService contentService = new ContentService(this, this);
-//        registeredServices.put(ContentService.class.getName(), contentService);
-
-//        DEXService dexService = new DEXService(this, this);
-//        registeredServices.put(DEXService.class.getName(), dexService);
-
-//        RepositoryService repositoryService = new RepositoryService(this, this);
-//        registeredServices.put(RepositoryService.class.getName(), repositoryService);
-
-//        CurrencyService paymentService = new CurrencyService(this, this);
-//        registeredServices.put(CurrencyService.class.getName(), paymentService);
 
 //        AtenService atenService = new AtenService(this, this);
 //        registeredServices.put(AtenService.class.getName(), atenService);
 
-//        SecureDropService secureDropService = new SecureDropService(this, this);
-//        registeredServices.put(SecureDropService.class.getName(), secureDropService);
+        // Additional Services should be registered by client via Admin Service
 
         // Start Registered Services
         for(final String serviceName : registeredServices.keySet()) {
