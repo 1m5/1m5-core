@@ -19,7 +19,10 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * TODO: Add Description
+ * Manages the bus and its services including auto-install of new services,
+ * auto-updates, and auto-uninstalls.
+ *
+ * Supports registering services by client applications.
  *
  * @author objectorange
  */
