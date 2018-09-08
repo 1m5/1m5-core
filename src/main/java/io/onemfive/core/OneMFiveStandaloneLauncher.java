@@ -3,18 +3,10 @@ package io.onemfive.core;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.client.ClientStatusListener;
-import io.onemfive.core.did.DIDService;
-import io.onemfive.core.ipfs.IPFSRequest;
-import io.onemfive.core.ipfs.IPFSResponse;
-import io.onemfive.core.ipfs.IPFSService;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.*;
-import io.onemfive.data.util.ByteArrayWrapper;
 import io.onemfive.data.util.DLC;
-import io.onemfive.data.util.Multihash;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
 

@@ -271,9 +271,6 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
         // Additional Services should be registered by client via Admin Service
 
-//        IPFSService ipfsService = new IPFSService(this, this);
-//        registeredServices.put(IPFSService.class.getName(), ipfsService);
-
 //        PranaService pranaService = new PranaService(this, this);
 //        registeredServices.put(PranaService.class.getName(), pranaService);
 
