@@ -25,7 +25,6 @@ public class OneMFiveStandaloneLauncher {
 
     public static void main(String args[]) {
         LOG.info("Starting 1M5 Standalone...");
-        OneMFiveVersion.print();
 
         launcher = new OneMFiveStandaloneLauncher();
         launcher.launch(args);
@@ -35,9 +34,17 @@ public class OneMFiveStandaloneLauncher {
     }
 
     private void launch(String args[]) {
-        String baseDir = args[0];
         Properties config = new Properties();
-        config.setProperty("1m5.dir.base",baseDir);
+        String[] parts;
+        for(String arg : args) {
+            parts = arg.split("=");
+            config.setProperty(parts[0],parts[1]);
+        }
+        try {
+            config = Config.loadFromClasspath("1m5.config", config, false);
+        } catch (Exception e) {
+            LOG.warning(e.getLocalizedMessage());
+        }
         OneMFiveAppContext context = OneMFiveAppContext.getInstance(config);
         ClientAppManager manager = context.getClientAppManager();
         final Client c = manager.getClient(true);
