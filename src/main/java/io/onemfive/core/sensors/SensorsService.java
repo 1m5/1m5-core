@@ -104,6 +104,26 @@ public class SensorsService extends BaseService {
         handleAll(envelope);
     }
 
+    @Override
+    public void handleCommand(Envelope e) {
+        SensorsServiceCommand c = (SensorsServiceCommand)DLC.getData(SensorsServiceCommand.class,e);
+        if(c == null) {
+            LOG.warning("No SensorsServiceCommand found in Envelope data while sending to SensorsService.");
+            c = new SensorsServiceCommand();
+            c.errorCode = SensorsServiceCommand.REQUEST_REQUIRED;
+            DLC.addData(SensorsServiceCommand.class,c,e);
+            return;
+        }
+        if(c.sensorManagerImplementation != null) {
+            try {
+                sensorManager = (SensorManager) Class.forName(c.sensorManagerImplementation).newInstance();
+            } catch (Exception e1) {
+                c.exception = e1;
+                return;
+            }
+        }
+    }
+
     private void handleAll(Envelope e) {
         SensorRequest request = (SensorRequest)DLC.getData(SensorRequest.class,e);
         if(request == null) {
