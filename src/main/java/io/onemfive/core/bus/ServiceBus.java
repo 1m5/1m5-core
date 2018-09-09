@@ -8,6 +8,8 @@ import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.notification.NotificationService;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.orchestration.OrchestrationService;
+import io.onemfive.core.sensors.SensorManager;
+import io.onemfive.core.sensors.SensorManagerSimple;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
@@ -251,7 +253,9 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         infoVaultService.start(props);
         runningServices.put(InfoVaultService.class.getName(),infoVaultService);
 
-        SensorsService sensorsService = new SensorsService(this, this);
+        SensorManager sensorManager = new SensorManagerSimple();
+
+        SensorsService sensorsService = new SensorsService(this, this, sensorManager);
         registeredServices.put(SensorsService.class.getName(), sensorsService);
 
         OrchestrationService orchestrationService = new OrchestrationService(this, this);
@@ -268,12 +272,6 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
         AdminService adminService = new AdminService(this, this);
         registeredServices.put(AdminService.class.getName(), adminService);
-
-//        PranaService pranaService = new PranaService(this, this);
-//        registeredServices.put(PranaService.class.getName(), pranaService);
-
-//        AtenService atenService = new AtenService(this, this);
-//        registeredServices.put(AtenService.class.getName(), atenService);
 
         // Additional Services should be registered by client via Admin Service
 
