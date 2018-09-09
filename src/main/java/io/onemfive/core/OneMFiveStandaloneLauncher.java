@@ -3,9 +3,7 @@ package io.onemfive.core;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.client.ClientStatusListener;
-import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.*;
-import io.onemfive.data.util.DLC;
 
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -54,12 +52,6 @@ public class OneMFiveStandaloneLauncher {
         ClientAppManager manager = context.getClientAppManager();
         final Client c = manager.getClient(true);
 
-        fromDID = new DID();
-        fromDID.setAlias("Alice");
-
-        toDID = new DID();
-        toDID.setAlias("Alice");
-
         Subscription subscription = new Subscription() {
             @Override
             public void notifyOfEvent(Envelope e) {
@@ -95,32 +87,7 @@ public class OneMFiveStandaloneLauncher {
             }
         };
         c.registerClientStatusListener(clientStatusListener);
-        int numberEmailsSent = 0;
         while(status != ClientAppManager.Status.STOPPED) {
-            if(status == ClientAppManager.Status.READY) {
-                if(!emailSubscribed) {
-                    c.subscribeToEmail(subscription);
-                    emailSubscribed = true;
-                } else if(!emailSent) {
-                    // Step 4: Send Email
-                    Envelope e = Envelope.documentFactory();
-                    e.setSensitivity(Envelope.Sensitivity.VERYHIGH);
-                    e.setDID(fromDID);
-                    messageString = ++numberEmailsSent +" attempts at a new deal for peace in the Syrian conflict.";
-                    Email email = new Email(toDID, fromDID, numberEmailsSent+" Tries at Syrian Peace Deal ",messageString);
-                    emailToSend = email;
-                    DLC.addData(Email.class, email, e);
-                    DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND,e);
-                    c.request(e);
-                    emailSent = true;
-                } else if(emailReceived != null) {
-                    // Step 5: Awaiting Email
-                    LOG.info("Email received: message="+emailReceived.getMessage());
-                    assert(messageString.equals(emailReceived.getMessage()));
-                    emailReceived = null;
-                    emailSent = false;
-                }
-            }
             try {
                 synchronized (launcher) {
                     launcher.wait(2 * 1000);

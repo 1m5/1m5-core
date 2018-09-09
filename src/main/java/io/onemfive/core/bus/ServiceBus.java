@@ -2,7 +2,6 @@ package io.onemfive.core.bus;
 
 import io.onemfive.core.*;
 import io.onemfive.core.admin.AdminService;
-import io.onemfive.core.did.DIDService;
 import io.onemfive.core.infovault.InfoVaultService;
 import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.notification.NotificationService;
@@ -255,9 +254,6 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
 
         KeyRingService keyRingService = new KeyRingService(this, this);
         registeredServices.put(KeyRingService.class.getName(), keyRingService);
-
-        DIDService didService = new DIDService(this, this);
-        registeredServices.put(DIDService.class.getName(), didService);
 
         NotificationService notificationService = new NotificationService(this, this);
         registeredServices.put(NotificationService.class.getName(), notificationService);
