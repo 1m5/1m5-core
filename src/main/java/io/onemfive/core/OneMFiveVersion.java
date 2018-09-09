@@ -1,7 +1,5 @@
 package io.onemfive.core;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
@@ -15,7 +13,7 @@ public class OneMFiveVersion {
 
     /** deprecated */
     public final static String ID = "io.onemfive.core";
-    public final static String VERSION = "0.5.1-SNAPSHOT";
+    public final static String VERSION = "0.5.2-SNAPSHOT";
     public final static long BUILD = 1;
 
     // TODO: Change to Maven Driven
