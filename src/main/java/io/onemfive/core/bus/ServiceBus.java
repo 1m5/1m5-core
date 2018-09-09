@@ -26,6 +26,7 @@ import java.util.logging.Logger;
  *
  * TODO: Handles high priority commands to manage the services synchronously.
  * TODO: Add configurations
+ * TODO: Enable extending thread pool so services can pull from the same pool thus ensuring better performance management
  *
  * @author objectorange
  */
