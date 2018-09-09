@@ -1,7 +1,6 @@
 package io.onemfive.core.sensors;
 
 import io.onemfive.core.util.AppThread;
-import io.onemfive.core.util.Wait;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Peer;
 import io.onemfive.data.Route;
@@ -11,6 +10,7 @@ import java.util.logging.Logger;
 
 /**
  * Simple in-memory sensor management.
+ * Great for testing.
  */
 public class SensorManagerSimple extends SensorManagerBase {
 

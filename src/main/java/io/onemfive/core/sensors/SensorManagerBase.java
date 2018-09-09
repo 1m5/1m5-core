@@ -7,9 +7,9 @@ import java.util.Map;
 
 public abstract class SensorManagerBase implements SensorManager {
 
-    protected Map<String, Sensor> registeredSensors = new HashMap<>();
-    protected Map<String, Sensor> activeSensors = new HashMap<>();
-    protected Map<String, Sensor> blockedSensors = new HashMap<>();
+    protected final Map<String, Sensor> registeredSensors = new HashMap<>();
+    protected final Map<String, Sensor> activeSensors = new HashMap<>();
+    protected final Map<String, Sensor> blockedSensors = new HashMap<>();
 
     protected Map<String, Peer> peers = new HashMap<>();
 
