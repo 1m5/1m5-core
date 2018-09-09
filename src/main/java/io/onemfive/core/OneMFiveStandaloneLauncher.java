@@ -22,16 +22,6 @@ public class OneMFiveStandaloneLauncher {
     private static OneMFiveStandaloneLauncher launcher;
 
     private ClientAppManager.Status status;
-    private DID toDID;
-    private DID fromDID;
-    private Email emailToSend;
-    private Email emailReceived;
-    private String messageString;
-
-    private boolean requestedKey = false;
-    private boolean receivedKey = false;
-    private boolean emailSubscribed = false;
-    private boolean emailSent = false;
 
     public static void main(String args[]) {
         LOG.info("Starting 1M5 Standalone...");
@@ -51,15 +41,6 @@ public class OneMFiveStandaloneLauncher {
         OneMFiveAppContext context = OneMFiveAppContext.getInstance(config);
         ClientAppManager manager = context.getClientAppManager();
         final Client c = manager.getClient(true);
-
-        Subscription subscription = new Subscription() {
-            @Override
-            public void notifyOfEvent(Envelope e) {
-                EventMessage m = (EventMessage)e.getMessage();
-                emailReceived = (Email)m.getMessage();
-                LOG.info("Received Email: id="+m.getId()+" type="+m.getType()+" name="+m.getName());
-            }
-        };
 
         ClientStatusListener clientStatusListener = new ClientStatusListener() {
             @Override
