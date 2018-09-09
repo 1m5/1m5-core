@@ -88,21 +88,25 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
             "outbound.backupQuantity",
     });
 
-    public I2PSensor(SensorsService sensorsService) {
-        super(sensorsService);
+    public I2PSensor(SensorsService sensorsService, Envelope.Sensitivity sensitivity, Integer priority) {
+        super(sensorsService, sensitivity, priority);
     }
 
     @Override
-    protected SensorID getSensorID() {
-        return SensorID.I2P;
+    public String[] getOperationEndsWith() {
+        return new String[]{".i2p"};
     }
 
     @Override
-    public Map<String, Peer> getPeers() {
-        Map<String, Peer> peers = new HashMap<>();
-
-        return peers;
+    public String[] getURLBeginsWith() {
+        return new String[]{"i2p"};
     }
+
+    @Override
+    public String[] getURLEndsWith() {
+        return new String[]{".i2p"};
+    }
+
 
     /**
      * Sends UTF-8 content to a Destination using I2P.
@@ -152,8 +156,9 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
     }
 
     @Override
-    public boolean reply(Envelope envelope) {
-        return false;
+    public boolean reply(Envelope e) {
+        sensorsService.sendToBus(e);
+        return true;
     }
 
     @Override
@@ -184,7 +189,7 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
             m.setMessage(new String(payload));
             m.setName(from.getAddress());
             DLC.addRoute(NotificationService.class, NotificationService.OPERATION_PUBLISH, e);
-            sensorsService.sendToBus(e);
+            reply(e);
         }
         catch (DataFormatException e) {
             LOG.warning("Invalid datagram received: "+e.getLocalizedMessage());
@@ -766,7 +771,7 @@ public class I2PSensor extends BaseSensor implements I2PSessionMuxedListener {
         Properties p = new Properties();
         p.setProperty("1m5.dir.base",args[0]);
 
-        I2PSensor sensor = new I2PSensor(null);
+        I2PSensor sensor = new I2PSensor(null, Envelope.Sensitivity.MEDIUM, 100);
         sensor.start(p);
 
         long maxWaitMs = 10 * 60 * 1000; // 10 minutes

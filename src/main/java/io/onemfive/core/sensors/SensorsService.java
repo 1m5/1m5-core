@@ -1,21 +1,11 @@
 package io.onemfive.core.sensors;
 
 import io.onemfive.core.*;
-import io.onemfive.core.sensors.clearnet.ClearnetSensor;
-import io.onemfive.core.sensors.i2p.bote.I2PBoteSensor;
-import io.onemfive.core.sensors.tor.TorSensor;
-import io.onemfive.core.util.AppThread;
-import io.onemfive.core.sensors.i2p.I2PSensor;
-import io.onemfive.core.sensors.mesh.MeshSensor;
-import io.onemfive.core.util.SystemVersion;
-import io.onemfive.core.util.Wait;
 import io.onemfive.data.Envelope;
-import io.onemfive.data.Peer;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.DLC;
 
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -88,15 +78,15 @@ public class SensorsService extends BaseService {
     private static final Logger LOG = Logger.getLogger(SensorsService.class.getName());
 
     public static final String OPERATION_SEND = "SEND";
-    public static final String OPERATION_REPLY_CLEARNET = "REPLY_CLEARNET";
+    public static final String OPERATION_REPLY = "REPLY";
 
     private Properties config;
-    private Map<SensorID, Sensor> registeredSensors;
-    private Map<SensorID, Sensor> activeSensors;
+
     private SensorManager sensorManager;
 
-    public SensorsService(MessageProducer producer, ServiceStatusListener serviceStatusListener) {
+    public SensorsService(MessageProducer producer, ServiceStatusListener serviceStatusListener, SensorManager sensorManager) {
         super(producer, serviceStatusListener);
+        this.sensorManager = sensorManager;
     }
 
     @Override
@@ -129,66 +119,25 @@ public class SensorsService extends BaseService {
             return;
         }
         Route r = e.getRoute();
-        Sensor sensor = null;
-        if(Envelope.Sensitivity.MEDIUM.equals(e.getSensitivity())
-                || r.getOperation().endsWith(".onion")
-                || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".onion"))
-                && activeSensors.containsKey(SensorID.TOR)) {
-            // Use Tor
-            LOG.fine("Using Tor Sensor...");
-
-            sensor = activeSensors.get(SensorID.TOR);
-        } else if(Envelope.Sensitivity.HIGH.equals(e.getSensitivity())
-                || r.getOperation().endsWith(".i2p")
-                || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".i2p"))
-                && activeSensors.containsKey(SensorID.I2P)) {
-            // Use I2P
-            LOG.fine("Using I2P Sensor...");
-            sensor = activeSensors.get(SensorID.I2P);
-        } else if(Envelope.Sensitivity.VERYHIGH.equals(e.getSensitivity())
-                || r.getOperation().endsWith(".bote")
-                || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".bote"))
-                && activeSensors.containsKey(SensorID.I2PBOTE)) {
-            // Use I2P Bote
-            LOG.fine("Using I2P Bote Sensor...");
-            long maxWaitMs = 30 * 1000;
-            long waitTimeMs = 3 * 1000;
-            long currentWaitMs = 0L;
-            do {
-                sensor = activeSensors.get(SensorID.I2PBOTE);
-                if(sensor == null) {
-                    Wait.aMs(waitTimeMs); // wait 3 seconds
-                    currentWaitMs += waitTimeMs;
-                }
-            } while(sensor == null && currentWaitMs < maxWaitMs);
-        } else if(Envelope.Sensitivity.EXTREME.equals(e.getSensitivity())
-                || r.getOperation().endsWith(".mesh")
-                || (e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().endsWith(".mesh"))
-                && activeSensors.containsKey(SensorID.MESH)) {
-            // Use Mesh
-            LOG.fine("Using Mesh Sensor...");
-            sensor = activeSensors.get(SensorID.MESH);
-        } else if(Envelope.Sensitivity.NONE.equals(e.getSensitivity())
-                || Envelope.Sensitivity.LOW.equals(e.getSensitivity())
-                || r.getOperation().startsWith("http")
-                || e.getURL() != null && e.getURL().getProtocol() != null && e.getURL().getProtocol().startsWith("http")) {
-            // Use Clearnet
-            LOG.fine("Using Clearnet Sensor...");
-            sensor = activeSensors.get(SensorID.CLEARNET);
-        }
+        Sensor sensor = sensorManager.selectSensor(e);
         if(sensor != null) {
-            if(OPERATION_SEND.equals(r.getOperation())) {
-                LOG.fine("Sending Envelope to selected Sensor...");
-                sensor.send(e);
+            switch (r.getOperation()) {
+                case OPERATION_SEND : {
+                    LOG.fine("Sending Envelope to selected Sensor...");
+                    sensor.send(e);
+                }
+                case OPERATION_REPLY : {
+                    LOG.fine("Replying with Envelope to requester...");
+                    sensor.reply(e);
+                }
+                default: {
+                    LOG.warning("Operation not supported. Sending to Dead Letter queue.");
+                    deadLetter(e);
+                }
             }
         } else {
-            if (r.getOperation().equals(OPERATION_REPLY_CLEARNET)) {
-                sensor = activeSensors.get(SensorID.CLEARNET);
-                sensor.reply(e);
-            } else {
-                LOG.warning("Unable to determine sensor. Sending to Dead Letter queue.");
-                deadLetter(e);
-            }
+            LOG.warning("Unable to determine sensor. Sending to Dead Letter queue.");
+            deadLetter(e);
         }
     }
 
@@ -214,7 +163,7 @@ public class SensorsService extends BaseService {
      * @param sensorID
      * @param sensorStatus
      */
-    void updateSensorStatus(final SensorID sensorID, SensorStatus sensorStatus) {
+    void updateSensorStatus(final String sensorID, SensorStatus sensorStatus) {
         ServiceStatus currentServiceStatus = getServiceStatus();
         LOG.info("Status updated to: "+sensorStatus.name());
         switch (sensorStatus) {
@@ -326,20 +275,7 @@ public class SensorsService extends BaseService {
                 if(currentServiceStatus == ServiceStatus.RUNNING
                         || currentServiceStatus == ServiceStatus.PARTIALLY_RUNNING)
                     updateStatus(ServiceStatus.DEGRADED_RUNNING);
-                // Sensor has Error, restart it if number of restarts is not greater than 3
-                if(activeSensors.get(sensorID) != null) {
-                    if(activeSensors.get(sensorID).getRestartAttempts() <= 3) {
-                        new AppThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                activeSensors.get(sensorID).restart();
-                            }
-                        }).start();
-                    } else {
-                        // Sensor is apparently not working. Unregister it.
-                        activeSensors.remove(sensorID);
-                    }
-                }
+                sensorManager.sensorError(sensorID);
                 break;
             }
             default: LOG.warning("Sensor Status not being handled: "+sensorStatus.name());
@@ -347,7 +283,7 @@ public class SensorsService extends BaseService {
     }
 
     private Boolean allSensorsWithStatus(SensorStatus sensorStatus) {
-        Collection<Sensor> sensors = activeSensors.values();
+        Collection<Sensor> sensors = ((SensorManagerBase)sensorManager).getActiveSensors().values();
         for(Sensor s : sensors) {
             if(s.getStatus() != sensorStatus){
                 return false;
@@ -359,32 +295,8 @@ public class SensorsService extends BaseService {
     @Override
     public boolean start(Properties properties) {
         super.start(properties);
-        LOG.setLevel(Level.INFO);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
-        try {
-            config = Config.loadFromClasspath("sensors.config", properties, false);
-            if (SystemVersion.isAndroid()) {
-                LOG.info("System is Android, try to use SensorManagerAndroid...");
-                sensorManager = (SensorManager) Class.forName("io.onemfive.android.api.sensors.SensorManagerAndroid").newInstance();
-            } else {
-                LOG.info("System is not Android, try to use SensorManagerNeo4j.");
-                sensorManager = (SensorManager) Class.forName("io.onemfive.neo4j.SensorManagerNeo4j").newInstance();
-            }
-            // TODO: Test loadPeers
-//            loadPeers();
-            registerSensors();
-
-            LOG.info("Started.");
-        } catch (ClassNotFoundException e) {
-            LOG.warning(e.getLocalizedMessage());
-            LOG.warning("SensorManager implementation class not found so defaulting to SensorManagerSimple");
-            sensorManager = new SensorManagerSimple();
-        } catch (Exception e) {
-            LOG.warning(e.getLocalizedMessage());
-            LOG.warning("General Exception caught: defaulting to SensorManagerSimple");
-            sensorManager = new SensorManagerSimple();
-        }
         sensorManager.init(properties);
         return true;
     }
@@ -401,51 +313,6 @@ public class SensorsService extends BaseService {
         super.shutdown();
         if(getServiceStatus() != ServiceStatus.RESTARTING)
             updateStatus(ServiceStatus.SHUTTING_DOWN);
-        if(registeredSensors.containsKey(SensorID.CLEARNET)) {
-            new AppThread(new Runnable() {
-                @Override
-                public void run() {
-                    Sensor s = activeSensors.get(SensorID.CLEARNET);
-                    if(s != null) s.gracefulShutdown();
-                }
-            }).start();
-        }
-        if(registeredSensors.containsKey(SensorID.MESH)) {
-            new AppThread(new Runnable() {
-                @Override
-                public void run() {
-                    Sensor s = activeSensors.get(SensorID.MESH);
-                    if(s != null) s.gracefulShutdown();
-                }
-            }).start();
-        }
-        if(registeredSensors.containsKey(SensorID.TOR)) {
-            new AppThread(new Runnable() {
-                @Override
-                public void run() {
-                    Sensor s = activeSensors.get(SensorID.TOR);
-                    if(s != null) s.gracefulShutdown();
-                }
-            }).start();
-        }
-        if(registeredSensors.containsKey(SensorID.I2P)) {
-            new AppThread(new Runnable() {
-                @Override
-                public void run() {
-                    Sensor s = activeSensors.get(SensorID.I2P);
-                    if(s != null) s.gracefulShutdown();
-                }
-            }).start();
-        }
-        if(registeredSensors.containsKey(SensorID.I2PBOTE)) {
-            new AppThread(new Runnable() {
-                @Override
-                public void run() {
-                    Sensor s = activeSensors.get(SensorID.I2PBOTE);
-                    if(s != null) s.gracefulShutdown();
-                }
-            }).start();
-        }
         sensorManager.shutdown();
         return true;
     }
@@ -456,79 +323,8 @@ public class SensorsService extends BaseService {
         return shutdown();
     }
 
-    private void registerSensors() {
-        String registeredSensorsString = config.getProperty("1m5.sensors.registered");
-        if(registeredSensorsString != null) {
-            List<String> registered = Arrays.asList(registeredSensorsString.split(","));
-
-            registeredSensors = new HashMap<>(registered.size());
-            activeSensors = new HashMap<>(registered.size());
-
-            if (registered.contains("i2p")) {
-                registeredSensors.put(SensorID.I2P, new I2PSensor(this));
-                new AppThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        I2PSensor i2PSensor = (I2PSensor) registeredSensors.get(SensorID.I2P);
-                        i2PSensor.start(config);
-                        activeSensors.put(SensorID.I2P, i2PSensor);
-                        LOG.info("I2PSensor registered as active.");
-                    }
-                }, SensorsService.class.getSimpleName()+":I2PSensorStartThread").start();
-            }
-
-            if (registered.contains("bote")) {
-                registeredSensors.put(SensorID.I2PBOTE, new I2PBoteSensor(this));
-                new AppThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        I2PBoteSensor i2PBoteSensor = (I2PBoteSensor) registeredSensors.get(SensorID.I2PBOTE);
-                        i2PBoteSensor.start(config);
-                        activeSensors.put(SensorID.I2PBOTE, i2PBoteSensor);
-                        LOG.info("I2PBoteSensor registered as active.");
-                    }
-                }, SensorsService.class.getSimpleName()+":I2PBoteSensorStartThread").start();
-            }
-
-            if (registered.contains("tor")) {
-                registeredSensors.put(SensorID.TOR, new TorSensor(this));
-                new AppThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        TorSensor torSensor = (TorSensor) registeredSensors.get(SensorID.TOR);
-                        torSensor.start(config);
-                        activeSensors.put(SensorID.TOR, torSensor);
-                        LOG.info("TorSensor registered as active.");
-                    }
-                }, SensorsService.class.getSimpleName()+":TorSensorStartThread").start();
-            }
-
-            if (registered.contains("mesh")) {
-                registeredSensors.put(SensorID.MESH, new MeshSensor(this));
-                new AppThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        MeshSensor meshSensor = (MeshSensor) registeredSensors.get(SensorID.MESH);
-                        meshSensor.start(config);
-                        activeSensors.put(SensorID.TOR, meshSensor);
-                        LOG.info("MeshSensor registered as active.");
-                    }
-                }, SensorsService.class.getSimpleName()+":MeshSensorStartThread").start();
-            }
-
-            if (registered.contains("clearnet")) {
-                registeredSensors.put(SensorID.CLEARNET, new ClearnetSensor(this));
-                new AppThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ClearnetSensor clearnetSensor = (ClearnetSensor) registeredSensors.get(SensorID.CLEARNET);
-                        clearnetSensor.start(config);
-                        activeSensors.put(SensorID.CLEARNET, clearnetSensor);
-                        LOG.info("ClearnetSensor registered as active.");
-                    }
-                }, SensorsService.class.getSimpleName()+":ClearnetSensorStartThread").start();
-            }
-        }
+    public void setManager(SensorManager sensorManager) {
+        this.sensorManager = sensorManager;
     }
 
 }

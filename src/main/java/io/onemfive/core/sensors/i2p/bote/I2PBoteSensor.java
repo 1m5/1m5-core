@@ -43,20 +43,23 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
 
     private static final Logger LOG = Logger.getLogger(I2PBoteSensor.class.getName());
 
-    public I2PBoteSensor(SensorsService sensorsService) {
-        super(sensorsService);
+    public I2PBoteSensor(SensorsService sensorsService, Envelope.Sensitivity sensitivity, Integer priority) {
+        super(sensorsService, sensitivity, priority);
     }
 
     @Override
-    protected SensorID getSensorID() {
-        return SensorID.I2PBOTE;
+    public String[] getOperationEndsWith() {
+        return new String[]{".bote"};
     }
 
     @Override
-    public Map<String, Peer> getPeers() {
-        Map<String, Peer> peers = new HashMap<>();
+    public String[] getURLBeginsWith() {
+        return new String[]{"bote"};
+    }
 
-        return peers;
+    @Override
+    public String[] getURLEndsWith() {
+        return new String[]{".bote"};
     }
 
     /**
@@ -250,6 +253,12 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
     }
 
     @Override
+    public boolean reply(Envelope e) {
+        sensorsService.sendToBus(e);
+        return true;
+    }
+
+    @Override
     public void emailReceived(String messageId) {
         LOG.info("Received I2P Bote Email with messageId="+messageId);
         EmailFolder inbox = I2PBote.getInstance().getInbox();
@@ -299,7 +308,7 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
                 m.setMessage(email);
                 m.setName(fromDID.toString());
                 DLC.addRoute(NotificationService.class, NotificationService.OPERATION_PUBLISH,e);
-                sensorsService.sendToBus(e);
+                reply(e);
 
                 // Email sent to Notification Service therefore delete from Inbox
                 inbox.delete(i2pEmail.getMessageID());
@@ -439,7 +448,7 @@ public class I2PBoteSensor extends I2PSensor implements NetworkStatusListener, N
         Properties p = new Properties();
         p.setProperty("1m5.dir.base",args[0]);
 
-        I2PBoteSensor i2PBoteSensor = new I2PBoteSensor(null);
+        I2PBoteSensor i2PBoteSensor = new I2PBoteSensor(null, Envelope.Sensitivity.VERYHIGH, 100);
         i2PBoteSensor.start(p);
 
         long maxWaitMs = 10 * 60 * 1000; // 10 minutes

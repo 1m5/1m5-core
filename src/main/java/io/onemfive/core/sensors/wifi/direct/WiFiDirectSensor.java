@@ -1,28 +1,10 @@
 package io.onemfive.core.sensors.wifi.direct;
 
-//import android.app.IntentService;
-//import android.app.Notification;
-//import android.app.NotificationManager;
-//import android.content.BroadcastReceiver;
-//import android.content.Context;
-//import android.content.Intent;
-//import android.content.IntentFilter;
-//import android.net.wifi.p2p.WifiP2pConfig;
-//import android.net.wifi.p2p.WifiP2pDevice;
-//import android.net.wifi.p2p.WifiP2pManager;
-//import android.util.Log;
-
 import io.onemfive.core.sensors.BaseSensor;
-import io.onemfive.core.sensors.Sensor;
-import io.onemfive.core.sensors.SensorID;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Envelope;
-import io.onemfive.data.Peer;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 /**
  * TODO: Add Description
@@ -48,20 +30,23 @@ public class WiFiDirectSensor extends BaseSensor
     private PeerDeviceList peerDeviceList;
     private PeerDevice peerDevice;
 
-    public WiFiDirectSensor(SensorsService sensorsService) {
-        super(sensorsService);
+    public WiFiDirectSensor(SensorsService sensorsService, Envelope.Sensitivity sensitivity, Integer priority) {
+        super(sensorsService, sensitivity, priority);
     }
 
     @Override
-    protected SensorID getSensorID() {
-        return SensorID.WIFIDIRECT;
+    public String[] getOperationEndsWith() {
+        return new String[]{".wifid"};
     }
 
     @Override
-    public Map<String, Peer> getPeers() {
-        Map<String, Peer> peers = new HashMap<>();
+    public String[] getURLBeginsWith() {
+        return new String[]{"wifid"};
+    }
 
-        return peers;
+    @Override
+    public String[] getURLEndsWith() {
+        return new String[]{".wifid"};
     }
 
     @Override

@@ -1,7 +1,6 @@
 package io.onemfive.core.sensors.clearnet;
 
 import io.onemfive.core.sensors.BaseSensor;
-import io.onemfive.core.sensors.SensorID;
 import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.data.Message;
 import io.onemfive.data.Peer;
@@ -11,7 +10,6 @@ import io.onemfive.data.Envelope;
 import io.onemfive.data.util.Multipart;
 import okhttp3.*;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandler;
 
 import javax.net.ssl.*;
@@ -78,13 +76,8 @@ public final class ClearnetSensor extends BaseSensor {
     private Server server;
     private HttpEnvelopeHandler httpHandler;
 
-    public ClearnetSensor(SensorsService sensorsService) {
-        super(sensorsService);
-    }
-
-    @Override
-    protected SensorID getSensorID() {
-        return SensorID.CLEARNET;
+    public ClearnetSensor(SensorsService sensorsService, Envelope.Sensitivity sensitivity, Integer priority) {
+        super(sensorsService, sensitivity, priority);
     }
 
     @Override
@@ -92,6 +85,21 @@ public final class ClearnetSensor extends BaseSensor {
         Map<String, Peer> peers = new HashMap<>();
 
         return peers;
+    }
+
+    @Override
+    public String[] getOperationEndsWith() {
+        return new String[]{".1m5"};
+    }
+
+    @Override
+    public String[] getURLBeginsWith() {
+        return new String[]{"http","https"};
+    }
+
+    @Override
+    public String[] getURLEndsWith() {
+        return new String[]{".1m5"};
     }
 
     @Override
@@ -407,7 +415,7 @@ public final class ClearnetSensor extends BaseSensor {
                 url = new URL("https", "ipfs.io", 443, "/ipfn/" + hash);
             }
             e.setURL(url);
-            ClearnetSensor sensor = new ClearnetSensor(null);
+            ClearnetSensor sensor = new ClearnetSensor(null, Envelope.Sensitivity.LOW, 100);
             sensor.start(null);
             sensor.send(e);
         } catch (MalformedURLException e1) {

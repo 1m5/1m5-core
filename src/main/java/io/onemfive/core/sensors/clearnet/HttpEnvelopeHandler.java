@@ -14,8 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -225,7 +223,7 @@ public class HttpEnvelopeHandler extends AbstractHandler {
         e.setExternal(true);
 
         // Add Routes Last first as it's a stack
-        DLC.addRoute(SensorsService.class, SensorsService.OPERATION_REPLY_CLEARNET, e);
+        DLC.addRoute(SensorsService.class, SensorsService.OPERATION_REPLY, e);
         DLC.addRoute(OrchestrationService.class, null, e);
 
         return e;
