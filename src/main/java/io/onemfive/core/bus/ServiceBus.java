@@ -8,9 +8,6 @@ import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.notification.NotificationService;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.orchestration.OrchestrationService;
-import io.onemfive.core.sensors.SensorManager;
-import io.onemfive.core.sensors.SensorManagerSimple;
-import io.onemfive.core.sensors.SensorsService;
 import io.onemfive.core.util.AppThread;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.util.DLC;
@@ -252,11 +249,6 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         // Start InfoVaultService first to ensure InfoVaultDB gets initialized before Services begin using it.
         infoVaultService.start(props);
         runningServices.put(InfoVaultService.class.getName(),infoVaultService);
-
-        SensorManager sensorManager = new SensorManagerSimple();
-
-        SensorsService sensorsService = new SensorsService(this, this, sensorManager);
-        registeredServices.put(SensorsService.class.getName(), sensorsService);
 
         OrchestrationService orchestrationService = new OrchestrationService(this, this);
         registeredServices.put(OrchestrationService.class.getName(), orchestrationService);
