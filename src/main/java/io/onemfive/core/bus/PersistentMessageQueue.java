@@ -40,6 +40,7 @@ final class PersistentMessageQueue<E> extends ArrayBlockingQueue<E> {
     @Override
     public E take() throws InterruptedException {
         E obj = super.take();
+            // load
 
         return obj;
     }
@@ -47,7 +48,10 @@ final class PersistentMessageQueue<E> extends ArrayBlockingQueue<E> {
     @Override
     public boolean remove(Object o) {
         boolean success = super.remove(o);
+        if(success) {
+            // remove
 
+        }
         return success;
     }
 }
