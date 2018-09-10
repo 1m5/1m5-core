@@ -14,7 +14,7 @@
 		<java.version>1.7</java.version>
 	</properties>
 
-	<name>core</name>
+	<name>1m5-core</name>
 	<url>https://1m5.io</url>
 	<description>Invisible Matrix Services Core Library</description>
 	<inceptionYear>2017</inceptionYear>
@@ -75,63 +75,6 @@
 			<groupId>io.onemfive</groupId>
 			<artifactId>data</artifactId>
 			<version>${project.version}</version>
-		</dependency>
-		<!-- DID -->
-		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcpg-jdk15on -->
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpg-jdk15on</artifactId>
-			<version>1.60</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.60</version>
-		</dependency>
-		<!-- Sensors: I2P -->
-		<dependency>
-			<groupId>net.i2p</groupId>
-			<artifactId>router</artifactId>
-			<version>0.9.34</version>
-		</dependency>
-		<dependency>
-			<groupId>net.i2p.client</groupId>
-			<artifactId>streaming</artifactId>
-			<version>0.9.34</version>
-		</dependency>
-		<!-- Sensors: I2P Bote -->
-		<dependency>
-			<groupId>com.sun.mail</groupId>
-			<artifactId>mailapi</artifactId>
-			<version>1.5.6</version>
-		</dependency>
-		<dependency>
-			<groupId>com.lambdaworks</groupId>
-			<artifactId>scrypt</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.ntru</groupId>
-			<artifactId>ntru</artifactId>
-			<version>1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>de.flexi</groupId>
-			<artifactId>gmss</artifactId>
-			<version>1.7p1</version>
-		</dependency>
-		<!-- Sensors: Clearnet -->
-		<!-- Client -->
-		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>3.10.0</version>
-		</dependency>
-		<!-- Server -->
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<version>9.2.24.v20180105</version>
 		</dependency>
 		<!-- Test -->
 		<dependency>
