@@ -3,7 +3,6 @@ package io.onemfive.core;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.client.ClientStatusListener;
-import io.onemfive.data.*;
 
 import java.util.Properties;
 import java.util.logging.Logger;
