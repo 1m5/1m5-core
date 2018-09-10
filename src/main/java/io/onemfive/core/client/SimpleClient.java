@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * A simple client for making requests to SC services.
+ * A simple client for making requests to services.
  *
  * @author objectorange
  */
