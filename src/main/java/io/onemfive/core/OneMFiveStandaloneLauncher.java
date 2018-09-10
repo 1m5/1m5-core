@@ -19,14 +19,15 @@ public class OneMFiveStandaloneLauncher {
 
     private static final Logger LOG = Logger.getLogger(OneMFiveStandaloneLauncher.class.getName());
 
-    private static OneMFiveStandaloneLauncher launcher;
+    private static final OneMFiveStandaloneLauncher launcher = new OneMFiveStandaloneLauncher();
 
+    private ClientAppManager manager;
     private ClientAppManager.Status status;
+    private Client client;
 
     public static void main(String args[]) {
         LOG.info("Starting 1M5 Standalone...");
 
-        launcher = new OneMFiveStandaloneLauncher();
         launcher.launch(args);
 
         LOG.info("1M5 Standalone exiting...");
@@ -46,8 +47,8 @@ public class OneMFiveStandaloneLauncher {
             LOG.warning(e.getLocalizedMessage());
         }
         OneMFiveAppContext context = OneMFiveAppContext.getInstance(config);
-        ClientAppManager manager = context.getClientAppManager();
-        final Client c = manager.getClient(true);
+        manager = context.getClientAppManager();
+        client = manager.getClient(true);
 
         ClientStatusListener clientStatusListener = new ClientStatusListener() {
             @Override
@@ -74,7 +75,18 @@ public class OneMFiveStandaloneLauncher {
                 }
             }
         };
-        c.registerClientStatusListener(clientStatusListener);
+        client.registerClientStatusListener(clientStatusListener);
+        final Thread mainThread = Thread.currentThread();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                manager.unregister(client);
+                try {
+                    mainThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         while(status != ClientAppManager.Status.STOPPED) {
             try {
                 synchronized (launcher) {
