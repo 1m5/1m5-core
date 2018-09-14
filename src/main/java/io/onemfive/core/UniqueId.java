@@ -1,13 +1,13 @@
 package io.onemfive.core;
 
-import net.i2p.data.Base64;
-import net.i2p.util.RandomSource;
+import io.onemfive.core.util.data.Base64;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Random;
 
 public class UniqueId implements Comparable<UniqueId> {
     public static final byte LENGTH = 32;
@@ -20,7 +20,7 @@ public class UniqueId implements Comparable<UniqueId> {
     public UniqueId() {
         bytes = new byte[LENGTH];
         for (int i=0; i<LENGTH; i++)
-            bytes[i] = (byte)RandomSource.getInstance().nextInt(256);
+            bytes[i] = (byte)new Random().nextInt(256);
     }
 
     /**
