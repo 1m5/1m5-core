@@ -79,6 +79,7 @@ final class SimpleClient implements Client {
         clientStatusListeners.add(listener);
     }
 
+    @Override
     public void subscribeToEvent(EventMessage.Type eventType, Subscription subscription) {
         SubscriptionRequest request = new SubscriptionRequest(eventType, subscription);
         Envelope e = Envelope.documentFactory();
