@@ -41,6 +41,7 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
                     throw new FileNotFoundException("Label doesn't exist and autoCreate = false");
                 else {
                     path.mkdirs();
+                    path.setWritable(true);
                 }
             }
         }
@@ -49,12 +50,9 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
             file = new File(dbDir, key);
         else
             file = new File(path, key);
+        file.setWritable(true);
 
         if(!file.exists() && autoCreate) {
-            if(!file.canWrite()) {
-                LOG.warning("No write access for directory: "+dbDir.getAbsolutePath());
-                return;
-            }
             try {
                 if(!file.createNewFile()) {
                     LOG.warning("Unable to create new file.");
