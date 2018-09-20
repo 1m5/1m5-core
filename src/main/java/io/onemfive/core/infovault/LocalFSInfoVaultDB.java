@@ -150,7 +150,7 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
 
     @Override
     public boolean init(Properties properties) {
-        File baseDir = OneMFiveAppContext.getInstance().getBaseDir();
+        File baseDir = new File(properties.getProperty("1m5.dir.base"));
         if(!baseDir.exists()) {
             LOG.warning("Base directory for 1M5 does not exist.");
             return false;

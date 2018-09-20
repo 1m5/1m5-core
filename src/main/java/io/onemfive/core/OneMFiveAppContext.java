@@ -48,7 +48,7 @@ public class OneMFiveAppContext {
     protected static OneMFiveAppContext globalAppContext;
 //    protected final OneMFiveConfig config;
 
-    protected final Properties overrideProps;
+    protected final Properties overrideProps = new Properties();
 
     private StatManager statManager;
     private LogManager logManager;
@@ -84,7 +84,7 @@ public class OneMFiveAppContext {
      * started in the same JVM after the first is shut down,
      * e.g. on Android.
      */
-    public static OneMFiveAppContext getInstance() {
+    public static synchronized OneMFiveAppContext getInstance() {
         synchronized (lockA) {
             if (globalAppContext == null) {
                 globalAppContext = new OneMFiveAppContext(false, null);
@@ -120,9 +120,12 @@ public class OneMFiveAppContext {
      */
     private OneMFiveAppContext(boolean doInit, Properties envProps) {
 
-        overrideProps = new Properties();
-        if (envProps != null)
-            overrideProps.putAll(envProps);
+        try {
+            overrideProps.putAll(Config.loadFromClasspath("1m5.config", envProps, false));
+        } catch (Exception e) {
+            LOG.warning(e.getLocalizedMessage());
+        }
+
         shutdownTasks = new ConcurrentHashSet<>(10);
 //        try {
 //            java.util.logging.LogManager.getLogManager().readConfiguration(OneMFiveAppContext.class.getResourceAsStream("/logging.properties"));
@@ -133,72 +136,40 @@ public class OneMFiveAppContext {
         String version = getProperty("1m5.version");
         LOG.info("1M5 Version: "+version);
 
-        String baseStr = getProperty("1m5.dir.base", System.getProperty("user.dir")+"/.1m5");
+        String systemTimeZone = getProperty("1m5.systemTimeZone");
+        LOG.info("1M5 System Time Zone: "+systemTimeZone);
+
+        String baseStr = getProperty("1m5.dir.base");
         LOG.info("Base Directory: "+baseStr);
         baseDir = new File(baseStr);
         if(!baseDir.exists()) {
             baseDir.mkdir();
         }
 
-        String configStr = getProperty("1m5.dir.config");
-        if (configStr != null) {
-            configDir = new SecureFile(configStr);
-            if (!configDir.exists())
-                configDir.mkdir();
-        } else {
-            configStr = baseStr + "/config";
-            configDir = new SecureFile(configStr);
-            if(!configDir.exists())
-                configDir.mkdir();
-        }
+        String configStr = baseStr + "/config";
+        configDir = new SecureFile(configStr);
+        if(!configDir.exists())
+            configDir.mkdir();
 
-        String pidStr = getProperty("1m5.dir.pid");
-        if (pidStr != null) {
-            pidDir = new SecureFile(pidStr);
-            if (!pidDir.exists())
-                pidDir.mkdir();
-        } else {
-            pidStr = baseStr + "/pid";
-            pidDir = new SecureFile(pidStr);
-            if (!pidDir.exists())
-                pidDir.mkdir();
-        }
+        String pidStr = baseStr + "/pid";
+        pidDir = new SecureFile(pidStr);
+        if (!pidDir.exists())
+            pidDir.mkdir();
 
-        String logStr = getProperty("1m5.dir.log");
-        if (logStr != null) {
-            logDir = new SecureFile(logStr);
-            if (!logDir.exists())
-                logDir.mkdir();
-        } else {
-            logStr = baseStr + "/log";
-            logDir = new SecureFile(logStr);
-            if (!logDir.exists())
-                logDir.mkdir();
-        }
+        String logStr = baseStr + "/log";
+        logDir = new SecureFile(logStr);
+        if (!logDir.exists())
+            logDir.mkdir();
 
-        String appStr = getProperty("1m5.dir.app");
-        if (appStr != null) {
-            appDir = new SecureFile(appStr);
-            if (!appDir.exists())
-                appDir.mkdir();
-        } else {
-            appStr = baseStr + "/app";
-            appDir = new SecureFile(appStr);
-            if (!appDir.exists())
-                appDir.mkdir();
-        }
+        String appStr = baseStr + "/app";
+        appDir = new SecureFile(appStr);
+        if (!appDir.exists())
+            appDir.mkdir();
 
-        String tmpStr = getProperty("1m5.dir.temp");
-        if (tmpStr != null) {
-            tmpDir = new SecureFile(appStr);
-            if (!tmpDir.exists())
-                tmpDir.mkdir();
-        } else {
-            tmpStr = baseStr + "/tmp";
-            tmpDir = new SecureFile(tmpStr);
-            if (!tmpDir.exists())
-                tmpDir.mkdir();
-        }
+        String tmpStr = baseStr + "/tmp";
+        tmpDir = new SecureFile(tmpStr);
+        if (!tmpDir.exists())
+            tmpDir.mkdir();
 
         clientAppManager = new ClientAppManager(false);
         // Instantiate Service Bus
@@ -216,8 +187,10 @@ public class OneMFiveAppContext {
         // InfoVaultDB
         try {
             if(envProps.getProperty(InfoVaultDB.class.getName()) != null) {
+                LOG.info("Instantiating InfoVaultDB of type: "+envProps.getProperty(InfoVaultDB.class.getName()));
                 infoVaultDB = InfoVaultService.getInfoVaultDBInstance(envProps.getProperty(InfoVaultDB.class.getName()));
             } else {
+                LOG.info("No InfoVaultDB type provided. Instantiating InfoVaultDB of default type: "+LocalFSInfoVaultDB.class.getName());
                 infoVaultDB = InfoVaultService.getInfoVaultDBInstance(LocalFSInfoVaultDB.class.getName());
             }
             infoVaultDB.init(envProps);
@@ -344,11 +317,9 @@ public class OneMFiveAppContext {
      *
      */
     public String getProperty(String propName) {
-        if (overrideProps != null) {
-            String rv = overrideProps.getProperty(propName);
-            if (rv != null)
-                return rv;
-        }
+        String rv = overrideProps.getProperty(propName);
+        if (rv != null)
+            return rv;
         return System.getProperty(propName);
     }
 
@@ -360,10 +331,8 @@ public class OneMFiveAppContext {
      *
      */
     public String getProperty(String propName, String defaultValue) {
-        if (overrideProps != null) {
-            if (overrideProps.containsKey(propName))
-                return overrideProps.getProperty(propName, defaultValue);
-        }
+        if (overrideProps.containsKey(propName))
+            return overrideProps.getProperty(propName, defaultValue);
         return System.getProperty(propName, defaultValue);
     }
 
@@ -371,17 +340,14 @@ public class OneMFiveAppContext {
      * Return an int with an int default
      */
     public int getProperty(String propName, int defaultVal) {
-        String val = null;
-        if (overrideProps != null) {
-            val = overrideProps.getProperty(propName);
-            if (val == null)
-                val = System.getProperty(propName);
-        }
+        String val = overrideProps.getProperty(propName);
+        if (val == null)
+            val = System.getProperty(propName);
         int ival = defaultVal;
         if (val != null) {
             try {
                 ival = Integer.parseInt(val);
-            } catch (NumberFormatException nfe) {}
+            } catch (NumberFormatException nfe) {LOG.warning(nfe.getLocalizedMessage());}
         }
         return ival;
     }
@@ -390,17 +356,14 @@ public class OneMFiveAppContext {
      * Return a long with a long default
      */
     public long getProperty(String propName, long defaultVal) {
-        String val = null;
-        if (overrideProps != null) {
-            val = overrideProps.getProperty(propName);
-            if (val == null)
-                val = System.getProperty(propName);
-        }
+        String val  = overrideProps.getProperty(propName);
+        if (val == null)
+            val = System.getProperty(propName);
         long rv = defaultVal;
         if (val != null) {
             try {
                 rv = Long.parseLong(val);
-            } catch (NumberFormatException nfe) {}
+            } catch (NumberFormatException nfe) {LOG.warning(nfe.getLocalizedMessage());}
         }
         return rv;
     }

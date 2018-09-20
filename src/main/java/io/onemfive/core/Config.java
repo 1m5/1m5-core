@@ -31,12 +31,10 @@ public class Config {
         try {
             is = Config.class.getClassLoader().getResourceAsStream(name);
             p.load(is);
-            LOG.info("Loaded properties file "+name+" with following name-value pairs:");
             Enumeration propNames = p.propertyNames();
             while(propNames.hasMoreElements()){
                 String propName = (String)propNames.nextElement();
                 p.put(propName, p.getProperty(propName));
-                LOG.info(propName+":"+p.getProperty(propName));
             }
         } catch (Exception e) {
             LOG.warning("Failed to load properties file "+name);
