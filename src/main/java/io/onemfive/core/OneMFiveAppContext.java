@@ -85,25 +85,25 @@ public class OneMFiveAppContext {
      * e.g. on Android.
      */
     public static OneMFiveAppContext getInstance() {
-        if(globalAppContext == null) {
-            synchronized (lockA) {
+        synchronized (lockA) {
+            if (globalAppContext == null) {
                 globalAppContext = new OneMFiveAppContext(false, null);
-                LOG.info("Created and returning new instance: "+globalAppContext);
+                LOG.info("Created and returning new instance: " + globalAppContext);
+            } else{
+                LOG.info("Returning cached instance: " + globalAppContext);
             }
-        } else {
-            LOG.info("Returning cached instance: " + globalAppContext);
         }
         return globalAppContext;
     }
 
     public static OneMFiveAppContext getInstance(Properties properties) {
-        if(globalAppContext == null) {
-            synchronized (lockA) {
+        synchronized (lockA) {
+            if (globalAppContext == null) {
                 globalAppContext = new OneMFiveAppContext(false, properties);
-                LOG.info("Created and returning new instance: "+globalAppContext);
+                LOG.info("Created and returning new instance: " + globalAppContext);
+            } else {
+                LOG.info("Returning cached instance: " + globalAppContext);
             }
-        } else {
-            LOG.info("Returning cached instance: " + globalAppContext);
         }
         return globalAppContext;
     }
