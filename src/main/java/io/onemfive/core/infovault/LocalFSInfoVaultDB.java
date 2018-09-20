@@ -39,8 +39,9 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
             if(!path.exists()) {
                 if(!autoCreate)
                     throw new FileNotFoundException("Label doesn't exist and autoCreate = false");
-                else
+                else {
                     path.mkdirs();
+                }
             }
         }
         File file = null;
@@ -161,6 +162,8 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
             if(!dbDir.mkdir()) {
                 LOG.warning("Unable to create directory /infovault in 1M5 base directory.");
                 return false;
+            } else {
+                dbDir.setWritable(true);
             }
         }
         return true;
