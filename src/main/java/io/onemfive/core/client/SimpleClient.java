@@ -79,13 +79,17 @@ final class SimpleClient implements Client {
         clientStatusListeners.add(listener);
     }
 
-    @Override
-    public void subscribeToEmail(Subscription subscription) {
-        SubscriptionRequest request = new SubscriptionRequest(EventMessage.Type.EMAIL, subscription);
+    public void subscribeToEvent(EventMessage.Type eventType, Subscription subscription) {
+        SubscriptionRequest request = new SubscriptionRequest(eventType, subscription);
         Envelope e = Envelope.documentFactory();
         e.setClient(id);
         DLC.addData(SubscriptionRequest.class, request,e);
         DLC.addRoute(NotificationService.class, NotificationService.OPERATION_SUBSCRIBE,e);
         request(e);
+    }
+
+    @Override
+    public void subscribeToEmail(Subscription subscription) {
+        subscribeToEvent(EventMessage.Type.EMAIL, subscription);
     }
 }

@@ -3,6 +3,7 @@ package io.onemfive.core.client;
 import io.onemfive.core.bus.BusStatusListener;
 import io.onemfive.core.notification.SubscriptionRequest;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.EventMessage;
 import io.onemfive.data.ServiceCallback;
 import io.onemfive.data.Subscription;
 
@@ -50,6 +51,12 @@ public interface Client {
      * @param listener
      */
     void registerClientStatusListener(ClientStatusListener listener);
+
+    /**
+     * Subscribe to events by Type.
+     * @param subscription
+     */
+    void subscribeToEvent(EventMessage.Type eventType, Subscription subscription);
 
     /**
      * Subscribe to Email events (receiving Email).
