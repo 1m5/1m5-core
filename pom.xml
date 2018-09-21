@@ -31,8 +31,6 @@
 	<developers>
 		<developer>
 			<name>objectorange</name>
-			<organization>Resolving Architecture</organization>
-			<url>http://resolvingarchitecture.com</url>
 			<email>1m5@protonmail.com</email>
 		</developer>
 	</developers>
@@ -46,19 +44,19 @@
 		<profile>
 			<id>Development</id>
 			<properties>
-				<logfile>/1m5/logs/core.log</logfile>
+
 			</properties>
 		</profile>
 		<profile>
 			<id>QA</id>
 			<properties>
-				<logfile>/1m5/logs/core.log</logfile>
+
 			</properties>
 		</profile>
 		<profile>
 			<id>Production</id>
 			<properties>
-				<logfile>/1m5/logs/core.log</logfile>
+
 			</properties>
 		</profile>
 	</profiles>

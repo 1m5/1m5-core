@@ -138,6 +138,7 @@ public class OneMFiveAppContext {
 
         String systemTimeZone = getProperty("1m5.systemTimeZone");
         LOG.info("1M5 System Time Zone: "+systemTimeZone);
+        TimeZone.setDefault(TimeZone.getTimeZone(systemTimeZone));
 
         String baseStr = getProperty("1m5.dir.base");
         LOG.info("Base Directory: "+baseStr);
