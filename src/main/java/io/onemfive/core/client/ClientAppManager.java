@@ -167,7 +167,8 @@ public final class ClientAppManager implements BusStatusListener {
             if (client != null) {
                 client.notify(e);
             } else {
-                LOG.warning("Client not found. Number of registered clients: "+registered.size());
+                // Just use defaultClient as there should only be one client for now
+                defaultClient.notify(e);
             }
         }
     }
