@@ -127,11 +127,6 @@ public class OneMFiveAppContext {
         }
 
         shutdownTasks = new ConcurrentHashSet<>(10);
-//        try {
-//            java.util.logging.LogManager.getLogManager().readConfiguration(OneMFiveAppContext.class.getResourceAsStream("/logging.properties"));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
         String version = getProperty("1m5.version");
         LOG.info("1M5 Version: "+version);

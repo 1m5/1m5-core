@@ -24,11 +24,6 @@ Primary components are the bus, clients, services, and sensors.
 It supports registration of services with the service bus. 
 Long-term it will support additional administration operations for the entire framework.
 
-### [Aten Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/aten/README.md)
-Not implemented although it's expected to be implemented shortly. 
-Provides utility tokens for developers, both business and technical, 
-to determine Prana distribution ratios from transaction fees if/when present.
-
 ### [Bus](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/bus/README.md)
 The framework implemented by the Service Bus, Message Channel, Worker Thread, and Worker Thread Pool.
 A Persistent Message Queue is expected in the future to ensure messages are persistent to aid in fault tolerance.
@@ -40,32 +35,6 @@ A package containing classes for clients to make requests from the Bus and recei
 - **ClientAppManager**: Best method to receive an instance of this class is to use OneMFiveAppContext's getClientAppManager method. This class will start the Service Bus if it's stopped. It also ensures a SimpleClient is available. When stopping it, it will also stop the Service Bus. When you receive a Client from this object, ensure that you unregister it with this object too.
 - **SimpleClient**: Returned from ClientAppManager as Client. Sends messages to Service Bus which releases the calling thread when the message reaches the Message Channel's queue. If a ServiceCallback is provided, SimpleClient uses an internal claim check using the Envelope's ID as the claim ID so that on notify the Envelope provided can be correlated with the requesting ServiceCallback which then calls its reply method.
 
-### [Consensus Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/consensus/README.md)
-Expected to provide consensus among mobiles.
-
-Not Yet Implemented.
-
-### [Content Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/content/README.md)
-Will basically provide dynamic content through NodeJS as a back-end service for providing HTML5/CSS3/JS apps in Java and static content through an internal DHT.
-
-Not Yet Implemented.
-
-### [Contract Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/contract/README.md)
-Expected to initially support Omni (Bitcoin) smart contracts but long-term desired to run smart contracts directly in this app.
-
-Not Yet Implemented. 
-
-### [Decentralized EXchange (DEX) Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/dex/README.md)
-Integration of BarterDEX in the future.
-
-Not Yet Implemented. 
-
-### [Decentralized IDentity (DID) Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/did/README.md)
-Self-Sovereign Identity + RepBAC (Reputation Based Access Control) + Circles of Influence. Identity without claimed authority, 
-the best protection against abuse, overreach, and authoritarianism. The foundation for security, the DID is 
-decentralized and guarantees privacy for every life and automaton on the planet returning control and ownership 
-of personal information back to each of us while supporting access control based on reputation. 
-
 ### [InfoVault Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/infovault/README.md)
 Vault of personal information to assist in building up your reputation and for additional services as you see fit. 
 Access revocable on your command.
@@ -73,11 +42,12 @@ Access revocable on your command.
 Currently building a p2p graph db with tunable consistency. 
 Inspiration from Janus Graph and Cassandra.
 
-### [KeyRing Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/keyring/README.md)
-Key management for securing your keys on your mobile and off-line. 
-Supports sending keys to and receiving keys from off-line key vaults. 
+Neo4J implementation needs its own library.
 
-Not Yet Implemented.
+### [KeyRing Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/keyring/README.md)
+OpenPGP default implementation with OpenPGPKeyRing and integration with Puri.sm USB secure key with PurismOpenPGPKeyRing.
+
+In Progress.
 
 ### [Orchestration Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/orchestration/README.md)
 Orchestrates service calls using Simple Routes and Dynamic Routing Slips.
@@ -91,31 +61,6 @@ Routes Envelopes accordingly:
 1. If slip is not in progress, remaining routes counter is incremented by the number of remaining routes in the slip, and the slip is flagged as in progress.
 2. If there's a Route ready to be popped off the stack, the Route is popped, set in the Envelope, and active routes counter is incremented.
 3. If there's no additional Routes, there was no Route set in the Envelope, or there was but it's already been routed, or there was and it hasn't routed but it's for the Orchestration Service, then if client id was set in Envelope, set Reply to client as true otherwise just end the route, but either way decrement the active routes counter and remaining routes counter. If the route is just a fire-and-forget, just send it on its way and increment both the active and remaining routes counters.
-
-### [Prana Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/prana/README.md)
-Utility tokens used in the platform as a method to manage resources (network, cpu, storage) to support it. 
-Prana can be acquired by sharing resources, selling personal information, and as rewards for using the system. 
-They can be used to acquire resources beyond what a user's mobile provides.
-
-Not Yet Implemented.
-
-### [Repository Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/repository/README.md)
-Provides access to various decentralized repository services.
-
-The first implementation is for GitLab using GitLab.com as a temporary hosting solution. Long-term it's expected to support Git fully decentralized.
-
-Started but not yet implemented.
-
-### [SecureDrop Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/securedrop/README.md)
-Simplifies submitting sensitive data to Secure Drop service via Tor.
-
-Not Yet Implemented.
-
-### [Sensors Service](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/sensors/README.md)
-Provides an intelligent router as an overlay network using I2P for a base level of anonymity P2P and Tor when accessing clearnet web services. 
-The module participates with the DID Service for self-sovereign identity and reputation based access. 
-The system survives even if the internet goes down or is cut off by supporting peer-to-peer direct wireless mesh networks. 
-As long as enough people still have their device, the network survives. 
 
 ### [Utilities](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/util/README.md)
 
