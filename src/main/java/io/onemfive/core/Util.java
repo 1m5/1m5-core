@@ -7,6 +7,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
@@ -83,6 +85,12 @@ public class Util {
                     LOG.warning("Can't close input stream.");
                 }
         }
+    }
+
+    public static List<String> readLines(String fileName) throws IOException {
+        File f = new File(fileName);
+        LOG.info("Loading lines in file "+f.getAbsolutePath()+"...");
+        return Files.readAllLines(f.toPath(), Charset.defaultCharset());
     }
     
     /**
