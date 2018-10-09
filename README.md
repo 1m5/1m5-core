@@ -1,6 +1,9 @@
 # 1M5 Core
-An intelligent anonymous communications framework with popular general decentralized services and easy to use APIs
-for embedding.
+A secure open-source decentralized peer-to-peer application platform with end-to-end encryption 
+and anonymity as a base layer for creating easy to build and use secure decentralized peer-to-peer 
+applications requiring no server connections that can be used around the world by any person looking 
+to protect their communications and personal data from unjust intrusion, interception, monitoring, 
+and censorship.
 
 ## Version
 0.5.2
