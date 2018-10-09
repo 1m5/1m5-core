@@ -9,7 +9,7 @@ and censorship.
 0.5.2
 
 ## Authors / Developers
-* Founder / Lead Developer: Brian Taylor - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/) | [Email](1m5@protonmail.com)
+* Founder / Lead Developer: Brian Taylor - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/)
 * Monetization: Brad Neiger - [LinkedIn](https://www.linkedin.com/in/bradneiger/)
 * End User Advocate: Theresa Augustin - [LinkedIn](https://www.linkedin.com/in/theresaaaugustin/)
 
