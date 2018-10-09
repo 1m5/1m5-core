@@ -9,11 +9,9 @@ and censorship.
 0.5.2
 
 ## Authors / Developers
-* Founder / Project Lead Developer: [ObjectOrange](https://github.com/objectorange) - objectorange@protonmail.com
-* Quality Assurance Developer: Private
-* I2P Lead Developer: Desired
-* Identity (DID) Lead Developer: Desired
-* Content Lead Developer: Desired
+* Founder / Lead Developer: Brian Taylor - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/) | [Email](1m5@protonmail.com)
+* Monetization: Brad Neiger - [LinkedIn](https://www.linkedin.com/in/bradneiger/)
+* End User Advocate: Theresa Augustin - [LinkedIn](https://www.linkedin.com/in/theresaaaugustin/)
 
 ## Bounties
 * Paid in Bitcoin
