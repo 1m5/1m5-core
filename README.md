@@ -97,21 +97,11 @@ Documentation of the Core starts [here](https://github.com/1m5/core/tree/master/
 
 ## Integrations
 
-### [Inkrypt](https://inkrypt.io) - Content Delivery Network (CDN) for Journalism
+### [Inkrypt](https://inkrypt.io) - Decentralized Content Delivery Network (DCDN) for Journalism
 Inkrypt is building a CDN for Journalists to store and publish articles fighting government
 oppression of the right to free speech globally. They need censorship resistant identities
 to protect journalists from harm yet support their ability to build a reputation as a trusting
 source for news and to ensure that information is also not censored nor stolen yet allows
 the journalist to release portions of the information as they desire to whom they desire
 to share it with to include no one or everyone (global public).
-
-### [Dragonsbane](https://dragonsbane.io) - Health and Wellness for All
-
-### [Purism](https://puri.sm) - Censorship Resistant Hardware and Operating Systems
-
-### [DGramz](https://dgramz.io) - Open Private Communications for Humanity - Free Speech Worldwide
-
-### [V4D](https://v4d.io) - Voluntary Decentralized Delegative Direct Democracy
-
-### [460R4](https://460r4.io/) - Voluntary Markets
 
