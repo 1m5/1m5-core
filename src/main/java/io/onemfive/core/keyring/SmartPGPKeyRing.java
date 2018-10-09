@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author objectorange
  */
-public class PurismOpenPGPKeyRing extends OpenPGPKeyRing {
+public class SmartPGPKeyRing extends OpenPGPKeyRing {
 
     @Override
     public void loadKeyRings(String alias, char[] passphrase, int hashStrength, String secretKeyRingCollectionFileLocation, String publicKeyRingCollectionFileLocation, boolean autoGenerate, boolean removeOldKeys) throws IOException, PGPException {
