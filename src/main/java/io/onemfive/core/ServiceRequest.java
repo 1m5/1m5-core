@@ -16,8 +16,8 @@ public abstract class ServiceRequest implements JSONSerializable {
     public Map<String,Object> toMap() {
         Map<String,Object> m = new HashMap<>();
         m.put("errorCode",errorCode+"");
-        m.put("errorMessage",errorMessage);
-        m.put("exception",exception.getLocalizedMessage());
+        if(errorMessage!=null) m.put("errorMessage",errorMessage);
+        if(exception!=null) m.put("exception",exception.getLocalizedMessage());
         return m;
     }
 
