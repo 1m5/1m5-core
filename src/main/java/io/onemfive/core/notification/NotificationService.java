@@ -159,6 +159,7 @@ public class NotificationService extends BaseService {
         subscriptions.put(EventMessage.Type.ERROR.name(), buildNewMap());
         subscriptions.put(EventMessage.Type.STATUS_BUS.name(), buildNewMap());
         subscriptions.put(EventMessage.Type.STATUS_CLIENT.name(), buildNewMap());
+        subscriptions.put(EventMessage.Type.STATUS_DID.name(), buildNewMap());
         subscriptions.put(EventMessage.Type.STATUS_SENSOR.name(), buildNewMap());
         subscriptions.put(EventMessage.Type.STATUS_SERVICE.name(), buildNewMap());
         subscriptions.put(EventMessage.Type.TEXT.name(), buildNewMap());
