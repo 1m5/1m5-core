@@ -35,6 +35,7 @@ public class NotificationService extends BaseService {
      * STATUS_SERVICE: String representing full name of Service class, e.g. io.onemfive.core.sensors.SensorService
      * STATUS_BUS: No filters supported
      * STATUS_CLIENT: No filters supported
+     * STATUS_DID: Identity hash
      * TEXT: Can filter by name if provided. For I2P messages, the name is the sender's base64 encoded key.
      *
      */
