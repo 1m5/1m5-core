@@ -107,12 +107,12 @@ public class NotificationService extends BaseService {
         EventMessage m = (EventMessage)e.getMessage();
         LOG.info("For type: "+m.getType());
         Map<String,List<Subscription>> s = subscriptions.get(m.getType());
-        if(s.size() == 0) {
+        if(s == null || s.size() == 0) {
             LOG.info("No subscriptions for type: "+m.getType());
             return;
         }
         final List<Subscription> subs = s.get("|");
-        if(subs.size() == 0) {
+        if(subs == null || subs.size() == 0) {
             LOG.info("No subscriptions without filters.");
         } else {
             LOG.info("Notify all "+subs.size()+" unfiltered subscriptions.");
@@ -128,7 +128,7 @@ public class NotificationService extends BaseService {
         }
 //        LOG.info("With name to filter on: " + m.getName());
         final List<Subscription> filteredSubs = s.get(m.getName());
-        if(filteredSubs.size() == 0) {
+        if(filteredSubs == null || filteredSubs.size() == 0) {
             LOG.info("No subscriptions for filter: "+m.getName());
         } else {
             LOG.info("Notify all "+filteredSubs.size()+" filtered subscriptions.");
