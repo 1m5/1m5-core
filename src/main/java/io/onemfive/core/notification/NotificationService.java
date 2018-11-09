@@ -80,7 +80,7 @@ public class NotificationService extends BaseService {
         Map<String,List<Subscription>> s = subscriptions.get(r.getType().name());
         if(r.getFilter() == null) {
             LOG.info("With no filters.");
-            s.get(null).add(r.getSubscription());
+            s.get("|").add(r.getSubscription());
         } else {
             LOG.info("With filter: "+r.getFilter());
             if(s.get(r.getFilter()) == null)
@@ -95,7 +95,7 @@ public class NotificationService extends BaseService {
         SubscriptionRequest r = (SubscriptionRequest)DLC.getData(SubscriptionRequest.class,e);
         Map<String,List<Subscription>> s = subscriptions.get(r.getType().name());
         if(r.getFilter() == null) {
-            s.get(null).remove(r.getSubscription());
+            s.get("|").remove(r.getSubscription());
         } else {
             s.get(r.getFilter()).remove(r.getSubscription());
         }
@@ -104,7 +104,6 @@ public class NotificationService extends BaseService {
 
     private void publish(final Envelope e) {
         LOG.info("Received publish request...");
-        List<Subscription> toNotify = new ArrayList<>();
         EventMessage m = (EventMessage)e.getMessage();
         LOG.info("For type: "+m.getType());
         Map<String,List<Subscription>> s = subscriptions.get(m.getType());
@@ -112,36 +111,43 @@ public class NotificationService extends BaseService {
             LOG.info("No subscriptions for type: "+m.getType());
             return;
         }
-        final List<Subscription> subs = s.get(null);
+        final List<Subscription> subs = s.get("|");
         if(subs.size() == 0) {
             LOG.info("No subscriptions without filters.");
         } else {
-            toNotify.addAll(subs);
+            LOG.info("Notify all "+subs.size()+" unfiltered subscriptions.");
+            for(final Subscription sub: subs) {
+                // TODO: Move to WorkerThreadPool to control CPU usage
+                new AppThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sub.notifyOfEvent(e);
+                    }
+                }).start();
+            }
         }
-        LOG.info("With name to filter on: " + m.getName());
+//        LOG.info("With name to filter on: " + m.getName());
         final List<Subscription> filteredSubs = s.get(m.getName());
         if(filteredSubs.size() == 0) {
             LOG.info("No subscriptions for filter: "+m.getName());
         } else {
-            toNotify.addAll(filteredSubs);
-        }
-        LOG.info("Notifying "+toNotify.size()+" subscriber(s) of event...");
-        // Directly notify in separate thread
-        for(final Subscription sub: toNotify) {
-            // TODO: Move to WorkerThreadPool to control CPU usage
-            new AppThread(new Runnable() {
-                @Override
-                public void run() {
-                    sub.notifyOfEvent(e);
-                }
-            }).start();
+            LOG.info("Notify all "+filteredSubs.size()+" filtered subscriptions.");
+            for(final Subscription sub: filteredSubs) {
+                // TODO: Move to WorkerThreadPool to control CPU usage
+                new AppThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sub.notifyOfEvent(e);
+                    }
+                }).start();
+            }
         }
     }
 
     private Map<String,List<Subscription>> buildNewMap() {
         List<Subscription> l = new ArrayList<>();
         Map<String,List<Subscription>> m = new HashMap<>();
-        m.put(null,l);
+        m.put("|",l);
         return m;
     }
 
