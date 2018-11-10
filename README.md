@@ -64,13 +64,6 @@ In addition:
 - Smartphone ownership around the world is greater than PC ownership.
 - Smartphones, our primary means of global communication and collaboration, are weak in maintaining our anonymity and privacy - critical to ensuring individual freedom.
 
-## Threats
-
-* [DNS Blocking](https://en.wikipedia.org/wiki/DNS_blocking) - Inbound and outbound blocking of IP addresses by DNS servers.
-* [DNS Poisoning](https://en.wikipedia.org/wiki/DNS_spoofing) - Corruption in a DNS server's resolver cache by swapping out
-valid IP addresses with invalid addresses resulting in traffic divertion.
-* More to come...
-
 ## Solution
 1M5 works to solve these issues by providing an intelligent router embedding Tor, I2P, Direct Wireless Mesh, and other
 networks, using them intelligently as one dynamic network, and providing easy to use APIs for developers to embed in their
@@ -84,6 +77,145 @@ We provide a Maneuver Condition status to signal what level of maneuvering is re
 * **MANCON 3**: Medium Security - Tor hidden services discovered with targeted takedowns. I2P hidden services for those few who know how to access those on all devices.
 * **MANCON 2**: Medium-High Security - I2P hidden services getting attacked/targeted. Use 1M5 mainly with I2P.
 * **MANCON 1**: Highest of Security - whistleblower with deep state top secrets or strong censorship attempts (Tor Nodes blocking / deep packet inspections / I2P timing attacks) in jurisdictions with no freedom of expression protections (North Korea, China, Syria, Iran): 1M5 with I2P Bote/1DM on Purism Libre Mobile and Laptops.
+
+## Threats & Counter Measures
+Censorship attempts can be made in a myriad of ways and are ever changing as technology changes and attackers grow in experience.
+Below are some of these methods and how 1M5 and composite networks mitigate them.
+
+### DNS Blocking
+Inbound and outbound blocking of IP addresses by DNS servers.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/DNS_blocking)
+
+### DNS Poisoning
+Corruption in a DNS server's resolver cache by swapping out valid IP addresses with invalid addresses resulting in traffic divertion.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/DNS_spoofing)
+
+### Brute Force
+
+#### I2P
+
+### Intersection
+
+#### I2P
+
+### Tagging
+
+#### I2P
+
+### Partitioning
+
+#### I2P
+
+### Predecessor
+
+#### I2P
+
+### Harvesting
+
+#### I2P
+
+### Traffic Analysis Identification
+
+#### I2P
+
+### Sybil
+
+#### I2P
+
+### Buddy Exhaustion
+
+#### I2P
+
+### Cryptographic
+
+#### I2P
+
+### Floodfill Anonymity
+
+#### I2P
+
+### Central Resource
+
+#### I2P
+
+### Development
+
+#### I2P
+
+### Implementation (Bugs)
+
+#### I2P
+
+### Blocklists
+
+#### I2P
+
+### Distributed Denial of Service (DDoS)
+A network-attack in which the perpetrator seeks to make a machine or network resource unavailable to its intended users 
+by temporarily or indefinitely disrupting services of a networked host.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Denial-of-service_attack)
+
+#### Greedy User
+
+##### I2P
+
+#### Starvation
+
+##### I2P
+
+#### Flooding
+
+##### I2P
+
+#### CPU Loading
+
+##### I2P   
+
+#### Floodfill
+
+##### I2P
+
+#### SYN Flood
+DDos attacks by initiating TCP/IP handshakes but either not responding with a final ACK or responding with a different IP address.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/SYN_flood)
+
+#### Layer 7
+DDoS attacks on application-layer processes.
+
+Resources
+
+
+#### Smurf Attack
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Smurf_attack)
+
+#### Fraggle Attack
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Smurf_attack#Fraggle_Attack)
+
+### Advanced Persistent Threat (APT)
+A stealthy computer network attack in which a person or group gains unauthorized access to a network and remains 
+undetected for an extended period.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Advanced_persistent_threat)
+
+### Advanced Volatile Threat (AVT)
+A stealthy computer network attack in which a person or group gains unauthorized access to a network and remains 
+undetected in memory never persisting to the hard-drive circumventing investigative techniques.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Advanced_volatile_threat)
 
 ## Design
 1M5 is composed of a Service-Oriented Architecture (SOA) design using a minimalistic service bus for micro-services, 
