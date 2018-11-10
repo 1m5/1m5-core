@@ -46,7 +46,7 @@ today's current web sites anonymously. I2P was designed for peer-to-peer communi
 APIs for developers to embed in their products making uptake slow for many applications.
 
 A third tool on the horizon is one that completely circumvents ISPs by not using them. They're called direct wireless
-mesh networks and they can communicate directly phone-to-phone using technologies such as WiFi Direct. Firechat is an
+mesh networks and they can communicate directly device-to-device using technologies such as WiFi Direct. Firechat is an
 example used during the 2014 Hong Kong protests after the Chinese government threatened to shutdown the internet in that
 area. New mesh solutions are popping up including RightMesh that seek to improve on earlier designs. But the technology
 is still in its infancy and needs to be pulled into ever day applications more easily once they've matured.
@@ -69,6 +69,7 @@ In addition:
 * [DNS Blocking](https://en.wikipedia.org/wiki/DNS_blocking) - Inbound and outbound blocking of IP addresses by DNS servers.
 * [DNS Poisoning](https://en.wikipedia.org/wiki/DNS_spoofing) - Corruption in a DNS server's resolver cache by swapping out
 valid IP addresses with invalid addresses resulting in traffic divertion.
+* More to come...
 
 ## Solution
 1M5 works to solve these issues by providing an intelligent router embedding Tor, I2P, Direct Wireless Mesh, and other
@@ -82,12 +83,12 @@ We provide a Maneuver Condition status to signal what level of maneuvering is re
 * **MANCON 4**: Low Security - normal censorship attempts by states on reading news (public web sites getting blocked, government shutdown of cloud cdn content): Offer Tor hidden services so that people can still access information
 * **MANCON 3**: Medium Security - Tor hidden services discovered with targeted takedowns. I2P hidden services for those few who know how to access those on all devices.
 * **MANCON 2**: Medium-High Security - I2P hidden services getting attacked/targeted. Use 1M5 mainly with I2P.
-* **MANCON 1**: Highest of Security - whistleblower with deep state top secrets or strong censorship attempts (Tor Nodes blocking / deep packet inspections / I2P timing attacks) in jurisdictions with no freedom of expression protections (North Korea, China, Syria, Iran): 1M5 with I2P Bote/1MM on Purism Libre Mobile and Laptops.
+* **MANCON 1**: Highest of Security - whistleblower with deep state top secrets or strong censorship attempts (Tor Nodes blocking / deep packet inspections / I2P timing attacks) in jurisdictions with no freedom of expression protections (North Korea, China, Syria, Iran): 1M5 with I2P Bote/1DM on Purism Libre Mobile and Laptops.
 
 ## Design
-1M5 is composed of a Service-Oriented Architecture (SOA) design using a service bus for micro-services, 
+1M5 is composed of a Service-Oriented Architecture (SOA) design using a minimalistic service bus for micro-services, 
 a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
-a service registry, internal general services, and a number of Sensors for advanced intelligent interaction with other nodes.
+a service registry, internal core services, and a number of Sensors for advanced intelligent interaction with peers.
 
 ## [Implementation](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/README.md)
 The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+. 
