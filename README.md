@@ -173,6 +173,8 @@ Resources
 
 ##### I2P
 
+#### Ping Flood
+
 #### CPU Loading
 
 ##### I2P   
@@ -180,6 +182,10 @@ Resources
 #### Floodfill
 
 ##### I2P
+
+#### ReDoS
+
+#### Twinge
 
 #### SYN Flood
 DDos attacks by initiating TCP/IP handshakes but either not responding with a final ACK or responding with a different IP address.
@@ -192,6 +198,7 @@ DDoS attacks on application-layer processes.
 
 Resources
 
+#### Ping of Death
 
 #### Smurf Attack
 
