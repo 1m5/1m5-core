@@ -13,6 +13,8 @@ import java.util.logging.Logger;
 public class Config {
 
     public static String PROP_OPERATING_SYSTEM = "OPERATING_SYSTEM";
+    public static String PROP_UI = "1m5.ui"; // true | false
+    public static String PROP_UI_LAUNCH_ON_START = "1m5.ui.launchOnStart"; // true | false
 
     public enum OS {Android,Linux,OSX,Windows}
 
