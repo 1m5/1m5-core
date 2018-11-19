@@ -15,6 +15,7 @@ public class SystemVersion {
     public static final String DAEMON_USER = "1m5svc";
     public static final String GENTOO_USER = "1m5";
 
+    private static final boolean isLinux = System.getProperty("os.name").startsWith("Linux");
     private static final boolean isWin = System.getProperty("os.name").startsWith("Win");
     private static final boolean isMac = System.getProperty("os.name").startsWith("Mac");
     private static final boolean isArm = System.getProperty("os.arch").startsWith("arm");
@@ -60,7 +61,7 @@ public class SystemVersion {
                 vendor.startsWith("Free Software Foundation");      // gij
         String runtime = System.getProperty("java.runtime.name");
         isOpenJDK = runtime != null && runtime.contains("OpenJDK");
-        isLinuxService = !isWin && !isMac && !isAndroid &&
+        isLinuxService = isLinux || !isWin && !isMac && !isAndroid &&
                 (DAEMON_USER.equals(System.getProperty("user.name")) ||
                         (isGentoo && GENTOO_USER.equals(System.getProperty("user.name"))));
         isSlow = isAndroid || isApache || isArm || isGNU || getMaxMemory() < 48*1024*1024L;
@@ -99,6 +100,8 @@ public class SystemVersion {
             oneDotTwelve = oneDotEleven && VersionComparator.comp(version, "1.12") >= 0;
         }
     }
+
+    public static boolean isLinux() {return isLinux;}
 
     public static boolean isWindows() {
         return isWin;
