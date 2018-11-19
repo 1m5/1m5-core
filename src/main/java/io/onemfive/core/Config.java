@@ -20,6 +20,15 @@ public class Config {
 
     private static final Logger LOG = Logger.getLogger(Config.class.getName());
 
+    public static void logProperties(Properties p) {
+        Enumeration e = p.keys();
+        while(e.hasMoreElements()) {
+            String key = (String)e.nextElement();
+            String value = p.getProperty(key);
+            LOG.info(key+":"+value);
+        }
+    }
+
     public static Properties loadFromClasspath(String name) throws Exception {
         return loadFromClasspath(name, null, false);
     }
