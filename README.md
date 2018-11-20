@@ -2,7 +2,7 @@
 A secure open-source decentralized peer-to-peer application platform with end-to-end encryption 
 and anonymity as a base layer for creating easy to build and use secure decentralized peer-to-peer 
 applications requiring no server connections that can be used around the world by any person looking 
-to protect their communications and personal data from unjust intrusion, interception, monitoring, 
+to protect their communications and personal data from unethical monitoring, interception, intrusion, 
 and censorship.
 
 ## Version
@@ -10,7 +10,7 @@ and censorship.
 
 ## Authors / Developers
 * Founder / Lead Developer: Brian Taylor - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/)
-* Monetization: Brad Neiger - [LinkedIn](https://www.linkedin.com/in/bradneiger/)
+* Fund Raising: Brad Neiger - [LinkedIn](https://www.linkedin.com/in/bradneiger/)
 * End User Advocate: Theresa Augustin - [LinkedIn](https://www.linkedin.com/in/theresaaaugustin/)
 
 ## Bounties
@@ -237,11 +237,61 @@ Documentation of the Core starts [here](https://github.com/1m5/core/tree/master/
 
 ## Integrations
 
-### [Inkrypt](https://inkrypt.io) - Decentralized Content Delivery Network (DCDN) for Journalism
-Inkrypt is building a CDN for Journalists to store and publish articles fighting government
+### [Inkrypt](https://inkrypt.io)
+
+#### Anonymous Decentralized Cloud 
+An anonymous decentralized Content Delivery Network (DCDN).
+
+#### nLightn
+Inkrypt is building a decentralized censorship resistant network for citizen journalists 
+to store and publish articles fighting government
 oppression of the right to free speech globally. They need censorship resistant identities
 to protect journalists from harm yet support their ability to build a reputation as a trusting
 source for news and to ensure that information is also not censored nor stolen yet allows
 the journalist to release portions of the information as they desire to whom they desire
 to share it with to include no one or everyone (global public).
 
+## Fund Raising
+1M5 is funded entirely through donations and volunteers. The following are current and potential donation sources.
+
+### [Alex Jones](https://en.wikipedia.org/wiki/Alex_Jones)
+An American radio show host and conspiracy theorist pushing the boundaries on free speech in the United States.
+
+* https://www.infowars.com/
+
+### [American Civil Liberties Union (ACLU)](https://www.aclu.org/)
+
+* https://www.aclu.org/issues/national-security/privacy-and-surveillance/nsa-surveillance
+
+### [Anonymous](https://en.wikipedia.org/wiki/Anonymous_(group))
+A decentralized international hacktivist group. 
+"We are Anonymous. We are Legion. We do not forgive. We do not forget. Expect us."
+Broadly speaking, Anons oppose Internet censorship and control and the majority of their actions target governments, 
+organizations, and corporations that they accuse of censorship. 
+
+### [Antifa](https://en.wikipedia.org/wiki/Antifa_(United_States))
+Movement against fascism.
+
+### [Electronic Frontier Foundation](https://www.eff.org/)
+
+* https://www.eff.org/issues/privacy
+* https://ssd.eff.org/
+
+### [Freedom of the Press Foundation](https://freedom.press/)
+FPF assists with crowdfunding those projects aiming to improve on journalism tools aimed at security.
+The problem is that they only take donations via card and PayPal which is anything but anonymous.
+
+* https://freedom.press/crowdfunding/
+
+### [Inkrypt](https://www.inkrypt.io/)
+
+### [Purism](https://puri.sm/)
+A security and freedom-focused computer manufacturer based in San Francisco, founded in 2014 with the 
+fundamental goals of combining the philosophies of the Free Software movement with the hardware 
+manufacturing process, and to make it easy for individuals and businesses to have computers that 
+they can trust and feel safe using, i.e. making security more convenient than not.
+
+### [The Guardian Project](https://guardianproject.info/)
+Creates easy to use secure apps, open-source software libraries, and customized mobile devices that can 
+be used around the world by any person looking to protect their communications and personal data 
+from unjust intrusion, interception and monitoring.
