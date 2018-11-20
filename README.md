@@ -283,6 +283,11 @@ The problem is that they only take donations via card and PayPal which is anythi
 
 * https://freedom.press/crowdfunding/
 
+### [The Guardian Project](https://guardianproject.info/)
+Creates easy to use secure apps, open-source software libraries, and customized mobile devices that can 
+be used around the world by any person looking to protect their communications and personal data 
+from unjust intrusion, interception and monitoring.
+
 ### [Inkrypt](https://www.inkrypt.io/)
 
 ### [Purism](https://puri.sm/)
@@ -291,7 +296,4 @@ fundamental goals of combining the philosophies of the Free Software movement wi
 manufacturing process, and to make it easy for individuals and businesses to have computers that 
 they can trust and feel safe using, i.e. making security more convenient than not.
 
-### [The Guardian Project](https://guardianproject.info/)
-Creates easy to use secure apps, open-source software libraries, and customized mobile devices that can 
-be used around the world by any person looking to protect their communications and personal data 
-from unjust intrusion, interception and monitoring.
+### [ODD Reality](https://videofull.net/channel?id=UCuftdXePz6z73Wsg8Ao5lTg)
