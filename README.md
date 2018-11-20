@@ -255,7 +255,7 @@ to share it with to include no one or everyone (global public).
 1M5 is funded entirely through donations and volunteers. The following are current and potential donation sources.
 
 ### [Alex Jones](https://en.wikipedia.org/wiki/Alex_Jones)
-An American radio show host and conspiracy theorist pushing the boundaries on free speech in the United States.
+An American radio show host pushing the boundaries on free speech in the United States.
 
 * https://www.infowars.com/
 
