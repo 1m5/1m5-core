@@ -1,7 +1,5 @@
 package io.onemfive.core.infovault;
 
-import io.onemfive.core.OneMFiveAppContext;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
