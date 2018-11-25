@@ -15,12 +15,12 @@
 	</properties>
 
 	<name>1m5-core</name>
-	<url>https://1m5.io</url>
+	<url>http://1m5.io</url>
 	<description>Invisible Matrix Services Core Library</description>
 	<inceptionYear>2017</inceptionYear>
 	<organization>
 		<name>1M5</name>
-		<url>https://1m5.io</url>
+		<url>http://1m5.io</url>
 	</organization>
 	<licenses>
 		<license>
