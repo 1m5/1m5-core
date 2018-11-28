@@ -1,5 +1,7 @@
 package io.onemfive.core.keyring;
 
+import io.onemfive.core.util.data.Base64;
+import io.onemfive.data.PublicKey;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.bcpg.BCPGOutputStream;
 import org.bouncycastle.bcpg.HashAlgorithmTags;
@@ -35,11 +37,12 @@ public class OpenPGPKeyRing implements KeyRing {
 
     protected Properties properties;
 
-    protected File skr;
     // a secret key with master key and any sub-keys
+    protected File skr;
     protected PGPSecretKeyRingCollection secretKeyRingCollection;
-    protected File pkr;
+
     // a public key with master key and any sub-keys
+    protected File pkr;
     protected PGPPublicKeyRingCollection publicKeyRingCollection;
 
     @Override
@@ -48,10 +51,10 @@ public class OpenPGPKeyRing implements KeyRing {
     }
 
     @Override
-    public void loadKeyRings(String alias, char[] passphrase, int hashStrength, String secretKeyRingCollectionFileLocation, String publicKeyRingCollectionFileLocation, boolean autoGenerate, boolean removeOldKeys) throws IOException, PGPException {
+    public void loadKeyRings(LoadKeyRingsRequest r) throws IOException, PGPException {
         boolean newFiles = false;
-        skr = new File(secretKeyRingCollectionFileLocation);
-        if(removeOldKeys)
+        skr = new File(r.secretKeyRingCollectionFileLocation);
+        if(r.removeOldKeys)
             skr.delete();
         if(!skr.exists()) {
             newFiles = true;
@@ -64,8 +67,8 @@ public class OpenPGPKeyRing implements KeyRing {
             }
         }
 
-        pkr = new File(publicKeyRingCollectionFileLocation);
-        if(removeOldKeys)
+        pkr = new File(r.publicKeyRingCollectionFileLocation);
+        if(r.removeOldKeys)
             pkr.delete();
         if(!pkr.exists()) {
             newFiles = true;
@@ -96,8 +99,34 @@ public class OpenPGPKeyRing implements KeyRing {
         }
 
         // If collection could not be loaded then generate them
-        if(secretKeyRingCollection == null || publicKeyRingCollection == null && autoGenerate) {
-            generateKeyRings(alias, passphrase, hashStrength);
+        if(secretKeyRingCollection == null || publicKeyRingCollection == null && r.autoGenerate) {
+            generateKeyRings(r.keyRingAlias, r.keyRingPassphrase, r.hashStrength);
+        }
+
+        // Now get the public key
+        PGPPublicKey pgpPublicKey = null;
+        if(r.publicKeyFingerprint != null) {
+            pgpPublicKey = getPublicKey(r.publicKeyFingerprint.getBytes());
+            if(pgpPublicKey != null) {
+                r.publicKey = new PublicKey();
+                r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
+                r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
+            }
+        } else if(r.publicKeyAlias != null) {
+            pgpPublicKey = getPublicKey(r.keyRingAlias, r.publicKeyAlias);
+            if(pgpPublicKey != null) {
+                r.publicKey = new PublicKey();
+                r.publicKey.setAlias(r.publicKeyAlias);
+                r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
+                r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
+            }
+        } else {
+            pgpPublicKey = getPublicKey(r.keyRingAlias, r.master);
+            if(pgpPublicKey != null) {
+                r.publicKey = new PublicKey();
+                r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
+                r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
+            }
         }
     }
 
@@ -155,15 +184,15 @@ public class OpenPGPKeyRing implements KeyRing {
     }
 
     @Override
-    public void storePublicKeys(StorePublicKeysRequest r, long keyId, List<PGPPublicKey> publicKeys) throws PGPException {
+    public void storePublicKeys(StorePublicKeysRequest r) throws PGPException {
         boolean updated = false;
-        PGPPublicKeyRing pkr = publicKeyRingCollection.getPublicKeyRing(keyId);
+        PGPPublicKeyRing pkr = publicKeyRingCollection.getPublicKeyRing(r.keyId);
         PGPPublicKeyRing pkrNew = pkr;
         if(pkr == null) {
             r.errorCode = StorePublicKeysRequest.NON_EXISTANT_PUBLIC_KEY_RING;
             return;
         }
-        for (PGPPublicKey k : publicKeys) {
+        for (PGPPublicKey k : r.publicKeys) {
             if(pkrNew.getPublicKey(k.getKeyID()) == null) {
                 pkrNew = PGPPublicKeyRing.insertPublicKey(pkr, k);
                 updated = true;
@@ -177,8 +206,8 @@ public class OpenPGPKeyRing implements KeyRing {
     }
 
     @Override
-    public PGPPublicKey getPublicKey(String alias, boolean master) throws PGPException {
-        Iterator<PGPPublicKeyRing> i = publicKeyRingCollection.getKeyRings(alias);
+    public PGPPublicKey getPublicKey(String keyRingAlias, boolean master) throws PGPException {
+        Iterator<PGPPublicKeyRing> i = publicKeyRingCollection.getKeyRings(keyRingAlias);
         while(i.hasNext()) {
             PGPPublicKeyRing kr = i.next();
             Iterator<PGPPublicKey> m = kr.getPublicKeys();
@@ -279,7 +308,7 @@ public class OpenPGPKeyRing implements KeyRing {
         //
         // the first object might be a PGP marker packet.
         //
-        if (o instanceof  PGPEncryptedDataList) {
+        if (o instanceof PGPEncryptedDataList) {
             enc = (PGPEncryptedDataList) o;
         } else {
             enc = (PGPEncryptedDataList) pgpF.nextObject();

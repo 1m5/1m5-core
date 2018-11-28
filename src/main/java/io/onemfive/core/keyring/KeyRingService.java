@@ -59,12 +59,20 @@ public class KeyRingService extends BaseService {
                     DLC.addData(LoadKeyRingsRequest.class, r, e);
                     break;
                 }
-                if(r.alias == null) {
-                    r.errorCode = LoadKeyRingsRequest.ALIAS_REQUIRED;
+                if(r.keyRingAlias == null) {
+                    r.errorCode = LoadKeyRingsRequest.KEY_RING_ALIAS_REQUIRED;
                     break;
                 }
-                if(r.passphrase == null) {
-                    r.errorCode = LoadKeyRingsRequest.PASSPHRASE_REQUIRED;
+                if(r.keyRingPassphrase == null) {
+                    r.errorCode = LoadKeyRingsRequest.KEY_RING_PASSPHRASE_REQUIRED;
+                    break;
+                }
+                if(r.secretKeyRingCollectionFileLocation == null) {
+                    r.errorCode = LoadKeyRingsRequest.SKR_LOCATION_NOT_PROVIDED;
+                    break;
+                }
+                if(r.publicKeyRingCollectionFileLocation == null) {
+                    r.errorCode = LoadKeyRingsRequest.PKR_LOCATION_NOT_PROVIDED;
                     break;
                 }
                 if(!r.autoGenerate && r.removeOldKeys) {
@@ -73,16 +81,10 @@ public class KeyRingService extends BaseService {
                     break;
                 }
                 if(r.hashStrength < PASSWORD_HASH_STRENGTH_64) {
-                    r.hashStrength = PASSWORD_HASH_STRENGTH_64;
-                }
-                if(r.secretKeyRingCollectionFileLocation == null) {
-                    r.secretKeyRingCollectionFileLocation = "1m5.skr";
-                }
-                if(r.publicKeyRingCollectionFileLocation == null) {
-                    r.publicKeyRingCollectionFileLocation = "1m5.pkr";
+                    r.hashStrength = PASSWORD_HASH_STRENGTH_64; // minimum
                 }
                 try {
-                    keyRing.loadKeyRings(r.alias, r.passphrase, r.hashStrength, r.secretKeyRingCollectionFileLocation, r.publicKeyRingCollectionFileLocation, r.autoGenerate, r.removeOldKeys);
+                    keyRing.loadKeyRings(r);
                 } catch (Exception ex) {
                     r.exception = ex;
                 }
@@ -131,7 +133,7 @@ public class KeyRingService extends BaseService {
                     break;
                 }
                 try {
-                    keyRing.storePublicKeys(r, r.keyId, r.publicKeys);
+                    keyRing.storePublicKeys(r);
                 } catch (PGPException ex) {
                     r.exception = ex;
                 }
@@ -232,7 +234,7 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean start(Properties p) {
-        super.start(p);
+//        super.start(p);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
 
@@ -304,10 +306,21 @@ public class KeyRingService extends BaseService {
         String aliasCharlie = "Charlie";
 
         // Load Key Rings
+        LoadKeyRingsRequest aliceRequest = new LoadKeyRingsRequest();
+        aliceRequest.keyRingAlias = aliasAlice;
+        aliceRequest.keyRingPassphrase = passphrase;
+        aliceRequest.secretKeyRingCollectionFileLocation = "alice.skr";
+        aliceRequest.publicKeyRingCollectionFileLocation = "alice.pkr";
+
+        LoadKeyRingsRequest charlieRequest = new LoadKeyRingsRequest();
+        charlieRequest.keyRingAlias = aliasCharlie;
+        charlieRequest.keyRingPassphrase = passphrase;
+        charlieRequest.secretKeyRingCollectionFileLocation = "charlie.skr";
+        charlieRequest.publicKeyRingCollectionFileLocation = "charlie.pkr";
         long start = new Date().getTime();
         try {
-            sAlice.keyRing.loadKeyRings(aliasAlice, passphrase, PASSWORD_HASH_STRENGTH_64, "alice.skr", "alice.pkr", true, false);
-            sCharlie.keyRing.loadKeyRings(aliasCharlie, passphrase, PASSWORD_HASH_STRENGTH_64, "charlie.skr", "charlie.pkr", true, false);
+            sAlice.keyRing.loadKeyRings(aliceRequest);
+            sCharlie.keyRing.loadKeyRings(charlieRequest);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (PGPException e) {
@@ -334,21 +347,31 @@ public class KeyRingService extends BaseService {
         // Verify we have master and encryption public keys
         start = new Date().getTime();
         try {
+            // Alice
             PGPPublicKey kAliceM = sAlice.keyRing.getPublicKey("Alice", true);
             assert(kAliceM != null && kAliceM.isMasterKey());
+
             PGPPublicKey kAliceE = sAlice.keyRing.getPublicKey("Alice", false);
             assert(kAliceE != null && kAliceE.isEncryptionKey());
+
+            // Charlie
             PGPPublicKey kCharlieM = sCharlie.keyRing.getPublicKey("Charlie", true);
             assert(kCharlieM != null && kCharlieM.isMasterKey());
+
             PGPPublicKey kCharlieE = sCharlie.keyRing.getPublicKey("Charlie", false);
             assert(kCharlieE != null && kCharlieE.isEncryptionKey());
 
+            // Alice - Barbara
             PGPPublicKey kBarbaraM = sAlice.keyRing.getPublicKey("Barbara", true);
             assert(kBarbaraM != null && kBarbaraM.isMasterKey());
+
             PGPPublicKey kBarbaraE = sAlice.keyRing.getPublicKey("Barbara", false);
             assert(kBarbaraE != null && kBarbaraE.isEncryptionKey());
+
+            // Charlie - Dan
             PGPPublicKey kDanM = sCharlie.keyRing.getPublicKey("Dan", true);
             assert(kDanM != null && kDanM.isMasterKey());
+
             PGPPublicKey kDanE = sCharlie.keyRing.getPublicKey("Dan", false);
             assert(kDanE != null && kDanE.isEncryptionKey());
         } catch (Exception e) {
@@ -368,11 +391,15 @@ public class KeyRingService extends BaseService {
 
             List<PGPPublicKey> cPublicKeys = new ArrayList<>();
             cPublicKeys.add(cK);
-            sAlice.keyRing.storePublicKeys(r, aK.getKeyID(), cPublicKeys);
+            r.keyId = cK.getKeyID();
+            r.publicKeys = cPublicKeys;
+            sAlice.keyRing.storePublicKeys(r);
 
             List<PGPPublicKey> aPublicKeys = new ArrayList<>();
             aPublicKeys.add(aK);
-            sCharlie.keyRing.storePublicKeys(r, cK.getKeyID(), aPublicKeys);
+            r.keyId = aK.getKeyID();
+            r.publicKeys = aPublicKeys;
+            sCharlie.keyRing.storePublicKeys(r);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -385,26 +412,36 @@ public class KeyRingService extends BaseService {
         start = new Date().getTime();
         byte[] fingerprint = null;
         try {
-            PGPPublicKey ch = sAlice.keyRing.getPublicKey("Alice", "Charlie");
+//            PGPPublicKey ch = sAlice.keyRing.getPublicKey("Alice", "Charlie");
             EncryptRequest r = new EncryptRequest();
-            Iterator<PGPPublicKeyRing> i = sAlice.keyRing.getPublicKeyRingCollection().getKeyRings("Alice");
+            Iterator<PGPPublicKeyRing> i = sAlice.keyRing.getPublicKeyRingCollection().getKeyRings(aliasAlice);
             while(i.hasNext()) {
                 PGPPublicKeyRing kr = i.next();
                 Iterator<PGPPublicKey> keys = kr.getPublicKeys();
                 while(keys.hasNext()) {
                     PGPPublicKey key = keys.next();
+                    if(key.getFingerprint()!=null) fingerprint = key.getFingerprint();
+                    LOG.info("Fingerprint: "+io.onemfive.core.util.data.Base64.encode(key.getFingerprint()));
+                    LOG.info("Master Key: "+String.valueOf(key.isMasterKey()));
+                    LOG.info("Encryption Key: "+String.valueOf(key.isEncryptionKey()));
                     Iterator<String> u = key.getUserIDs();
                     while(u.hasNext()) {
                         String a = u.next();
-                        if("Charlie".equals(a) && key.isEncryptionKey())
-                            fingerprint = key.getFingerprint();
+//                        if("Alice".equals(a) && key.isEncryptionKey())
+//                            fingerprint = key.getFingerprint();
+                        LOG.info("UserId: "+a);
                     }
                 }
             }
             if(fingerprint != null) {
-                byte[] contentToEncrypt = "Hello Charlie!".getBytes();
+                String contentStringToEncrypt = "Hello Charlie!";
+                byte[] contentToEncrypt = contentStringToEncrypt.getBytes();
                 byte[] encryptedContent = sAlice.keyRing.encrypt(r, contentToEncrypt, fingerprint);
                 assert (r.errorCode == EncryptRequest.NO_ERROR && encryptedContent != null && encryptedContent.length > 0);
+
+                byte[] decryptedContent = sAlice.keyRing.decrypt(new DecryptRequest(), encryptedContent, aliasAlice, passphrase);
+                String contentStringDecrypted = new String(decryptedContent);
+                assert (contentStringToEncrypt.equals(contentStringDecrypted));
             }
         } catch (Exception e) {
             e.printStackTrace();
