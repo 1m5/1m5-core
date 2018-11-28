@@ -17,19 +17,13 @@ public interface KeyRing {
 
     void init(Properties properties);
 
-    void loadKeyRings(String alias,
-                      char[] passphrase,
-                      int hashStrength,
-                      String secretKeyRingCollectionFileLocation,
-                      String publicKeyRingCollectionFileLocation,
-                      boolean autoGenerate,
-                      boolean removeOldKeys) throws IOException, PGPException;
+    void loadKeyRings(LoadKeyRingsRequest r) throws IOException, PGPException;
 
     void saveKeyRings();
 
     void generateKeyRings(String alias, char[] passphrase, int hashStrength) throws IOException, PGPException;
 
-    void storePublicKeys(StorePublicKeysRequest r, long keyId, List<PGPPublicKey> publicKeys) throws PGPException;
+    void storePublicKeys(StorePublicKeysRequest r) throws PGPException;
 
     PGPPublicKeyRingCollection getPublicKeyRingCollection();
 
