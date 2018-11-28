@@ -14,7 +14,7 @@ import java.util.List;
 public class SmartPGPKeyRing extends OpenPGPKeyRing {
 
     @Override
-    public void loadKeyRings(String alias, char[] passphrase, int hashStrength, String secretKeyRingCollectionFileLocation, String publicKeyRingCollectionFileLocation, boolean autoGenerate, boolean removeOldKeys) throws IOException, PGPException {
+    public void loadKeyRings(LoadKeyRingsRequest request) throws IOException, PGPException {
 
     }
 
@@ -29,7 +29,7 @@ public class SmartPGPKeyRing extends OpenPGPKeyRing {
     }
 
     @Override
-    public void storePublicKeys(StorePublicKeysRequest r, long keyId, List<PGPPublicKey> publicKeys) throws PGPException {
+    public void storePublicKeys(StorePublicKeysRequest r) throws PGPException {
 
     }
 
