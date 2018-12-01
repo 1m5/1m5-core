@@ -33,13 +33,13 @@ public interface KeyRing {
 
     PGPPublicKey getPublicKey(byte[] fingerprint) throws PGPException;
 
-    byte[] encrypt(EncryptRequest r, byte[] contentToEncrypt, byte[] fingerprint) throws IOException, PGPException;
+    void encrypt(EncryptRequest r) throws IOException, PGPException;
 
-    byte[] decrypt(DecryptRequest r, byte[] encryptedContent, String alias, char[] passphrase) throws IOException, PGPException;
+    void decrypt(DecryptRequest r) throws IOException, PGPException;
 
-    byte[] sign(SignRequest r, byte[] contentToSign, String alias, char[] passphrase) throws IOException, PGPException;
+    void sign(SignRequest r) throws IOException, PGPException;
 
-    boolean verifySignature(VerifySignatureRequest r, byte[] contentSigned, byte[] signature, byte[] fingerprint) throws IOException, PGPException;
+    void verifySignature(VerifySignatureRequest r) throws IOException, PGPException;
 
     boolean containsAlias(PGPPublicKey k, String alias);
 

@@ -247,11 +247,11 @@ public class OpenPGPKeyRing implements KeyRing {
     }
 
     @Override
-    public byte[] encrypt(EncryptRequest r, byte[] contentToEncrypt, byte[] fingerprint) throws IOException, PGPException {
-        PGPPublicKey publicKey = getPublicKey(fingerprint);
+    public void encrypt(EncryptRequest r) throws IOException, PGPException {
+        PGPPublicKey publicKey = getPublicKey(r.fingerprint);
         if(publicKey == null) {
             r.errorCode = EncryptRequest.PUBLIC_KEY_NOT_FOUND;
-            return null;
+            return;
         }
 
         boolean withIntegrityCheck = true;
@@ -266,8 +266,8 @@ public class OpenPGPKeyRing implements KeyRing {
         PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(PGPCompressedData.ZIP);
 
         PGPLiteralDataGenerator lData = new PGPLiteralDataGenerator();
-        OutputStream pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY, "sec", contentToEncrypt.length, new Date());
-        pOut.write(contentToEncrypt);
+        OutputStream pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY, "sec", r.contentToEncrypt.length, new Date());
+        pOut.write(r.contentToEncrypt);
 
         lData.close();
         comData.close();
@@ -296,12 +296,12 @@ public class OpenPGPKeyRing implements KeyRing {
 
         out.close();
 
-        return content.toByteArray();
+        r.encryptedContent = content.toByteArray();
     }
 
     @Override
-    public byte[] decrypt(DecryptRequest r, byte[] encryptedContent, String alias, char[] passphrase) throws IOException, PGPException {
-        InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(encryptedContent));
+    public void decrypt(DecryptRequest r) throws IOException, PGPException {
+        InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(r.encryptedContent));
         PGPObjectFactory pgpF = new PGPObjectFactory(in, new BcKeyFingerprintCalculator());
         PGPEncryptedDataList enc;
         Object o = pgpF.nextObject();
@@ -323,12 +323,12 @@ public class OpenPGPKeyRing implements KeyRing {
         while (privKey == null && it.hasNext()) {
             pbe = it.next();
 //            secKey = getSecretKey(pbe.getKeyID());
-            secKey = getSecretKey(alias);
+            secKey = getSecretKey(r.alias);
             if(secKey != null) {
                 PBESecretKeyDecryptor a = new JcePBESecretKeyDecryptorBuilder(
                         new JcaPGPDigestCalculatorProviderBuilder()
                                 .setProvider(PROVIDER_BOUNCY_CASTLE).build())
-                        .setProvider(PROVIDER_BOUNCY_CASTLE).build(passphrase);
+                        .setProvider(PROVIDER_BOUNCY_CASTLE).build(r.passphrase);
                 privKey = secKey.extractPrivateKey(a);
             }
         }
@@ -366,21 +366,21 @@ public class OpenPGPKeyRing implements KeyRing {
                 throw new PGPException("Message failed integrity check");
             }
         }
-        return baos.toByteArray();
+        r.plaintextContent = baos.toByteArray();
     }
 
     @Override
-    public byte[] sign(SignRequest r, byte[] contentToSign, String alias, char[] passphrase) throws IOException, PGPException {
-        PGPSecretKey secretKey = getSecretKey(alias);
+    public void sign(SignRequest r) throws IOException, PGPException {
+        PGPSecretKey secretKey = getSecretKey(r.alias);
         if(secretKey == null) {
             r.errorCode = SignRequest.SECRET_KEY_NOT_FOUND;
-            return null;
+            return;
         }
 
-        PGPPrivateKey privateKey = getPrivateKey(secretKey, passphrase);
+        PGPPrivateKey privateKey = getPrivateKey(secretKey, r.passphrase);
         if(privateKey == null) {
             LOG.warning("Private Key not found for secret key.");
-            return null;
+            return;
         }
         PGPSignatureGenerator sGen = new PGPSignatureGenerator(
                 new JcaPGPContentSignerBuilder(
@@ -391,18 +391,18 @@ public class OpenPGPKeyRing implements KeyRing {
         ArmoredOutputStream aOut = new ArmoredOutputStream(byteOut);
         BCPGOutputStream bOut = new BCPGOutputStream(byteOut);
 
-        sGen.update(contentToSign);
+        sGen.update(r.contentToSign);
 
         aOut.endClearText();
         sGen.generate().encode(bOut);
         aOut.close();
 
-        return byteOut.toByteArray();
+        r.signature = byteOut.toByteArray();
     }
 
     @Override
-    public boolean verifySignature(VerifySignatureRequest r, byte[] contentSigned, byte[] signature, byte[] fingerprint) throws IOException, PGPException {
-        PGPObjectFactory pgpFact = new PGPObjectFactory(signature, new BcKeyFingerprintCalculator());
+    public void verifySignature(VerifySignatureRequest r) throws IOException, PGPException {
+        PGPObjectFactory pgpFact = new PGPObjectFactory(r.signature, new BcKeyFingerprintCalculator());
         PGPSignatureList p3 = null;
         Object o = pgpFact.nextObject();
         if (o instanceof PGPCompressedData) {
@@ -415,16 +415,17 @@ public class OpenPGPKeyRing implements KeyRing {
 
         PGPSignature sig = p3.get(0);
 
-        PGPPublicKey publicKey = getPublicKey(fingerprint);
+        PGPPublicKey publicKey = getPublicKey(r.fingerprint);
         if(publicKey == null) {
             LOG.warning("Unable to find public key to verify signature.");
-            return false;
+            r.verified = false;
+            return;
         }
         sig.init(new JcaPGPContentVerifierBuilderProvider().setProvider(PROVIDER_BOUNCY_CASTLE), publicKey);
 
-        sig.update(contentSigned);
+        sig.update(r.contentSigned);
 
-        return sig.verify();
+        r.verified = sig.verify();
     }
 
     @Override
