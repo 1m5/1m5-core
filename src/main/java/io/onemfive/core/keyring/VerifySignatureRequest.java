@@ -1,8 +1,6 @@
 package io.onemfive.core.keyring;
 
-import io.onemfive.core.ServiceRequest;
-
-public class VerifySignatureRequest extends ServiceRequest {
+public class VerifySignatureRequest extends KeyRingsRequest {
     public byte[] contentSigned;
     public byte[] signature;
     public byte[] fingerprint;

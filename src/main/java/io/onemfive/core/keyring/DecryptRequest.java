@@ -1,8 +1,6 @@
 package io.onemfive.core.keyring;
 
-import io.onemfive.core.ServiceRequest;
-
-public class DecryptRequest extends ServiceRequest {
+public class DecryptRequest extends KeyRingsRequest {
     public byte[] encryptedContent;
     public String alias;
     public char[] passphrase;

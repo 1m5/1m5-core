@@ -1,14 +1,14 @@
 package io.onemfive.core.keyring;
 
-import io.onemfive.core.ServiceRequest;
 import io.onemfive.data.PublicKey;
 
-public class LoadKeyRingsRequest extends ServiceRequest {
-    public static int KEY_RING_ALIAS_REQUIRED = 1;
-    public static int KEY_RING_PASSPHRASE_REQUIRED = 2;
-    public static int AUTOGENERATE_REMOVE_OLD_KEYS_CONFLICT = 3;
-    public static int SKR_LOCATION_NOT_PROVIDED = 4;
-    public static int PKR_LOCATION_NOT_PROVIDED = 5;
+public class LoadKeyRingsRequest extends KeyRingsRequest {
+    public static int KEY_RING_ALIAS_REQUIRED = 2;
+    public static int KEY_RING_PASSPHRASE_REQUIRED = 3;
+    public static int AUTOGENERATE_REMOVE_OLD_KEYS_CONFLICT = 4;
+    public static int SKR_LOCATION_NOT_PROVIDED = 5;
+    public static int PKR_LOCATION_NOT_PROVIDED = 6;
+
 
     // Required
     public String keyRingAlias;

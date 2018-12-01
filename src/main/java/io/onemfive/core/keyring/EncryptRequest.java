@@ -1,14 +1,12 @@
 package io.onemfive.core.keyring;
 
-import io.onemfive.core.ServiceRequest;
-
-public class EncryptRequest extends ServiceRequest {
-    public static int CONTENT_TO_ENCRYPT_REQUIRED = 1;
-    public static int FINGERPRINT_REQUIRED = 2;
-    public static int PUBLIC_KEY_NOT_FOUND = 3;
+public class EncryptRequest extends KeyRingsRequest {
+    public static int CONTENT_TO_ENCRYPT_REQUIRED = 2;
+    public static int FINGERPRINT_REQUIRED = 3;
+    public static int PUBLIC_KEY_NOT_FOUND = 4;
 
     public byte[] contentToEncrypt;
-    public byte[] fingerpint;
+    public byte[] fingerprint;
     // Response
     public byte[] encryptedContent;
 }

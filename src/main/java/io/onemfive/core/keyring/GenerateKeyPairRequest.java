@@ -1,10 +1,8 @@
 package io.onemfive.core.keyring;
 
-import io.onemfive.core.ServiceRequest;
-
-public class GenerateKeyPairRequest extends ServiceRequest {
-    public static int ALIAS_REQUIRED = 1;
-    public static int PASSPHRASE_REQUIRED = 2;
+public class GenerateKeyPairRequest extends KeyRingsRequest {
+    public static int ALIAS_REQUIRED = 2;
+    public static int PASSPHRASE_REQUIRED = 3;
 
     public String alias;
     public char[] passphrase;
