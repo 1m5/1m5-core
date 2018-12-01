@@ -15,61 +15,61 @@ public class SmartPGPKeyRing extends OpenPGPKeyRing {
 
     @Override
     public void loadKeyRings(LoadKeyRingsRequest request) throws IOException, PGPException {
-
+        super.loadKeyRings(request);
     }
 
     @Override
     public void saveKeyRings() {
-
+        super.saveKeyRings();
     }
 
     @Override
     public void generateKeyRings(String alias, char[] passphrase, int hashStrength) throws IOException, PGPException {
-
+        super.generateKeyRings(alias, passphrase, hashStrength);
     }
 
     @Override
     public void storePublicKeys(StorePublicKeysRequest r) throws PGPException {
-
+        super.storePublicKeys(r);
     }
 
     @Override
     public PGPPublicKey getPublicKey(String alias, boolean master) throws PGPException {
-        return null;
+        return getPublicKey(alias, master);
     }
 
     @Override
     public PGPPublicKey getPublicKey(String keyRingAlias, String keyAlias) throws PGPException {
-        return null;
+        return super.getPublicKey(keyRingAlias, keyAlias);
     }
 
     @Override
     public PGPPublicKey getPublicKey(byte[] fingerprint) throws PGPException {
-        return null;
+        return super.getPublicKey(fingerprint);
     }
 
     @Override
-    public byte[] encrypt(EncryptRequest r, byte[] contentToEncrypt, byte[] fingerprint) throws IOException, PGPException {
-        return new byte[0];
+    public void encrypt(EncryptRequest r) throws IOException, PGPException {
+        super.encrypt(r);
     }
 
     @Override
-    public byte[] decrypt(DecryptRequest r, byte[] encryptedContent, String alias, char[] passphrase) throws IOException, PGPException {
-        return new byte[0];
+    public void decrypt(DecryptRequest r) throws IOException, PGPException {
+        super.decrypt(r);
     }
 
     @Override
-    public byte[] sign(SignRequest r, byte[] contentToSign, String alias, char[] passphrase) throws IOException, PGPException {
-        return new byte[0];
+    public void sign(SignRequest r) throws IOException, PGPException {
+        super.sign(r);
     }
 
     @Override
-    public boolean verifySignature(VerifySignatureRequest r, byte[] contentSigned, byte[] signature, byte[] fingerprint) throws IOException, PGPException {
-        return false;
+    public void verifySignature(VerifySignatureRequest r) throws IOException, PGPException {
+        super.verifySignature(r);
     }
 
     @Override
     public boolean containsAlias(PGPPublicKey k, String alias) {
-        return false;
+        return super.containsAlias(k, alias);
     }
 }
