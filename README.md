@@ -60,7 +60,7 @@ In addition:
 - Centralized organizations are major targets for theft.
 - Closed source software can easily contain hidden back doors for thieves to access our information without our knowledge and many open source applications have closed source libraries embedded in them.
 - Whistleblowers, the abused, visible minorities, and a myriad of other people could be emboldened by anonymity to speak out in a manner that would otherwise be unavailable if they were forced to identify themselves.
-- Blockchain based applications and cryptocurrencies like Bitcoin are helping to wrestle some control from centralized organizations although they are largely used on servers and distributed ledgers are still logically centralized and difficult to maintain anonymity at the network layer.
+- Decentralized applications and cryptocurrencies like Bitcoin are helping to wrestle some control from centralized organizations although they are largely used on servers and distributed ledgers are still logically centralized and difficult to maintain anonymity at the network layer.
 - Smartphone ownership around the world is greater than PC ownership.
 - Smartphones, our primary means of global communication and collaboration, are weak in maintaining our anonymity and privacy - critical to ensuring individual freedom.
 
@@ -68,7 +68,7 @@ In addition:
 1M5 works to solve these issues by providing an intelligent router embedding Tor, I2P, Direct Wireless Mesh, and other
 networks, using them intelligently as one dynamic network, and providing easy to use APIs for developers to embed in their
 applications. In addition, it provides access to commonly desired decentralized services in an anonymous fashion including
-self-sovereign identities, GitLab, Monero, and other privacy preserving services in the future making integration a snap.
+self-sovereign decentralized identities (DID), Bitcoin, and other privacy preserving services in the future making integration a snap.
 
 We provide a Maneuver Condition status to signal what level of maneuvering is required to prevent censorship. They are:
 
