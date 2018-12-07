@@ -5,6 +5,8 @@ public class EncryptRequest extends KeyRingsRequest {
     public static int FINGERPRINT_REQUIRED = 3;
     public static int PUBLIC_KEY_NOT_FOUND = 4;
 
+    public String keyRingUsername;
+    public String keyRingPassphrase;
     public byte[] contentToEncrypt;
     public byte[] fingerprint;
     // Response

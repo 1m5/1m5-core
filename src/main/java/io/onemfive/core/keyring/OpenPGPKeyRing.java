@@ -37,218 +37,100 @@ public class OpenPGPKeyRing implements KeyRing {
 
     protected Properties properties;
 
-    // a secret key with master key and any sub-keys
-    protected File skr;
-    protected PGPSecretKeyRingCollection secretKeyRingCollection;
-
-    // a public key with master key and any sub-keys
-    protected File pkr;
-    protected PGPPublicKeyRingCollection publicKeyRingCollection;
-
+    /**
+     * Create new Secret and Public Key Ring Collections with a username and passphrase.
+     * This equates to creating a new 'account' for one individual to hold
+     * all of their key rings. It results in username.skr and username.pkr
+     * files with a SecretKeyRing in the skr and a PublicKeyRing in the pkr
+     * using the username as the alias providing default keys.
+     *
+     * Additional identities are created by creating KeyRings with those being
+     * added to their collection for persistence.
+     * @param r
+     * @throws IOException
+     * @throws PGPException
+     */
     @Override
-    public PGPPublicKeyRingCollection getPublicKeyRingCollection() {
-        return publicKeyRingCollection;
-    }
+    public void generateKeyRingCollections(GenerateKeyRingCollectionsRequest r) throws IOException, PGPException {
+        LOG.info("Generate Key Rings using OpenPGP request received.");
 
-    @Override
-    public void loadKeyRings(LoadKeyRingsRequest r) throws IOException, PGPException {
-        boolean newFiles = false;
-        skr = new File(r.secretKeyRingCollectionFileLocation);
-        if(r.removeOldKeys)
-            skr.delete();
-        if(!skr.exists()) {
-            newFiles = true;
-            try {
-                if (!skr.createNewFile())
-                    return;
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                return;
-            }
-        }
+        File skr = new File(r.keyRingUsername+".skr");
+        File pkr = new File(r.keyRingUsername+".pkr");
 
-        pkr = new File(r.publicKeyRingCollectionFileLocation);
-        if(r.removeOldKeys)
-            pkr.delete();
-        if(!pkr.exists()) {
-            newFiles = true;
-            try {
-                if (!pkr.createNewFile())
-                    return;
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                return;
-            }
-        }
-
-        if(!newFiles) {
-            // Try to load keys from files
-            try {
-                // TODO: Decrypt files
-                FileInputStream fis = new FileInputStream(skr);
-                secretKeyRingCollection = new PGPSecretKeyRingCollection(fis, new BcKeyFingerprintCalculator());
-
-                fis = new FileInputStream(pkr);
-                publicKeyRingCollection = new PGPPublicKeyRingCollection(fis, new BcKeyFingerprintCalculator());
-
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            } catch (PGPException ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        // If collection could not be loaded then generate them
-        if(secretKeyRingCollection == null || publicKeyRingCollection == null && r.autoGenerate) {
-            generateKeyRings(r.keyRingAlias, r.keyRingPassphrase, r.hashStrength);
-        }
-
-        // Now get the public key
-        PGPPublicKey pgpPublicKey = null;
-        if(r.publicKeyFingerprint != null) {
-            pgpPublicKey = getPublicKey(r.publicKeyFingerprint.getBytes());
-            if(pgpPublicKey != null) {
-                r.publicKey = new PublicKey();
-                r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
-                r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
-            }
-        } else if(r.publicKeyAlias != null) {
-            pgpPublicKey = getPublicKey(r.keyRingAlias, r.publicKeyAlias);
-            if(pgpPublicKey != null) {
-                r.publicKey = new PublicKey();
-                r.publicKey.setAlias(r.publicKeyAlias);
-                r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
-                r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
-            }
-        } else {
-            pgpPublicKey = getPublicKey(r.keyRingAlias, r.master);
-            if(pgpPublicKey != null) {
-                r.publicKey = new PublicKey();
-                r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
-                r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
-            }
-        }
-    }
-
-    @Override
-    public void saveKeyRings() {
-        // TODO: Encrypt files
-        if(secretKeyRingCollection != null && skr != null) {
-            try {
-                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
-                secretKeyRingCollection.encode(bos);
-                bos.close();
-            } catch (IOException e) {
-                LOG.warning(e.getLocalizedMessage());
-            }
-        }
-
-        if(publicKeyRingCollection != null && pkr != null) {
-            try {
-                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pkr));
-                publicKeyRingCollection.encode(bos);
-                bos.close();
-            } catch (IOException e) {
-                LOG.warning(e.getLocalizedMessage());
-            }
-        }
-    }
-
-    @Override
-    public void generateKeyRings(String alias, char[] passphrase, int hashStrength) throws IOException, PGPException {
-
-        PGPKeyRingGenerator krgen = generateKeyRingGenerator(alias, passphrase, hashStrength);
-
-        // Create and save the Secret Key Ring
-        PGPSecretKeyRing secretKeyRing = krgen.generateSecretKeyRing();
-        if(secretKeyRingCollection == null) {
-            List<PGPSecretKeyRing> pgpSecretKeyRings = new ArrayList<>();
-            pgpSecretKeyRings.add(secretKeyRing);
-            secretKeyRingCollection = new PGPSecretKeyRingCollection(pgpSecretKeyRings);
-        } else {
-            secretKeyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(secretKeyRingCollection, secretKeyRing);
-        }
-
-        // Create and save the Public Key Ring
-        PGPPublicKeyRing publicKeyRing = krgen.generatePublicKeyRing();
-        if(publicKeyRingCollection == null) {
-            List<PGPPublicKeyRing> pgpPublicKeyRings = new ArrayList<>();
-            pgpPublicKeyRings.add(publicKeyRing);
-            publicKeyRingCollection = new PGPPublicKeyRingCollection(pgpPublicKeyRings);
-        } else {
-            publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
-        }
-
-        saveKeyRings();
-
-    }
-
-    @Override
-    public void storePublicKeys(StorePublicKeysRequest r) throws PGPException {
-        boolean updated = false;
-        PGPPublicKeyRing pkr = publicKeyRingCollection.getPublicKeyRing(r.keyId);
-        PGPPublicKeyRing pkrNew = pkr;
-        if(pkr == null) {
-            r.errorCode = StorePublicKeysRequest.NON_EXISTANT_PUBLIC_KEY_RING;
+        // Check to see if key rings collections already exist.
+        if(skr.exists()) {
+            LOG.warning("KeyRing username taken: "+r.keyRingUsername);
+            r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_USERNAME_TAKEN;
             return;
         }
-        for (PGPPublicKey k : r.publicKeys) {
-            if(pkrNew.getPublicKey(k.getKeyID()) == null) {
-                pkrNew = PGPPublicKeyRing.insertPublicKey(pkr, k);
-                updated = true;
-            }
-        }
-        if(updated) {
-            publicKeyRingCollection = PGPPublicKeyRingCollection.removePublicKeyRing(publicKeyRingCollection, pkr);
-            publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, pkrNew);
-            saveKeyRings();
-        }
-    }
 
-    @Override
-    public PGPPublicKey getPublicKey(String keyRingAlias, boolean master) throws PGPException {
-        Iterator<PGPPublicKeyRing> i = publicKeyRingCollection.getKeyRings(keyRingAlias);
-        while(i.hasNext()) {
-            PGPPublicKeyRing kr = i.next();
-            Iterator<PGPPublicKey> m = kr.getPublicKeys();
-            while(m.hasNext()) {
-                PGPPublicKey k = m.next();
-                if (master && k.isMasterKey())
-                    return k;
-                else if (!master && k.isEncryptionKey())
-                    return k;
-            }
-        }
-        return null;
-    }
+        try {
+            if(skr.createNewFile() && pkr.createNewFile()) {
+                PGPSecretKeyRingCollection secretKeyRingCollection = null;
+                PGPPublicKeyRingCollection publicKeyRingCollection = null;
 
-    @Override
-    public PGPPublicKey getPublicKey(String keyRingAlias, String keyAlias) throws PGPException {
-        Iterator<PGPPublicKeyRing> i = publicKeyRingCollection.getKeyRings(keyRingAlias);
-        while(i.hasNext()) {
-            PGPPublicKeyRing kr = i.next();
-            Iterator<PGPPublicKey> m = kr.getPublicKeys();
-            while(m.hasNext()) {
-                PGPPublicKey k = m.next();
-                Iterator<String> u = k.getUserIDs();
-                while(u.hasNext()) {
-                    String uid = u.next();
-                    if(uid.equals(keyAlias))
-                        return k;
+                PGPKeyRingGenerator krgen = generateKeyRingGenerator(r.keyRingUsername, r.keyRingPassphrase.toCharArray(), r.hashStrength);
+
+                // Create and save the Secret Key Ring
+                PGPSecretKeyRing secretKeyRing = krgen.generateSecretKeyRing();
+                List<PGPSecretKeyRing> pgpSecretKeyRings = new ArrayList<>();
+                pgpSecretKeyRings.add(secretKeyRing);
+                secretKeyRingCollection = new PGPSecretKeyRingCollection(pgpSecretKeyRings);
+                saveSecretKeyRingCollection(secretKeyRingCollection, skr);
+
+                // Create and save the Public Key Ring
+                PGPPublicKeyRing publicKeyRing = krgen.generatePublicKeyRing();
+                List<PGPPublicKeyRing> pgpPublicKeyRings = new ArrayList<>();
+                pgpPublicKeyRings.add(publicKeyRing);
+                publicKeyRingCollection = new PGPPublicKeyRingCollection(pgpPublicKeyRings);
+                savePublicKeyRingCollection(publicKeyRingCollection, pkr);
+
+                // Now get the public key
+                PGPPublicKey pgpPublicKey = getPublicKey(publicKeyRingCollection, r.keyRingUsername, true);
+                if(pgpPublicKey != null) {
+                    LOG.info("Public Key found.");
+                    r.publicKey = new PublicKey();
+                    r.publicKey.setAlias(r.keyRingUsername);
+                    r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
+                    r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
                 }
             }
+            else {
+                LOG.warning("Unable to create new key rings.");
+            }
+        } catch (IOException ex) {
+            LOG.warning("IOException caught while saving keys: "+ex.getLocalizedMessage());
+            ex.printStackTrace();
         }
-        return null;
     }
 
-    @Override
-    public PGPPublicKey getPublicKey(byte[] fingerprint) throws PGPException {
-        return publicKeyRingCollection.getPublicKey(fingerprint);
+    /**
+     * Create new key rings both secret and public for a new identity based on alias and aliasPassphrase.
+     * @param keyRingUsername
+     * @param keyRingPassphrase
+     * @param alias
+     * @param aliasPassphrase
+     * @param hashStrength
+     * @throws IOException
+     * @throws PGPException
+     */
+    public void createKeyRings(String keyRingUsername, String keyRingPassphrase, String alias, String aliasPassphrase, int hashStrength) throws IOException, PGPException {
+        PGPKeyRingGenerator krgen = generateKeyRingGenerator(alias, aliasPassphrase.toCharArray(), hashStrength);
+
+        PGPSecretKeyRingCollection secretKeyRingCollection = getSecretKeyRingCollection(keyRingUsername, keyRingPassphrase);
+        PGPSecretKeyRing secretKeyRing = krgen.generateSecretKeyRing();
+        PGPSecretKeyRingCollection.addSecretKeyRing(secretKeyRingCollection, secretKeyRing);
+        saveSecretKeyRingCollection(secretKeyRingCollection, new File(keyRingUsername+".skr"));
+
+        PGPPublicKeyRingCollection publicKeyRingCollection = getPublicKeyRingCollection(keyRingUsername, keyRingPassphrase);
+        PGPPublicKeyRing publicKeyRing = krgen.generatePublicKeyRing();
+        PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
+        savePublicKeyRingCollection(publicKeyRingCollection, new File(keyRingUsername+".pkr"));
     }
 
     @Override
     public void encrypt(EncryptRequest r) throws IOException, PGPException {
-        PGPPublicKey publicKey = getPublicKey(r.fingerprint);
+        PGPPublicKey publicKey = getPublicKey(getPublicKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase),r.fingerprint);
         if(publicKey == null) {
             r.errorCode = EncryptRequest.PUBLIC_KEY_NOT_FOUND;
             return;
@@ -323,12 +205,12 @@ public class OpenPGPKeyRing implements KeyRing {
         while (privKey == null && it.hasNext()) {
             pbe = it.next();
 //            secKey = getSecretKey(pbe.getKeyID());
-            secKey = getSecretKey(r.alias);
+            secKey = getSecretKey(getSecretKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase), r.alias);
             if(secKey != null) {
                 PBESecretKeyDecryptor a = new JcePBESecretKeyDecryptorBuilder(
                         new JcaPGPDigestCalculatorProviderBuilder()
                                 .setProvider(PROVIDER_BOUNCY_CASTLE).build())
-                        .setProvider(PROVIDER_BOUNCY_CASTLE).build(r.passphrase);
+                        .setProvider(PROVIDER_BOUNCY_CASTLE).build(r.passphrase.toCharArray());
                 privKey = secKey.extractPrivateKey(a);
             }
         }
@@ -371,13 +253,13 @@ public class OpenPGPKeyRing implements KeyRing {
 
     @Override
     public void sign(SignRequest r) throws IOException, PGPException {
-        PGPSecretKey secretKey = getSecretKey(r.alias);
+        PGPSecretKey secretKey = getSecretKey(getSecretKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase), r.alias);
         if(secretKey == null) {
             r.errorCode = SignRequest.SECRET_KEY_NOT_FOUND;
             return;
         }
 
-        PGPPrivateKey privateKey = getPrivateKey(secretKey, r.passphrase);
+        PGPPrivateKey privateKey = getPrivateKey(secretKey, r.passphrase.toCharArray());
         if(privateKey == null) {
             LOG.warning("Private Key not found for secret key.");
             return;
@@ -415,7 +297,7 @@ public class OpenPGPKeyRing implements KeyRing {
 
         PGPSignature sig = p3.get(0);
 
-        PGPPublicKey publicKey = getPublicKey(r.fingerprint);
+        PGPPublicKey publicKey = getPublicKey(getPublicKeyRingCollection(r.keyRingUsername,r.keyRingPassphrase),r.fingerprint);
         if(publicKey == null) {
             LOG.warning("Unable to find public key to verify signature.");
             r.verified = false;
@@ -428,8 +310,7 @@ public class OpenPGPKeyRing implements KeyRing {
         r.verified = sig.verify();
     }
 
-    @Override
-    public boolean containsAlias(PGPPublicKey k, String alias) {
+    private boolean containsAlias(PGPPublicKey k, String alias) {
         Iterator<String> i = k.getUserIDs();
         while(i.hasNext()) {
             if(i.next().equals(alias))
@@ -438,13 +319,94 @@ public class OpenPGPKeyRing implements KeyRing {
         return false;
     }
 
+    public PGPPublicKeyRingCollection getPublicKeyRingCollection(String username, String passphrase) throws IOException, PGPException {
+        // TODO: Decrypt encrypted file
+        return new PGPPublicKeyRingCollection(new FileInputStream(username+".pkr"), new BcKeyFingerprintCalculator());
+    }
+
+    private void savePublicKeyRingCollection(PGPPublicKeyRingCollection publicKeyRingCollection, File pkr) {
+        LOG.info("Persisting Public KeyRing Collection...");
+        // TODO: Encrypt file
+        if(publicKeyRingCollection != null && pkr != null) {
+            try {
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pkr));
+                publicKeyRingCollection.encode(bos);
+                bos.close();
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
+            }
+        }
+    }
+
+    public PGPPublicKey getPublicKey(PGPPublicKeyRing kr, boolean master) {
+        Iterator<PGPPublicKey> m = kr.getPublicKeys();
+        while(m.hasNext()) {
+            PGPPublicKey k = m.next();
+            if (master && k.isMasterKey())
+                return k;
+            else if (!master && k.isEncryptionKey())
+                return k;
+        }
+        return null;
+    }
+
+    public PGPPublicKey getPublicKey(PGPPublicKeyRingCollection c, String keyAlias, boolean master) throws PGPException {
+        Iterator<PGPPublicKeyRing> i = c.getKeyRings(keyAlias);
+        PGPPublicKey key = null;
+        while(i.hasNext() && key==null) {
+            key = getPublicKey(i.next(), master);
+        }
+        return key;
+    }
+
+    public PGPPublicKey getPublicKey(PGPPublicKeyRingCollection c, String keyAlias) throws PGPException {
+        Iterator<PGPPublicKeyRing> i = c.getKeyRings(keyAlias);
+        while(i.hasNext()) {
+            PGPPublicKeyRing kr = i.next();
+            Iterator<PGPPublicKey> m = kr.getPublicKeys();
+            while(m.hasNext()) {
+                PGPPublicKey k = m.next();
+                Iterator<String> u = k.getUserIDs();
+                while(u.hasNext()) {
+                    String uid = u.next();
+                    if(uid.equals(keyAlias))
+                        return k;
+                }
+            }
+        }
+        return null;
+    }
+
+    public PGPPublicKey getPublicKey(PGPPublicKeyRingCollection c, byte[] fingerprint) throws PGPException {
+        return c.getPublicKey(fingerprint);
+    }
+
+    private PGPSecretKeyRingCollection getSecretKeyRingCollection(String username, String passphrase) throws IOException, PGPException {
+        // TODO: Decrypt encrypted file
+        return new PGPSecretKeyRingCollection(new FileInputStream(username+".skr"), new BcKeyFingerprintCalculator());
+    }
+
+    private void saveSecretKeyRingCollection(PGPSecretKeyRingCollection secretKeyRingCollection, File skr) {
+        LOG.info("Persisting Secret KeyRing Collection...");
+        // TODO: Encrypt file
+        if(secretKeyRingCollection != null && skr != null) {
+            try {
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(skr));
+                secretKeyRingCollection.encode(bos);
+                bos.close();
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
+            }
+        }
+    }
+
     private PGPPrivateKey getPrivateKey(PGPSecretKey secretKey, char[] pass) throws PGPException {
         return secretKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider(PROVIDER_BOUNCY_CASTLE).build(pass));
     }
 
-    private PGPSecretKey getSecretKey(String alias) throws PGPException {
+    private PGPSecretKey getSecretKey(PGPSecretKeyRingCollection c, String alias) throws PGPException {
 
-        Iterator<PGPSecretKeyRing> i = secretKeyRingCollection.getKeyRings(alias);
+        Iterator<PGPSecretKeyRing> i = c.getKeyRings(alias);
         while(i.hasNext()) {
             PGPSecretKeyRing k = i.next();
             if(k.getSecretKey() != null)
@@ -453,7 +415,28 @@ public class OpenPGPKeyRing implements KeyRing {
         return null;
     }
 
-    private PGPKeyRingGenerator generateKeyRingGenerator(String alias, char[] passphrase, int s2kCount) {
+    private void storePublicKeys(StorePublicKeysRequest r) throws PGPException {
+//        boolean updated = false;
+//        PGPPublicKeyRing pkr = publicKeyRingCollection.getPublicKeyRing(r.keyId);
+//        PGPPublicKeyRing pkrNew = pkr;
+//        if(pkr == null) {
+//            r.errorCode = StorePublicKeysRequest.NON_EXISTANT_PUBLIC_KEY_RING;
+//            return;
+//        }
+//        for (PGPPublicKey k : r.publicKeys) {
+//            if(pkrNew.getPublicKey(k.getKeyID()) == null) {
+//                pkrNew = PGPPublicKeyRing.insertPublicKey(pkr, k);
+//                updated = true;
+//            }
+//        }
+//        if(updated) {
+//            publicKeyRingCollection = PGPPublicKeyRingCollection.removePublicKeyRing(publicKeyRingCollection, pkr);
+//            publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, pkrNew);
+//            saveKeyRings();
+//        }
+    }
+
+    private PGPKeyRingGenerator generateKeyRingGenerator(String username, char[] passphrase, int s2kCount) {
         PGPKeyRingGenerator keyRingGen = null;
         try {
             RSAKeyPairGenerator kpg = new RSAKeyPairGenerator();
@@ -537,7 +520,7 @@ public class OpenPGPKeyRing implements KeyRing {
             keyRingGen =
                     new PGPKeyRingGenerator
                             (PGPSignature.POSITIVE_CERTIFICATION, rsakp_sign,
-                                    alias, sha1Calc, signhashgen.generate(), null,
+                                    username, sha1Calc, signhashgen.generate(), null,
                                     new BcPGPContentSignerBuilder(rsakp_sign.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1),
                                     pske);
 

@@ -3,12 +3,16 @@ package io.onemfive.core.keyring;
 import io.onemfive.core.*;
 import io.onemfive.core.util.SystemVersion;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.PublicKey;
 import io.onemfive.data.Route;
+import io.onemfive.data.util.Base64;
 import io.onemfive.data.util.DLC;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 
-import java.io.*;
+import java.io.IOException;
 import java.security.*;
 import java.util.*;
 import java.util.logging.Logger;
@@ -20,11 +24,9 @@ import java.util.logging.Logger;
  */
 public class KeyRingService extends BaseService {
 
-    public static final String OPERATION_LOAD_KEY_RINGS = "LOAD_KEY_RINGS";
-    public static final String OPERATION_SAVE_KEY_RINGS = "SAVE_KEY_RINGS";
-    public static final String OPERATION_GENERATE_KEY_PAIR = "GENERATE_KEY_PAIR";
-    public static final String OPERATION_STORE_PUBLIC_KEYS = "STORE_PUBLIC_KEYS";
-    public static final String OPERATION_GET_PUBLIC_KEY = "GET_PUBLIC_KEY";
+    public static final String OPERATION_GENERATE_KEY_RINGS_COLLECTIONS = "GENERATE_KEY_RINGS_COLLECTIONS";
+    public static final String OPERATION_GENERATE_KEY_RINGS = "GENERATE_KEY_RINGS";
+    public static final String OPERATION_AUTHN = "AUTHN";
     public static final String OPERATION_ENCRYPT = "ENCRYPT";
     public static final String OPERATION_DECRYPT = "DECRYPT";
     public static final String OPERATION_SIGN = "SIGN";
@@ -53,33 +55,24 @@ public class KeyRingService extends BaseService {
         Route route = e.getRoute();
         KeyRing keyRing;
         switch (route.getOperation()) {
-            case OPERATION_LOAD_KEY_RINGS: {
-                LoadKeyRingsRequest r = (LoadKeyRingsRequest)DLC.getData(LoadKeyRingsRequest.class,e);
+            case OPERATION_GENERATE_KEY_RINGS_COLLECTIONS: {
+                LOG.info("Generate Key Rings Collections request received.");
+                GenerateKeyRingCollectionsRequest r = (GenerateKeyRingCollectionsRequest)DLC.getData(GenerateKeyRingCollectionsRequest.class,e);
                 if(r == null) {
-                    r = new LoadKeyRingsRequest();
-                    r.errorCode = LoadKeyRingsRequest.REQUEST_REQUIRED;
-                    DLC.addData(LoadKeyRingsRequest.class, r, e);
+                    LOG.warning("GenerateKeyRingCollectionsRequest required.");
+                    r = new GenerateKeyRingCollectionsRequest();
+                    r.errorCode = GenerateKeyRingCollectionsRequest.REQUEST_REQUIRED;
+                    DLC.addData(GenerateKeyRingCollectionsRequest.class, r, e);
                     break;
                 }
-                if(r.keyRingAlias == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_ALIAS_REQUIRED;
+                if(r.keyRingUsername == null) {
+                    LOG.warning("KeyRing username required.");
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_USERNAME_REQUIRED;
                     break;
                 }
                 if(r.keyRingPassphrase == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_PASSPHRASE_REQUIRED;
-                    break;
-                }
-                if(r.secretKeyRingCollectionFileLocation == null) {
-                    r.errorCode = LoadKeyRingsRequest.SKR_LOCATION_NOT_PROVIDED;
-                    break;
-                }
-                if(r.publicKeyRingCollectionFileLocation == null) {
-                    r.errorCode = LoadKeyRingsRequest.PKR_LOCATION_NOT_PROVIDED;
-                    break;
-                }
-                if(!r.autoGenerate && r.removeOldKeys) {
-                    r.errorCode = LoadKeyRingsRequest.AUTOGENERATE_REMOVE_OLD_KEYS_CONFLICT;
-                    r.errorMessage = "If removeOldKeys is set to true, autoGenerate must also be set to true to generate the keys.";
+                    LOG.warning("KeyRing passphrase required.");
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_PASSPHRASE_REQUIRED;
                     break;
                 }
                 if(r.hashStrength < PASSWORD_HASH_STRENGTH_64) {
@@ -91,105 +84,118 @@ public class KeyRingService extends BaseService {
                 try {
                     keyRing = keyRings.get(r.keyRingImplementation);
                     if(keyRing == null) {
-                        r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
+                        LOG.warning("KeyRing implementation unknown: "+r.keyRingImplementation);
+                        r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
                         return;
                     }
-                    keyRing.loadKeyRings(r);
+                    keyRing.generateKeyRingCollections(r);
+                    if(r.publicKey!=null)
+                        LOG.info("KeyRing loaded; encoded pk: "+r.publicKey.getEncodedBase64());
                 } catch (Exception ex) {
                     r.exception = ex;
                 }
                 break;
             }
-            case OPERATION_SAVE_KEY_RINGS: {
-                SaveKeyRingsRequest r = (SaveKeyRingsRequest)DLC.getData(SaveKeyRingsRequest.class,e);
-                keyRing = keyRings.get(r.keyRingImplementation);
-                if(keyRing == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
-                    return;
+            case OPERATION_AUTHN: {
+                AuthNRequest r = (AuthNRequest)DLC.getData(AuthNRequest.class,e);
+                if(r.keyRingUsername == null) {
+                    LOG.warning("KeyRing username required.");
+                    r.errorCode = AuthNRequest.KEY_RING_USERNAME_REQUIRED;
+                    break;
                 }
-                keyRing.saveKeyRings();break;
-            }
-            case OPERATION_GENERATE_KEY_PAIR: {
-                GenerateKeyPairRequest r = (GenerateKeyPairRequest)DLC.getData(GenerateKeyPairRequest.class,e);
-                if(r == null) {
-                    r = new GenerateKeyPairRequest();
-                    r.errorCode = GenerateKeyPairRequest.REQUEST_REQUIRED;
+                if(r.keyRingPassphrase == null) {
+                    LOG.warning("KeyRing passphrase required.");
+                    r.errorCode = AuthNRequest.KEY_RING_PASSPHRASE_REQUIRED;
                     break;
                 }
                 if(r.alias == null || r.alias.isEmpty()) {
-                    r.errorCode = GenerateKeyPairRequest.ALIAS_REQUIRED;
+                    r.errorCode = AuthNRequest.ALIAS_REQUIRED;
                     break;
                 }
-                if(r.passphrase == null || r.passphrase.length == 0) {
-                    r.errorCode = GenerateKeyPairRequest.PASSPHRASE_REQUIRED;
+                if(r.aliasPassphrase == null || r.aliasPassphrase.isEmpty()) {
+                    r.errorCode = AuthNRequest.ALIAS_PASSPHRASE_REQUIRED;
                     break;
                 }
-                keyRing = keyRings.get(r.keyRingImplementation);
-                if(keyRing == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
-                    return;
+                if(r.keyRingImplementation == null) {
+                    r.keyRingImplementation = OpenPGPKeyRing.class.getName(); // Default
                 }
                 try {
-                    keyRing.generateKeyRings(r.alias, r.passphrase, r.hashStrength);
+                    keyRing = keyRings.get(r.keyRingImplementation);
+                    if(keyRing == null) {
+                        LOG.warning("KeyRing implementation unknown: "+r.keyRingImplementation);
+                        r.errorCode = AuthNRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
+                        return;
+                    }
+                    PGPPublicKeyRingCollection c = null;
+                    try {
+                        c = keyRing.getPublicKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase);
+                    } catch (IOException e1) {
+                        LOG.info("No key ring collection found.");
+                    } catch (PGPException e1) {
+                        LOG.info("No key ring collection found.");
+                    }
+                    if(c==null) {
+                        // No collection found
+                        if(r.autoGenerate) {
+                            GenerateKeyRingCollectionsRequest gkr = new GenerateKeyRingCollectionsRequest();
+                            gkr.keyRingUsername = r.keyRingUsername;
+                            gkr.keyRingPassphrase = r.keyRingPassphrase;
+                            keyRing.generateKeyRingCollections(gkr);
+                        } else {
+                            r.errorCode = AuthNRequest.ALIAS_UNKNOWN;
+                            return;
+                        }
+                    } else {
+                        PGPPublicKey pgpPublicKey = keyRing.getPublicKey(c, r.alias, true);
+                        r.publicKey = new PublicKey();
+                        r.publicKey.setAlias(r.alias);
+                        r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
+                        r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
+                        LOG.info("KeyRing loaded\n    encoded pk: " + r.publicKey.getEncodedBase64() + "\n    encoded fingerprint: " + r.publicKey.getFingerprint());
+                    }
                 } catch (Exception ex) {
                     r.exception = ex;
+                    LOG.warning(ex.getLocalizedMessage());
+                    ex.printStackTrace();
                 }
                 break;
             }
-            case OPERATION_STORE_PUBLIC_KEYS: {
-                StorePublicKeysRequest r = (StorePublicKeysRequest)DLC.getData(StorePublicKeysRequest.class,e);
+            case OPERATION_GENERATE_KEY_RINGS: {
+                GenerateKeyRingsRequest r = (GenerateKeyRingsRequest)DLC.getData(GenerateKeyRingsRequest.class,e);
                 if(r == null) {
-                    r = new StorePublicKeysRequest();
-                    r.errorCode = StorePublicKeysRequest.REQUEST_REQUIRED;
+                    r = new GenerateKeyRingsRequest();
+                    r.errorCode = GenerateKeyRingsRequest.REQUEST_REQUIRED;
                     break;
                 }
-                if(r.keyId == 0) {
-                    r.errorCode = StorePublicKeysRequest.KEYID_REQUIRED;
+                if(r.keyRingUsername == null || r.keyRingUsername.isEmpty()) {
+                    r.errorCode = GenerateKeyRingsRequest.KEYRING_USERNAME_REQUIRED;
                     break;
                 }
-                if(r.publicKeys == null || r.publicKeys.size() == 0) {
-                    r.errorCode = StorePublicKeysRequest.PUBLIC_KEYS_LIST_REQUIRED;
+                if(r.keyRingPassphrase == null || r.keyRingPassphrase.isEmpty()) {
+                    r.errorCode = GenerateKeyRingsRequest.KEYRING_PASSPHRASE_REQUIRED;
                     break;
                 }
+                if(r.alias == null || r.alias.isEmpty()) {
+                    r.errorCode = GenerateKeyRingsRequest.ALIAS_REQUIRED;
+                    break;
+                }
+                if(r.aliasPassphrase == null || r.aliasPassphrase.isEmpty()) {
+                    r.errorCode = GenerateKeyRingsRequest.ALIAS_PASSPHRASE_REQUIRED;
+                    break;
+                }
+                if(r.keyRingImplementation == null)
+                    r.keyRingImplementation = OpenPGPKeyRing.class.getName(); // default
                 keyRing = keyRings.get(r.keyRingImplementation);
                 if(keyRing == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
-                    return;
-                }
-                if(keyRing.getPublicKeyRingCollection() == null) {
-                    r.errorCode = StorePublicKeysRequest.NON_EXISTANT_PUBLIC_KEY_RING_COLLECTION;
-                    break;
-                }
-                try {
-                    keyRing.storePublicKeys(r);
-                } catch (PGPException ex) {
-                    r.exception = ex;
-                }
-                break;
-            }
-            case OPERATION_GET_PUBLIC_KEY: {
-                GetPublicKeyRequest r = (GetPublicKeyRequest)DLC.getData(GetPublicKeyRequest.class,e);
-                if(r == null) {
-                    r = new GetPublicKeyRequest();
-                    r.errorCode = GetPublicKeyRequest.REQUEST_REQUIRED;
-                    break;
-                }
-                if((r.alias == null || r.alias.isEmpty()) && (r.fingerprint == null || r.fingerprint.length == 0)) {
-                    r.errorCode = GetPublicKeyRequest.ALIAS_OR_FINGERPRINT_REQUIRED;
-                    break;
-                }
-                keyRing = keyRings.get(r.keyRingImplementation);
-                if(keyRing == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
                     return;
                 }
                 try {
-                    if(r.alias != null)
-                        r.publicKey = keyRing.getPublicKey(r.alias, r.master);
-                    else
-                        r.publicKey = keyRing.getPublicKey(r.fingerprint);
-                } catch (PGPException ex) {
+                    keyRing.createKeyRings(r.keyRingUsername, r.keyRingPassphrase, r.alias, r.aliasPassphrase, r.hashStrength);
+                } catch (Exception ex) {
                     r.exception = ex;
+                    LOG.warning(ex.getLocalizedMessage());
+                    ex.printStackTrace();
                 }
                 break;
             }
@@ -211,13 +217,15 @@ public class KeyRingService extends BaseService {
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
                 if(keyRing == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
+                    r.errorCode = EncryptRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
                     return;
                 }
                 try {
                     keyRing.encrypt(r);
                 } catch (Exception ex) {
                     r.exception = ex;
+                    LOG.warning(ex.getLocalizedMessage());
+                    ex.printStackTrace();
                 }
                 break;
             }
@@ -231,13 +239,15 @@ public class KeyRingService extends BaseService {
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
                 if(keyRing == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
                     return;
                 }
                 try {
                     keyRing.decrypt(r);
                 } catch (Exception ex) {
                     r.exception = ex;
+                    LOG.warning(ex.getLocalizedMessage());
+                    ex.printStackTrace();
                 }
                 break;
             }
@@ -251,13 +261,15 @@ public class KeyRingService extends BaseService {
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
                 if(keyRing == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
                     return;
                 }
                 try {
                     keyRing.sign(r);
                 } catch (Exception ex) {
                     r.exception = ex;
+                    LOG.warning(ex.getLocalizedMessage());
+                    ex.printStackTrace();
                 }
                 break;
             }
@@ -271,13 +283,15 @@ public class KeyRingService extends BaseService {
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
                 if(keyRing == null) {
-                    r.errorCode = LoadKeyRingsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
                     return;
                 }
                 try {
                     keyRing.verifySignature(r);
                 } catch (Exception ex) {
                     r.exception = ex;
+                    LOG.warning(ex.getLocalizedMessage());
+                    ex.printStackTrace();
                 }
                 break;
             }
@@ -353,47 +367,43 @@ public class KeyRingService extends BaseService {
 
     public static void main(String[] args) {
         boolean isArmored = false;
-        char[] passphrase = "1234".toCharArray();
+        String passphrase = "1234";
         boolean integrityCheck = true;
         int s3kCount = 12;
 
         // Alice
-        KeyRingService sAlice = new KeyRingService(null, null);
-        sAlice.start(null);
+        KeyRingService service = new KeyRingService(null, null);
+        service.start(null);
+
         String aliasAlice = "Alice";
 
         // Charlie
-//        KeyRingService sCharlie = new KeyRingService(null, null);
-//        sCharlie.start(null);
 //        String aliasCharlie = "Charlie";
 
-        // Load Key Rings
-        LoadKeyRingsRequest lr = new LoadKeyRingsRequest();
-        lr.keyRingAlias = aliasAlice;
-        lr.keyRingPassphrase = passphrase;
-        lr.secretKeyRingCollectionFileLocation = "alice.skr";
-        lr.publicKeyRingCollectionFileLocation = "alice.pkr";
-        Envelope e1 = Envelope.documentFactory();
-        DLC.addData(LoadKeyRingsRequest.class, lr, e1);
-        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_LOAD_KEY_RINGS, e1);
-        e1.setRoute(e1.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
+        // Generate Key Ring Collections
+//        GenerateKeyRingCollectionsRequest lr = new GenerateKeyRingCollectionsRequest();
+//        lr.keyRingUsername = aliasAlice;
+//        lr.keyRingPassphrase = passphrase;
+//        Envelope e1 = Envelope.documentFactory();
+//        DLC.addData(GenerateKeyRingCollectionsRequest.class, lr, e1);
+//        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_GENERATE_KEY_RINGS_COLLECTIONS, e1);
+//        e1.setRoute(e1.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
 
-//        LoadKeyRingsRequest charlieRequest = new LoadKeyRingsRequest();
+//        GenerateKeyRingCollectionsRequest charlieRequest = new GenerateKeyRingCollectionsRequest();
 //        charlieRequest.keyRingAlias = aliasCharlie;
 //        charlieRequest.keyRingPassphrase = passphrase;
 //        charlieRequest.secretKeyRingCollectionFileLocation = "charlie.skr";
 //        charlieRequest.publicKeyRingCollectionFileLocation = "charlie.pkr";
 //        Envelope e2 = Envelope.documentFactory();
-//        DLC.addData(LoadKeyRingsRequest.class, charlieRequest, e2);
+//        DLC.addData(GenerateKeyRingCollectionsRequest.class, charlieRequest, e2);
 //        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_LOAD_KEY_RINGS, e2);
 
-        long start = new Date().getTime();
-        sAlice.handleDocument(e1);
-//        sCharlie.handleDocument(e2);
-        long end = new Date().getTime();
-        long duration = end - start;
-
-        System.out.println("Load KeyRings Duration: "+duration);
+//        long start = new Date().getTime();
+//        service.handleDocument(e1);
+//        long end = new Date().getTime();
+//        long duration = end - start;
+//
+//        System.out.println("Generate KeyRing Collections Duration: "+duration);
 
         // Generate New Alias Key Ring
 //        init = new Date().getTime();
@@ -472,27 +482,32 @@ public class KeyRingService extends BaseService {
 //        end = new Date().getTime();
 //        duration = end - start;
 //        System.out.println("Add Public Key Duration: "+duration);
-
+        OpenPGPKeyRing kr = new OpenPGPKeyRing();
         // Encrypt
         try {
-            if(lr.publicKey.getFingerprint() != null) {
+            PGPPublicKey publicKey = kr.getPublicKey(kr.getPublicKeyRingCollection(aliasAlice, passphrase), aliasAlice, false);
+            if(publicKey.getFingerprint() != null) {
                 EncryptRequest er = new EncryptRequest();
-                er.fingerprint = lr.publicKey.getFingerprint().getBytes();
+                er.keyRingUsername = aliasAlice;
+                er.keyRingPassphrase = passphrase;
+                er.fingerprint = publicKey.getFingerprint();
                 String contentStringToEncrypt = "Hello Charlie!";
                 er.contentToEncrypt = contentStringToEncrypt.getBytes();
                 Envelope ee = Envelope.documentFactory();
                 DLC.addData(EncryptRequest.class, er, ee);
                 DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT, ee);
                 ee.setRoute(ee.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
-                start = new Date().getTime();
-                sAlice.handleDocument(ee);
-                end = new Date().getTime();
-                duration = end - start;
+                long start = new Date().getTime();
+                service.handleDocument(ee);
+                long end = new Date().getTime();
+                long duration = end - start;
                 LOG.info("Encrypt Duration: "+duration);
                 LOG.info("Encrypted content: "+new String(er.encryptedContent));
                 assert (er.errorCode == EncryptRequest.NO_ERROR && er.encryptedContent != null && er.encryptedContent.length > 0);
 
                 DecryptRequest dr = new DecryptRequest();
+                dr.keyRingUsername = aliasAlice;
+                dr.keyRingPassphrase = passphrase;
                 dr.encryptedContent = er.encryptedContent;
                 dr.alias = aliasAlice;
                 dr.passphrase = passphrase;
@@ -501,7 +516,7 @@ public class KeyRingService extends BaseService {
                 DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT, de);
                 de.setRoute(de.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
                 start = new Date().getTime();
-                sAlice.handleDocument(de);
+                service.handleDocument(de);
                 duration = end - start;
                 LOG.info("Decrypt Duration: "+duration);
                 String contentStringDecrypted = new String(dr.plaintextContent);

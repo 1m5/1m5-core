@@ -3,9 +3,10 @@ package io.onemfive.core.keyring;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
+import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -17,21 +18,13 @@ public interface KeyRing {
 
     void init(Properties properties);
 
-    void loadKeyRings(LoadKeyRingsRequest r) throws IOException, PGPException;
+    void generateKeyRingCollections(GenerateKeyRingCollectionsRequest r) throws IOException, PGPException;
 
-    void saveKeyRings();
+    PGPPublicKeyRingCollection getPublicKeyRingCollection(String username, String passphrase) throws IOException, PGPException;
 
-    void generateKeyRings(String alias, char[] passphrase, int hashStrength) throws IOException, PGPException;
+    PGPPublicKey getPublicKey(PGPPublicKeyRingCollection c, String keyAlias, boolean master) throws PGPException;
 
-    void storePublicKeys(StorePublicKeysRequest r) throws PGPException;
-
-    PGPPublicKeyRingCollection getPublicKeyRingCollection();
-
-    PGPPublicKey getPublicKey(String alias, boolean master) throws PGPException;
-
-    PGPPublicKey getPublicKey(String keyRingAlias, String keyAlias) throws PGPException;
-
-    PGPPublicKey getPublicKey(byte[] fingerprint) throws PGPException;
+    void createKeyRings(String keyRingUsername, String keyRingPassphrase, String alias, String aliasPassphrase, int hashStrength) throws IOException, PGPException;
 
     void encrypt(EncryptRequest r) throws IOException, PGPException;
 
@@ -40,8 +33,5 @@ public interface KeyRing {
     void sign(SignRequest r) throws IOException, PGPException;
 
     void verifySignature(VerifySignatureRequest r) throws IOException, PGPException;
-
-    boolean containsAlias(PGPPublicKey k, String alias);
-
 
 }
