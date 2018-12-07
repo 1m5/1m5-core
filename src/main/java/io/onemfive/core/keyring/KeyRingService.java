@@ -141,6 +141,9 @@ public class KeyRingService extends BaseService {
                             gkr.keyRingUsername = r.keyRingUsername;
                             gkr.keyRingPassphrase = r.keyRingPassphrase;
                             keyRing.generateKeyRingCollections(gkr);
+                            if(gkr.publicKey!=null) {
+                                r.publicKey = gkr.publicKey;
+                            }
                         } else {
                             r.errorCode = AuthNRequest.ALIAS_UNKNOWN;
                             return;
