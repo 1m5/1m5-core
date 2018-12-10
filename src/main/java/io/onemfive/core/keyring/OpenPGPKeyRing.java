@@ -92,7 +92,7 @@ public class OpenPGPKeyRing implements KeyRing {
                     r.publicKey = new PublicKey();
                     r.publicKey.setAlias(r.keyRingUsername);
                     r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
-                    r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
+                    r.publicKey.setAddress(Base64.encode(pgpPublicKey.getEncoded()));
                 }
             }
             else {

@@ -90,7 +90,7 @@ public class KeyRingService extends BaseService {
                     }
                     keyRing.generateKeyRingCollections(r);
                     if(r.publicKey!=null)
-                        LOG.info("KeyRing loaded; encoded pk: "+r.publicKey.getEncodedBase64());
+                        LOG.info("KeyRing loaded; encoded pk: "+r.publicKey.getAddress());
                 } catch (Exception ex) {
                     r.exception = ex;
                 }
@@ -153,8 +153,8 @@ public class KeyRingService extends BaseService {
                         r.publicKey = new PublicKey();
                         r.publicKey.setAlias(r.alias);
                         r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
-                        r.publicKey.setEncodedBase64(Base64.encode(pgpPublicKey.getEncoded()));
-                        LOG.info("KeyRing loaded\n    encoded pk: " + r.publicKey.getEncodedBase64() + "\n    encoded fingerprint: " + r.publicKey.getFingerprint());
+                        r.publicKey.setAddress(Base64.encode(pgpPublicKey.getEncoded()));
+                        LOG.info("KeyRing loaded\n    encoded pk: " + r.publicKey.getAddress() + "\n    encoded fingerprint: " + r.publicKey.getFingerprint());
                     }
                 } catch (Exception ex) {
                     r.exception = ex;
