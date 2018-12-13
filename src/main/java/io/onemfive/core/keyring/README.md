@@ -19,6 +19,15 @@ As of 0.5.2, it is only supporting:
 * AES 128, 192, 256 for secret symmetric keys
 * SHA1, SHA256, SHA512 for signatures and integrity
 
+### Implementations
+
+#### OpenPGP Key Ring
+
+#### Smart PGP Key Ring
+
+##### Purism
+https://docs.puri.sm/Librem_Key.html
+
 ## TODO
 * Key Revocation
 * Support Android 8 Password Manager
