@@ -12,12 +12,14 @@ public abstract class ServiceRequest implements JSONSerializable {
     public int errorCode = NO_ERROR;
     public String errorMessage;
     public Exception exception;
+    public String type;
 
     public Map<String,Object> toMap() {
         Map<String,Object> m = new HashMap<>();
         m.put("errorCode",errorCode+"");
         if(errorMessage!=null) m.put("errorMessage",errorMessage);
         if(exception!=null) m.put("exception",exception.getLocalizedMessage());
+        m.put("type",getClass().getName());
         return m;
     }
 
@@ -27,5 +29,6 @@ public abstract class ServiceRequest implements JSONSerializable {
         if(m.get("exception")!=null) {
             exception = new Exception((String)m.get("exception"));
         }
+        if(m.get("type")!=null) type = (String)m.get("type");
     }
 }
