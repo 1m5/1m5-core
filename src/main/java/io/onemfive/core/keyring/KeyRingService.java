@@ -36,7 +36,17 @@ public class KeyRingService extends BaseService {
     public static final int PASSWORD_HASH_STRENGTH_64 = 0x10; // About 64 iterations for SHA-256
     public static final int PASSWORD_HASH_STRENGTH_128 = 0x20; // About 128
     public static final int PASSWORD_HASH_STRENGTH_256 = 0x30; // About 256
-    public static final int PASSWORD_HASH_STRENGTH_130k = 0xc0; // About 130 thousand
+    public static final int PASSWORD_HASH_STRENGTH_512 = 0x40; // About 512
+    public static final int PASSWORD_HASH_STRENGTH_1k = 0x50; // About 1k
+    public static final int PASSWORD_HASH_STRENGTH_2k = 0x60; // About 2k
+    public static final int PASSWORD_HASH_STRENGTH_4k = 0x70; // About 4k
+    public static final int PASSWORD_HASH_STRENGTH_8k = 0x80; // About 8k
+    public static final int PASSWORD_HASH_STRENGTH_16k = 0x90; // About16k
+    public static final int PASSWORD_HASH_STRENGTH_32k = 0xa0; // About 32k
+    public static final int PASSWORD_HASH_STRENGTH_64k = 0xb0; // About 64k
+    public static final int PASSWORD_HASH_STRENGTH_128k = 0xc0; // About 128k
+    public static final int PASSWORD_HASH_STRENGTH_256k = 0xd0; // About 256k
+    public static final int PASSWORD_HASH_STRENGTH_512k = 0xe0; // About 512k
     public static final int PASSWORD_HASH_STRENGTH_1M = 0xf0; // About 1 million
     public static final int PASSWORD_HASH_STRENGTH_2M = 0xff; // About 2 million
 
