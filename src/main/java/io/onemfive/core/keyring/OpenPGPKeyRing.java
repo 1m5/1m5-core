@@ -472,24 +472,24 @@ public class OpenPGPKeyRing implements KeyRing {
             kpg.init(new RSAKeyGenerationParameters(publicExponent, new SecureRandom(), bitStrength, certainty));
 
             // First create the master (signing) key with the generator.
-            PGPKeyPair rsakp_sign = new BcPGPKeyPair(PGPPublicKey.RSA_SIGN, kpg.generateKeyPair(), new Date());
+            PGPKeyPair rsaKPSign = new BcPGPKeyPair(PGPPublicKey.RSA_SIGN, kpg.generateKeyPair(), new Date());
 
             // Then an encryption subkey.
-            PGPKeyPair rsakp_enc = new BcPGPKeyPair(PGPPublicKey.RSA_ENCRYPT, kpg.generateKeyPair(), new Date());
+            PGPKeyPair rsaKPEncrypt = new BcPGPKeyPair(PGPPublicKey.RSA_ENCRYPT, kpg.generateKeyPair(), new Date());
 
             // Add a self-signature on the id
-            PGPSignatureSubpacketGenerator signhashgen = new PGPSignatureSubpacketGenerator();
+            PGPSignatureSubpacketGenerator signHashGen = new PGPSignatureSubpacketGenerator();
             // Add signed metadata on the signature.
             // 1) Declare its purpose
-            signhashgen.setKeyFlags(false, KeyFlags.SIGN_DATA|KeyFlags.CERTIFY_OTHER);
+            signHashGen.setKeyFlags(false, KeyFlags.SIGN_DATA|KeyFlags.CERTIFY_OTHER);
             // 2) Set preferences for secondary crypto algorithms to use when sending messages to this key.
-            signhashgen.setPreferredSymmetricAlgorithms
+            signHashGen.setPreferredSymmetricAlgorithms
                     (false, new int[] {
                             SymmetricKeyAlgorithmTags.AES_256,
                             SymmetricKeyAlgorithmTags.AES_192,
                             SymmetricKeyAlgorithmTags.AES_128
                     });
-            signhashgen.setPreferredHashAlgorithms
+            signHashGen.setPreferredHashAlgorithms
                     (false, new int[] {
                             HashAlgorithmTags.SHA256,
                             HashAlgorithmTags.SHA1,
@@ -499,12 +499,12 @@ public class OpenPGPKeyRing implements KeyRing {
                     });
             // 3) Request senders add additional checksums to the
             //    message (useful when verifying unsigned messages.)
-            signhashgen.setFeature(false, Features.FEATURE_MODIFICATION_DETECTION);
+            signHashGen.setFeature(false, Features.FEATURE_MODIFICATION_DETECTION);
 
             // Create a signature on the encryption subkey.
-            PGPSignatureSubpacketGenerator enchashgen = new PGPSignatureSubpacketGenerator();
+            PGPSignatureSubpacketGenerator encryptHashGen = new PGPSignatureSubpacketGenerator();
             // Add metadata to declare its purpose
-            enchashgen.setKeyFlags(false, KeyFlags.ENCRYPT_COMMS|KeyFlags.ENCRYPT_STORAGE);
+            encryptHashGen.setKeyFlags(false, KeyFlags.ENCRYPT_COMMS|KeyFlags.ENCRYPT_STORAGE);
             // Objects used to encrypt the secret key.
             PGPDigestCalculator sha1Calc = new BcPGPDigestCalculatorProvider().get(HashAlgorithmTags.SHA1);
             PGPDigestCalculator sha256Calc = new BcPGPDigestCalculatorProvider().get(HashAlgorithmTags.SHA256);
@@ -519,13 +519,13 @@ public class OpenPGPKeyRing implements KeyRing {
             // signature.
             keyRingGen =
                     new PGPKeyRingGenerator
-                            (PGPSignature.POSITIVE_CERTIFICATION, rsakp_sign,
-                                    username, sha1Calc, signhashgen.generate(), null,
-                                    new BcPGPContentSignerBuilder(rsakp_sign.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1),
+                            (PGPSignature.POSITIVE_CERTIFICATION, rsaKPSign,
+                                    username, sha1Calc, signHashGen.generate(), null,
+                                    new BcPGPContentSignerBuilder(rsaKPSign.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1),
                                     pske);
 
             // Add our encryption subkey, together with its signature.
-            keyRingGen.addSubKey(rsakp_enc, enchashgen.generate(), null);
+            keyRingGen.addSubKey(rsaKPEncrypt, encryptHashGen.generate(), null);
         } catch (PGPException ex) {
             LOG.severe(ex.getLocalizedMessage());
         }
