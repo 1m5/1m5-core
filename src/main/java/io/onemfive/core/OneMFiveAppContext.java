@@ -49,6 +49,7 @@ public class OneMFiveAppContext {
 //    protected final OneMFiveConfig config;
 
     protected final Properties overrideProps = new Properties();
+    private Properties envProps;
 
     private StatManager statManager;
     private LogManager logManager;
@@ -62,16 +63,18 @@ public class OneMFiveAppContext {
     private volatile boolean logManagerInitialized;
     private volatile boolean simpleTimerInitialized;
 
-    protected final Set<Runnable> shutdownTasks;
-    private final File baseDir;
-    private final File configDir;
-    private final File pidDir;
-    private final File logDir;
-    private final File appDir;
+    protected Set<Runnable> shutdownTasks;
+    private File baseDir;
+    private File configDir;
+    private File pidDir;
+    private File logDir;
+    private File appDir;
     private volatile File tmpDir;
     private final Random tmpDirRand = new Random();
     private static ClientAppManager clientAppManager;
     private final static Object lockA = new Object();
+    private boolean initialize = false;
+    private boolean configured = false;
     // split up big lock on this to avoid deadlocks
     private final Object lock1 = new Object(), lock2 = new Object(), lock3 = new Object(), lock4 = new Object();
 
@@ -93,6 +96,9 @@ public class OneMFiveAppContext {
                 LOG.info("Returning cached instance: " + globalAppContext);
             }
         }
+        if(!globalAppContext.configured) {
+            globalAppContext.configure();
+        }
         return globalAppContext;
     }
 
@@ -104,6 +110,9 @@ public class OneMFiveAppContext {
             } else {
                 LOG.info("Returning cached instance: " + globalAppContext);
             }
+        }
+        if(!globalAppContext.configured) {
+            globalAppContext.configure();
         }
         return globalAppContext;
     }
@@ -119,7 +128,13 @@ public class OneMFiveAppContext {
      *               Will only apply if there is no global context now.
      */
     private OneMFiveAppContext(boolean doInit, Properties envProps) {
+        this.initialize = doInit;
+        this.envProps = envProps;
+    }
 
+    private void configure() {
+        // set early to ensure it's not called twice
+        this.configured = true;
         try {
             overrideProps.putAll(Config.loadFromClasspath("1m5.config", envProps, false));
         } catch (Exception e) {
@@ -171,7 +186,7 @@ public class OneMFiveAppContext {
         // Instantiate Service Bus
         serviceBus = new ServiceBus(overrideProps, clientAppManager);
 
-        if (doInit) {
+        if (initialize) {
             if (globalAppContext == null) {
                 globalAppContext = this;
             } else {
@@ -193,7 +208,7 @@ public class OneMFiveAppContext {
         } catch (Exception e) {
             LOG.warning(e.getLocalizedMessage());
         }
-
+        this.configured = true;
 //        config = new OneMFiveConfig();
     }
 
