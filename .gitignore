@@ -40,4 +40,5 @@ libs/flexi-gmss-1.7p1.jar
 *.pkr
 *.skr
 dbDir
+/target
 
