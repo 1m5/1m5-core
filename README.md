@@ -6,7 +6,7 @@ to protect their communications and personal data from unethical monitoring, int
 and censorship.
 
 ## Version
-0.5.2
+0.6.0
 
 ## Authors / Developers
 * Founder / Lead Developer: Brian Taylor - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/)
