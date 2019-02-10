@@ -40,27 +40,6 @@
 		<url>git@github.com/1m5/1m5-core</url>
 	</scm>
 
-	<profiles>
-		<profile>
-			<id>Development</id>
-			<properties>
-
-			</properties>
-		</profile>
-		<profile>
-			<id>QA</id>
-			<properties>
-
-			</properties>
-		</profile>
-		<profile>
-			<id>Production</id>
-			<properties>
-
-			</properties>
-		</profile>
-	</profiles>
-
 	<repositories>
 		<repository>
 			<id>jitpack.io</id>
