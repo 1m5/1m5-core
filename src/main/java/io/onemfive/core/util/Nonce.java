@@ -25,6 +25,10 @@ public class Nonce {
         this(new ArrayList<Long>(), maxNonceListSize, 10);
     }
 
+    public Nonce(int maxNonceListSize, int prunePercentSize) {
+        this(new ArrayList<Long>(), maxNonceListSize, prunePercentSize);
+    }
+
     /**
      * Supports setting nonceList from prior persistence.
      * @param nonceList
