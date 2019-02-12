@@ -1,13 +1,10 @@
 package io.onemfive.core;
 
 import io.onemfive.core.infovault.InfoVaultDB;
-import io.onemfive.core.infovault.InfoVaultService;
-import io.onemfive.core.infovault.LocalFSInfoVaultDB;
 import io.onemfive.data.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.io.File;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -142,8 +139,24 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     }
 
     @Override
-    public boolean start(Properties properties) {
+    public boolean start(Properties p) {
+        if(p==null) {
+            LOG.severe("Properties for start are required.");
+            return false;
+        }
         infoVaultDB = OneMFiveAppContext.getInstance().getInfoVaultDB();
+        String baseStr = p.getProperty("1m5.dir.base");
+        File servicesFolder = new File(baseStr + "/services");
+        if(!servicesFolder.exists() && !servicesFolder.mkdir()) {
+            LOG.severe("Unable to create directory: " + baseStr + "/services");
+            return false;
+        }
+        String serviceFolderPath = baseStr + "/services" + "/"+this.getClass().getSimpleName();
+        File serviceFolder = new File(serviceFolderPath);
+        if(!serviceFolder.exists() && !serviceFolder.mkdir()) {
+            LOG.severe("Unable to create directory: " + serviceFolderPath);
+            return false;
+        }
         return true;
     }
 
@@ -173,4 +186,5 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     public boolean gracefulShutdown() {
         return true;
     }
+
 }
