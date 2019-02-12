@@ -65,12 +65,4 @@ public class Nonce {
 
         }
     }
-
-    public static void main(String[] args) {
-        Nonce n = new Nonce(100);
-        List<Long> l = new ArrayList<>();
-        for(long i=1; i<300; i++) {
-            n.continueOn(i);
-        }
-    }
 }
