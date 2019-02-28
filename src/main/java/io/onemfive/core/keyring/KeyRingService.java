@@ -163,9 +163,9 @@ public class KeyRingService extends BaseService {
                         r.publicKey = new PublicKey();
                         r.publicKey.setAlias(r.alias);
                         r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
-//                        r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
+                        r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
                         r.publicKey.setAddress(new String(pgpPublicKey.getEncoded()));
-//                        r.publicKey.setAddress(Base64.encode(pgpPublicKey.getEncoded()));
+                        r.publicKey.setAddress(Base64.encode(pgpPublicKey.getEncoded()));
                         LOG.info("KeyRing loaded\n\tpk: " + r.publicKey.getAddress() + "\n\tfingerprint: " + r.publicKey.getFingerprint());
                     }
                 } catch (Exception ex) {
