@@ -428,6 +428,27 @@ public class FileUtil {
     }
 
     /**
+     * Dump the contents of the given path to the output stream.
+     *
+     * Closes the OutputStream out on successful completion
+     * but leaves it open when throwing IOE.
+     */
+    public static void readFile(String path, OutputStream out) throws IOException {
+        File target = new File(path);
+        if (!target.exists()) throw new FileNotFoundException("Requested file does not exist: " + path);
+        String targetStr = target.getCanonicalPath();
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(target);
+            DataHelper.copy(in, out);
+            try { out.close(); } catch (IOException ioe) {}
+        } finally {
+            if (in != null)
+                try { in.close(); } catch (IOException ioe) {}
+        }
+    }
+
+    /**
      * @return true if it was copied successfully
      */
     public static boolean copy(String source, String dest, boolean overwriteExisting) {
