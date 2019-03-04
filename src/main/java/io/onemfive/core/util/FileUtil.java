@@ -522,6 +522,10 @@ public class FileUtil {
         return true;
     }
 
+//    public static void main(String args[]) {
+//        writeFile("Hello World!".getBytes(),"hw.txt");
+//    }
+
 //    /**
 //     * Usage: FileUtil (delete path | copy source dest | rename from to | unzip path.zip)
 //     *
