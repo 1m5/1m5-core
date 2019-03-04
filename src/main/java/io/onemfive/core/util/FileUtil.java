@@ -11,6 +11,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -428,24 +431,11 @@ public class FileUtil {
     }
 
     /**
-     * Dump the contents of the given path to the output stream.
-     *
-     * Closes the OutputStream out on successful completion
-     * but leaves it open when throwing IOE.
+     * Load the contents of the given path to a byte array.
      */
-    public static void readFile(String path, OutputStream out) throws IOException {
-        File target = new File(path);
-        if (!target.exists()) throw new FileNotFoundException("Requested file does not exist: " + path);
-        String targetStr = target.getCanonicalPath();
-        FileInputStream in = null;
-        try {
-            in = new FileInputStream(target);
-            DataHelper.copy(in, out);
-            try { out.close(); } catch (IOException ioe) {}
-        } finally {
-            if (in != null)
-                try { in.close(); } catch (IOException ioe) {}
-        }
+    public static byte[] readFile(String path) throws IOException {
+        Path fileLocation = Paths.get(path);
+        return Files.readAllBytes(fileLocation);
     }
 
     /**
