@@ -432,6 +432,7 @@ public class FileUtil {
 
     /**
      * Load the contents of the given path to a byte array.
+     * @since 0.6.1 1M5
      */
     public static byte[] readFile(String path) throws IOException {
         Path fileLocation = Paths.get(path);
@@ -521,7 +522,7 @@ public class FileUtil {
 
     /**
      * Write bytes to file
-     *
+     * @since 0.6.1 1M5
      */
     public static boolean writeFile(byte[] data, String path) {
         try (FileOutputStream stream = new FileOutputStream(path)) {
