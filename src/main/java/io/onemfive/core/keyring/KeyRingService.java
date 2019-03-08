@@ -7,6 +7,7 @@ import io.onemfive.data.PublicKey;
 import io.onemfive.data.Route;
 import io.onemfive.data.util.Base64;
 import io.onemfive.data.util.DLC;
+import io.onemfive.data.util.HashUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -162,10 +163,11 @@ public class KeyRingService extends BaseService {
                         PGPPublicKey pgpPublicKey = keyRing.getPublicKey(c, r.alias, true);
                         r.publicKey = new PublicKey();
                         r.publicKey.setAlias(r.alias);
-                        r.publicKey.setFingerprint(new String(pgpPublicKey.getFingerprint()));
                         r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
-                        r.publicKey.setAddress(new String(pgpPublicKey.getEncoded()));
                         r.publicKey.setAddress(Base64.encode(pgpPublicKey.getEncoded()));
+                        r.publicKey.isEncryptionKey(pgpPublicKey.isEncryptionKey());
+                        r.publicKey.isIdentityKey(pgpPublicKey.isMasterKey());
+
                         LOG.info("KeyRing loaded\n\tpk: " + r.publicKey.getAddress() + "\n\tfingerprint: " + r.publicKey.getFingerprint());
                     }
                 } catch (Exception ex) {

@@ -2,16 +2,12 @@ package io.onemfive.core.keyring;
 
 import io.onemfive.data.Envelope;
 import io.onemfive.data.util.DLC;
-import org.bouncycastle.openpgp.PGPException;
-import org.bouncycastle.openpgp.PGPPublicKey;
+import io.onemfive.data.util.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * TODO: Add Description
@@ -32,62 +28,65 @@ public class KeyRingServiceTest {
     }
 
 //    @Test
-//    public void keyRingCollections() {
-//        boolean isArmored = false;
-//        String passphrase = "1234";
-//        boolean integrityCheck = true;
-//        int s3kCount = 12;
+//    public void genKeyRingCollection() {
 //
-//        // Alice
+//        // Ensure cleanup
+//        FileUtil.rmFile("Bob.pkr");
+//        FileUtil.rmFile("Bob.skr");
+//
 //        KeyRingService service = new KeyRingService(null, null);
 //        service.start(null);
 //
-//        String aliasAlice = "Alice";
-//
-//        // Charlie
-//        String aliasCharlie = "Charlie";
+//        String aliasAlice = "Bob";
+//        String passphrase = "1234";
 //
 //        // Generate Key Ring Collections
 //        GenerateKeyRingCollectionsRequest lr = new GenerateKeyRingCollectionsRequest();
 //        lr.keyRingUsername = aliasAlice;
 //        lr.keyRingPassphrase = passphrase;
-//        Envelope e1 = Envelope.documentFactory();
-//        DLC.addData(GenerateKeyRingCollectionsRequest.class, lr, e1);
-//        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_GENERATE_KEY_RINGS_COLLECTIONS, e1);
-//        e1.setRoute(e1.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
-//
-//        GenerateKeyRingCollectionsRequest charlieRequest = new GenerateKeyRingCollectionsRequest();
-//        charlieRequest.keyRingAlias = aliasCharlie;
-//        charlieRequest.keyRingPassphrase = passphrase;
-//        charlieRequest.secretKeyRingCollectionFileLocation = "charlie.skr";
-//        charlieRequest.publicKeyRingCollectionFileLocation = "charlie.pkr";
-//        Envelope e2 = Envelope.documentFactory();
-//        DLC.addData(GenerateKeyRingCollectionsRequest.class, charlieRequest, e2);
-//        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_LOAD_KEY_RINGS, e2);
+//        Envelope e = Envelope.documentFactory();
+//        DLC.addData(GenerateKeyRingCollectionsRequest.class, lr, e);
+//        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_GENERATE_KEY_RINGS_COLLECTIONS, e);
+//        e.setRoute(e.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
 //
 //        long start = new Date().getTime();
-//        service.handleDocument(e1);
+//        service.handleDocument(e);
 //        long end = new Date().getTime();
 //        long duration = end - start;
-//
-//        System.out.println("Generate KeyRing Collections Duration: "+duration);
-//
-//        // Generate New Alias Key Ring
-//        init = new Date().getTime();
-//        try {
-//            sAlice.generateKeyRings("Barbara",passphrase, PASSWORD_HASH_STRENGTH_64);
-//            sCharlie.generateKeyRings("Dan",passphrase, PASSWORD_HASH_STRENGTH_64);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (PGPException e) {
-//            e.printStackTrace();
-//        }
-//        end = new Date().getTime();
-//        duration = end - init;
-//        System.out.println("Generate New Alias Key Ring Duration: "+duration);
-//
-//        // Verify we have master and encryption public keys
-//        start = new Date().getTime();
+//        System.out.println("Generate Key Ring Duration (ms): " + duration);
+//        assert FileUtil.fileExists("Bob.pkr");
+//        assert FileUtil.fileExists("Bob.skr");
+//    }
+
+    @Test
+    public void authN() {
+        // Ensure cleanup
+        FileUtil.rmFile("Bob.pkr");
+        FileUtil.rmFile("Bob.skr");
+
+        KeyRingService service = new KeyRingService(null, null);
+        service.start(null);
+
+        AuthNRequest r = new AuthNRequest();
+        r.keyRingUsername = "Bob";
+        r.keyRingPassphrase = "1234";
+        r.alias = "Bob";
+        r.aliasPassphrase = "1234";
+        r.autoGenerate = true;
+        Envelope e = Envelope.documentFactory();
+        DLC.addData(AuthNRequest.class, r, e);
+        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_AUTHN, e);
+        e.setRoute(e.getDynamicRoutingSlip().nextRoute());
+        long start = new Date().getTime();
+        service.handleDocument(e);
+        long end = new Date().getTime();
+        long duration = end - start;
+        System.out.println("Get Public Key Duration: "+duration);
+        assert r.publicKey != null && r.publicKey.getAddress()!=null;
+        System.out.println("Public Key Fingerprint: "+r.publicKey.getFingerprint());
+        System.out.println("Public Key Address: "+r.publicKey.getAddress());
+        System.out.println("Public Key Is Identity Key: "+r.publicKey.isIdentityKey());
+        System.out.println("Public Key is Encryption Key: "+r.publicKey.isEncryptionKey());
 //        try {
 //            // Alice
 //            PGPPublicKey kAliceM = sAlice.keyRing.getPublicKey("Alice", true);
@@ -119,9 +118,6 @@ public class KeyRingServiceTest {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-//        end = new Date().getTime();
-//        duration = end - start;
-//        System.out.println("Get Public Key Duration: "+duration);
 //
 //        // Add each other's public keys
 //        start = new Date().getTime();
@@ -149,7 +145,7 @@ public class KeyRingServiceTest {
 //        end = new Date().getTime();
 //        duration = end - start;
 //        System.out.println("Add Public Key Duration: "+duration);
-//    }
+    }
 
 //    @Test
 //    public void cryption() {

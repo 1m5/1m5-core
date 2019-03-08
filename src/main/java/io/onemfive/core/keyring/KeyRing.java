@@ -10,7 +10,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * TODO: Add Description
+ * Interface for implementing all KeyRings in 1M5.
+ * Ensure they are thread safe a they are cached in {@link KeyRingService} on startup and shared across all incoming threads.
  *
  * @author objectorange
  */
