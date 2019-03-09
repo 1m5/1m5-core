@@ -132,7 +132,7 @@ public class OpenPGPKeyRing implements KeyRing {
 
     @Override
     public void encrypt(EncryptRequest r) throws IOException, PGPException {
-        PGPPublicKey publicKey = getPublicKey(getPublicKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase),r.fingerprint);
+        PGPPublicKey publicKey = getPublicKey(getPublicKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase), r.publicKeyAlias, false);
         if(publicKey == null) {
             r.errorCode = EncryptRequest.PUBLIC_KEY_NOT_FOUND;
             return;
@@ -340,23 +340,23 @@ public class OpenPGPKeyRing implements KeyRing {
         }
     }
 
-    public PGPPublicKey getPublicKey(PGPPublicKeyRing kr, boolean master) {
+    public PGPPublicKey getPublicKey(PGPPublicKeyRing kr, boolean identity) {
         Iterator<PGPPublicKey> m = kr.getPublicKeys();
         while(m.hasNext()) {
             PGPPublicKey k = m.next();
-            if (master && k.isMasterKey())
+            if (identity && k.isMasterKey())
                 return k;
-            else if (!master && k.isEncryptionKey())
+            else if (!identity && k.isEncryptionKey())
                 return k;
         }
         return null;
     }
 
-    public PGPPublicKey getPublicKey(PGPPublicKeyRingCollection c, String keyAlias, boolean master) throws PGPException {
+    public PGPPublicKey getPublicKey(PGPPublicKeyRingCollection c, String keyAlias, boolean identity) throws PGPException {
         Iterator<PGPPublicKeyRing> i = c.getKeyRings(keyAlias);
         PGPPublicKey key = null;
         while(i.hasNext() && key==null) {
-            key = getPublicKey(i.next(), master);
+            key = getPublicKey(i.next(), identity);
         }
         return key;
     }

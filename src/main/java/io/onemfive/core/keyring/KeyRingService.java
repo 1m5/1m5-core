@@ -13,7 +13,11 @@ import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.util.*;
 import java.util.logging.Logger;
@@ -30,6 +34,8 @@ public class KeyRingService extends BaseService {
     public static final String OPERATION_AUTHN = "AUTHN";
     public static final String OPERATION_ENCRYPT = "ENCRYPT";
     public static final String OPERATION_DECRYPT = "DECRYPT";
+    public static final String OPERATION_ENCRYPT_SYMMETRIC = "ENCRYPT_SYMMETRIC";
+    public static final String OPERATION_DECRYPT_SYMMETRIC = "DECRYPT_SYMMETRIC";
     public static final String OPERATION_SIGN = "SIGN";
     public static final String OPERATION_VERIFY_SIGNATURE = "VERIFY_SIGNATURE";
     public static final String OPERATION_RELOAD = "RELOAD";
@@ -224,8 +230,8 @@ public class KeyRingService extends BaseService {
                     DLC.addData(EncryptRequest.class, r, e);
                     break;
                 }
-                if(r.fingerprint == null || r.fingerprint.length == 0) {
-                    r.errorCode = EncryptRequest.FINGERPRINT_REQUIRED;
+                if(r.publicKeyAlias == null) {
+                    r.errorCode = EncryptRequest.PUBLIC_KEY_ALIAS_REQUIRED;
                     break;
                 }
                 if(r.contentToEncrypt == null || r.contentToEncrypt.length == 0) {
@@ -309,6 +315,99 @@ public class KeyRingService extends BaseService {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
                     ex.printStackTrace();
+                }
+                break;
+            }
+            case OPERATION_ENCRYPT_SYMMETRIC: {
+                EncryptSymmetricRequest r = (EncryptSymmetricRequest)DLC.getData(EncryptSymmetricRequest.class,e);
+                if(r==null) {
+                    r = new EncryptSymmetricRequest();
+                    r.errorCode = EncryptSymmetricRequest.REQUEST_REQUIRED;
+                    DLC.addData(EncryptSymmetricRequest.class, r, e);
+                    break;
+                }
+                if(r.passphrase == null || r.passphrase.isEmpty()) {
+                    r.errorCode = EncryptSymmetricRequest.PASSPHRASE_REQUIRED;
+                    break;
+                }
+                if(r.contentToEncrypt == null || r.contentToEncrypt.length == 0) {
+                    r.errorCode = EncryptSymmetricRequest.CONTENT_TO_ENCRYPT_REQUIRED;
+                    break;
+                }
+                try {
+                    byte[] key = r.passphrase.getBytes("UTF-8");
+                    MessageDigest sha = MessageDigest.getInstance("SHA-1");
+                    key = sha.digest(key);
+                    key = Arrays.copyOf(key,16);
+                    // Encrypt
+                    SecretKey secretKey = new SecretKeySpec(key, "AES");
+                    Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                    byte[] iv = new byte[16];
+                    SecureRandom random = new SecureRandom();
+                    random.nextBytes(iv);
+                    r.iv = java.util.Base64.getEncoder().encodeToString(iv);
+                    IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+                    aesCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+                    r.encryptedContent = aesCipher.doFinal(r.contentToEncrypt);
+                } catch (UnsupportedEncodingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (NoSuchAlgorithmException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (NoSuchPaddingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (InvalidKeyException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (InvalidAlgorithmParameterException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (IllegalBlockSizeException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (BadPaddingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                }
+
+                break;
+            }
+            case OPERATION_DECRYPT_SYMMETRIC: {
+                DecryptSymmetricRequest r = (DecryptSymmetricRequest)DLC.getData(DecryptSymmetricRequest.class,e);
+                if(r.encryptedContent==null || r.encryptedContent.length == 0) {
+                    r.errorCode = DecryptSymmetricRequest.ENCRYPTED_CONTENT_REQUIRED;
+                    break;
+                }
+                if(r.passphrase==null || r.passphrase.isEmpty()) {
+                    r.errorCode = DecryptSymmetricRequest.PASSPHRASE_REQUIRED;
+                    break;
+                }
+                if(r.iv==null || r.iv.isEmpty()) {
+                    r.errorCode = DecryptSymmetricRequest.IV_REQUIRED;
+                    break;
+                }
+                try {
+                    byte[] key = r.passphrase.getBytes("UTF-8");
+                    MessageDigest sha = MessageDigest.getInstance("SHA-1");
+                    key = sha.digest(key);
+                    key = Arrays.copyOf(key,16);
+                    // Encrypt
+                    SecretKey secretKey = new SecretKeySpec(key, "AES");
+                    Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                    byte[] iv = java.util.Base64.getDecoder().decode(r.iv);
+                    IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+                    aesCipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+                    r.decryptedContent = aesCipher.doFinal(r.encryptedContent);
+                } catch (UnsupportedEncodingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (NoSuchAlgorithmException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (NoSuchPaddingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (InvalidKeyException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (InvalidAlgorithmParameterException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (IllegalBlockSizeException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (BadPaddingException e1) {
+                    r.errorCode = DecryptSymmetricRequest.BAD_PASSPHRASE;
+                    LOG.warning(e1.getLocalizedMessage());
                 }
                 break;
             }
