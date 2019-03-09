@@ -15,6 +15,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -68,6 +69,8 @@ public class KeyRingServiceTest {
     @After
     public void teardown() {
         service.shutdown();
+        FileUtil.rmFile(aliasBob);
+        FileUtil.rmFile(aliasCharlie);
     }
 
 //    @Test
@@ -115,49 +118,92 @@ public class KeyRingServiceTest {
 //        service.handleDocument(e);
 //        long end = new Date().getTime();
 //        long duration = end - start;
-//        System.out.println("Get Public Key Duration: " + duration);
-//        assert r.publicKey != null && r.publicKey.getAddress() != null;
-//        System.out.println("Public Key Fingerprint: " + r.publicKey.getFingerprint());
-//        System.out.println("Public Key Address: " + r.publicKey.getAddress());
-//        System.out.println("Public Key Is Identity Key: " + r.publicKey.isIdentityKey());
-//        System.out.println("Public Key is Encryption Key: " + r.publicKey.isEncryptionKey());
+//        System.out.println("Get Public Key authN Duration: " + duration);
+//        assert r.identityPublicKey != null && r.identityPublicKey.getAddress() != null;
+//        assert r.encryptionPublicKey != null & r.encryptionPublicKey.getAddress() != null;
+//
+//        System.out.println("Identity Public Key Fingerprint: " + r.identityPublicKey.getFingerprint());
+//        System.out.println("Identity Public Key Address: " + r.identityPublicKey.getAddress());
+//        System.out.println("Identity Public Key Is Identity Key: " + r.identityPublicKey.isIdentityKey());
+//        System.out.println("Identity Public Key is Encryption Key: " + r.identityPublicKey.isEncryptionKey());
+//
+//        System.out.println("Encryption Public Key Fingerprint: " + r.encryptionPublicKey.getFingerprint());
+//        System.out.println("Encryption Public Key Address: " + r.encryptionPublicKey.getAddress());
+//        System.out.println("Encryption Public Key Is Identity Key: " + r.encryptionPublicKey.isIdentityKey());
+//        System.out.println("Encryption Public Key is Encryption Key: " + r.encryptionPublicKey.isEncryptionKey());
+//    }
+
+//    @Test
+//    public void symmetricCryption() {
+//        String passphrase = "1234";
+//        String plaintext = "This is a secret";
+//        System.out.println("Content to encrypt: \n"+plaintext);
+//        try {
+//            // Encrypt
+//            EncryptSymmetricRequest er = new EncryptSymmetricRequest();
+//            er.contentToEncrypt = plaintext.getBytes();
+//            er.passphrase = passphrase;
+//            Envelope ee = Envelope.documentFactory();
+//            DLC.addData(EncryptSymmetricRequest.class, er, ee);
+//            DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT_SYMMETRIC, ee);
+//            ee.setRoute(ee.getDynamicRoutingSlip().nextRoute());
+//            service.handleDocument(ee);
+//            if(er.errorCode != ServiceRequest.NO_ERROR) System.out.println("Encryption Error Code: "+er.errorCode);
+//            assert er.encryptedContent != null;
+//            System.out.println("Encrypted text: \n"+er.encryptedContent);
+//
+//            // Decrypt
+//            DecryptSymmetricRequest dr = new DecryptSymmetricRequest();
+//            dr.encryptedContent = er.encryptedContent;
+//            dr.iv = er.iv;
+//            dr.passphrase = passphrase;
+//            Envelope de = Envelope.documentFactory();
+//            DLC.addData(DecryptSymmetricRequest.class, dr, de);
+//            DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT_SYMMETRIC, de);
+//            de.setRoute(de.getDynamicRoutingSlip().nextRoute());
+//            service.handleDocument(de);
+//            if(dr.errorCode != ServiceRequest.NO_ERROR) System.out.println("Decryption Error Code: "+dr.errorCode);
+//            assert dr.errorCode == ServiceRequest.NO_ERROR;
+//            assert plaintext.equals(new String(dr.decryptedContent));
+//            System.out.println("Decrypted text: \n"+new String(dr.decryptedContent));
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
 //    }
 
     @Test
-    public void cryption() {
-        String passphrase = "1234";
-        String plaintext = "This is a secret";
-        System.out.println("Content to encrypt: \n"+plaintext);
+    public void assymmetricCryption() {
+        String contentKey = "1234:iv-here:content-hash-here"; // secure random as passphrase:iv:content hash
+        // Encrypt
         try {
-            // Encrypt
-            EncryptSymmetricRequest er = new EncryptSymmetricRequest();
-            er.contentToEncrypt = plaintext.getBytes();
-            er.passphrase = passphrase;
+            EncryptRequest er = new EncryptRequest();
+            er.keyRingUsername = aliasBob;
+            er.keyRingPassphrase = passphrase;
+            er.publicKeyAlias = aliasBob;
+            er.contentToEncrypt = contentKey.getBytes("UTF-8");
             Envelope ee = Envelope.documentFactory();
-            DLC.addData(EncryptSymmetricRequest.class, er, ee);
-            DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT_SYMMETRIC, ee);
+            DLC.addData(EncryptRequest.class, er, ee);
+            DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT, ee);
             ee.setRoute(ee.getDynamicRoutingSlip().nextRoute());
             service.handleDocument(ee);
-            if(er.errorCode != ServiceRequest.NO_ERROR) System.out.println("Encryption Error Code: "+er.errorCode);
-            assert er.encryptedContent != null;
-            System.out.println("Encrypted text: \n"+er.encryptedContent);
+            assert er.errorCode == ServiceRequest.NO_ERROR;
 
             // Decrypt
-            DecryptSymmetricRequest dr = new DecryptSymmetricRequest();
-            dr.encryptedContent = er.encryptedContent;
-            dr.iv = er.iv;
+            DecryptRequest dr = new DecryptRequest();
+            dr.keyRingUsername = aliasBob;
+            dr.keyRingPassphrase = passphrase;
+            dr.alias = aliasBob;
             dr.passphrase = passphrase;
+            dr.encryptedContent = er.encryptedContent;
             Envelope de = Envelope.documentFactory();
-            DLC.addData(DecryptSymmetricRequest.class, dr, de);
-            DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT_SYMMETRIC, de);
+            DLC.addData(DecryptRequest.class, dr, de);
+            DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT, de);
             de.setRoute(de.getDynamicRoutingSlip().nextRoute());
             service.handleDocument(de);
-            if(dr.errorCode != ServiceRequest.NO_ERROR) System.out.println("Decryption Error Code: "+dr.errorCode);
             assert dr.errorCode == ServiceRequest.NO_ERROR;
-            assert plaintext.equals(new String(dr.decryptedContent));
-            System.out.println("Decrypted text: \n"+new String(dr.decryptedContent));
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println(new String(dr.plaintextContent));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
     }
 }

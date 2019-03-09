@@ -11,6 +11,7 @@ import org.bouncycastle.bcpg.sig.KeyFlags;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
@@ -85,16 +86,27 @@ public class OpenPGPKeyRing implements KeyRing {
                 publicKeyRingCollection = new PGPPublicKeyRingCollection(pgpPublicKeyRings);
                 savePublicKeyRingCollection(publicKeyRingCollection, pkr);
 
-                // Now get the public key
-                PGPPublicKey pgpPublicKey = getPublicKey(publicKeyRingCollection, r.keyRingUsername, true);
-                if(pgpPublicKey != null) {
-                    LOG.info("Public Key found.");
-                    r.publicKey = new PublicKey();
-                    r.publicKey.setAlias(r.keyRingUsername);
-                    r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
-                    r.publicKey.setAddress(Base64.encode(pgpPublicKey.getEncoded()));
-                    r.publicKey.isIdentityKey(pgpPublicKey.isMasterKey());
-                    r.publicKey.isEncryptionKey(pgpPublicKey.isEncryptionKey());
+                // Now get the identity public key
+                PGPPublicKey identityPublicKey = getPublicKey(publicKeyRingCollection, r.keyRingUsername, true);
+                if(identityPublicKey != null) {
+                    LOG.info("Identity Public Key found.");
+                    r.identityPublicKey = new PublicKey();
+                    r.identityPublicKey.setAlias(r.keyRingUsername);
+                    r.identityPublicKey.setFingerprint(Base64.encode(identityPublicKey.getFingerprint()));
+                    r.identityPublicKey.setAddress(Base64.encode(identityPublicKey.getEncoded()));
+                    r.identityPublicKey.isIdentityKey(identityPublicKey.isMasterKey());
+                    r.identityPublicKey.isEncryptionKey(identityPublicKey.isEncryptionKey());
+                }
+                // Now get the encryption public key
+                PGPPublicKey encryptionPublicKey = getPublicKey(publicKeyRingCollection, r.keyRingUsername, false);
+                if(encryptionPublicKey != null) {
+                    LOG.info("Encryption Public Key found.");
+                    r.encryptionPublicKey = new PublicKey();
+                    r.encryptionPublicKey.setAlias(r.keyRingUsername);
+                    r.encryptionPublicKey.setFingerprint(Base64.encode(encryptionPublicKey.getFingerprint()));
+                    r.encryptionPublicKey.setAddress(Base64.encode(encryptionPublicKey.getEncoded()));
+                    r.encryptionPublicKey.isIdentityKey(encryptionPublicKey.isMasterKey());
+                    r.encryptionPublicKey.isEncryptionKey(encryptionPublicKey.isEncryptionKey());
                 }
             }
             else {
@@ -130,6 +142,12 @@ public class OpenPGPKeyRing implements KeyRing {
         savePublicKeyRingCollection(publicKeyRingCollection, new File(keyRingUsername+".pkr"));
     }
 
+    /**
+     * https://github.com/bcgit/bc-java/blob/master/pg/src/main/java/org/bouncycastle/openpgp/examples/KeyBasedFileProcessor.java
+     * @param r
+     * @throws IOException
+     * @throws PGPException
+     */
     @Override
     public void encrypt(EncryptRequest r) throws IOException, PGPException {
         PGPPublicKey publicKey = getPublicKey(getPublicKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase), r.publicKeyAlias, false);
@@ -139,10 +157,6 @@ public class OpenPGPKeyRing implements KeyRing {
         }
 
         boolean withIntegrityCheck = true;
-
-        ByteArrayOutputStream content = new ByteArrayOutputStream();
-
-        OutputStream out = new ArmoredOutputStream(content);
 
         // Compress content
         ByteArrayOutputStream bOut = new ByteArrayOutputStream();
@@ -162,17 +176,21 @@ public class OpenPGPKeyRing implements KeyRing {
                 .setSecureRandom(new SecureRandom())
                 .setProvider(PROVIDER_BOUNCY_CASTLE);
 
-        PGPEncryptedDataGenerator cPk = new PGPEncryptedDataGenerator(c);
+        PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(c);
 
         JcePublicKeyKeyEncryptionMethodGenerator d = new JcePublicKeyKeyEncryptionMethodGenerator(publicKey)
                 .setProvider(PROVIDER_BOUNCY_CASTLE)
                 .setSecureRandom(new SecureRandom());
 
-        cPk.addMethod(d);
+        encGen.addMethod(d);
 
         byte[] bytes = bOut.toByteArray();
 
-        OutputStream cOut = cPk.open(out, bytes.length);
+        ByteArrayOutputStream content = new ByteArrayOutputStream();
+
+        OutputStream out = new ArmoredOutputStream(content);
+
+        OutputStream cOut = encGen.open(out, bytes.length);
 
         cOut.write(bytes);
 
@@ -183,10 +201,17 @@ public class OpenPGPKeyRing implements KeyRing {
         r.encryptedContent = content.toByteArray();
     }
 
+    /**
+     * https://github.com/bcgit/bc-java/blob/master/pg/src/main/java/org/bouncycastle/openpgp/examples/KeyBasedFileProcessor.java
+     * @param r
+     * @throws IOException
+     * @throws PGPException
+     */
     @Override
     public void decrypt(DecryptRequest r) throws IOException, PGPException {
         InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(r.encryptedContent));
-        PGPObjectFactory pgpF = new PGPObjectFactory(in, new BcKeyFingerprintCalculator());
+//        PGPObjectFactory pgpF = new PGPObjectFactory(in, new BcKeyFingerprintCalculator());
+        JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(in);
         PGPEncryptedDataList enc;
         Object o = pgpF.nextObject();
         //
@@ -203,22 +228,16 @@ public class OpenPGPKeyRing implements KeyRing {
         Iterator<PGPPublicKeyEncryptedData> it = enc.getEncryptedDataObjects();
         PGPPrivateKey privKey = null;
         PGPPublicKeyEncryptedData pbe = null;
-        PGPSecretKey secKey = null;
+        PGPSecretKeyRingCollection pgpSec = getSecretKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase);
         while (privKey == null && it.hasNext()) {
             pbe = it.next();
-//            secKey = getSecretKey(pbe.getKeyID());
-            secKey = getSecretKey(getSecretKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase), r.alias);
-            if(secKey != null) {
-                PBESecretKeyDecryptor a = new JcePBESecretKeyDecryptorBuilder(
-                        new JcaPGPDigestCalculatorProviderBuilder()
-                                .setProvider(PROVIDER_BOUNCY_CASTLE).build())
-                        .setProvider(PROVIDER_BOUNCY_CASTLE).build(r.passphrase.toCharArray());
-                privKey = secKey.extractPrivateKey(a);
-            }
+            privKey = getPrivateKey(pgpSec, pbe.getKeyID(), r.passphrase.toCharArray());
         }
 
         PublicKeyDataDecryptorFactory b = new JcePublicKeyDataDecryptorFactoryBuilder()
-                .setProvider(PROVIDER_BOUNCY_CASTLE).setContentProvider(PROVIDER_BOUNCY_CASTLE).build(privKey);
+                .setProvider(PROVIDER_BOUNCY_CASTLE)
+                .setContentProvider(PROVIDER_BOUNCY_CASTLE)
+                .build(privKey);
 
         InputStream clear = pbe.getDataStream(b);
 
@@ -384,8 +403,8 @@ public class OpenPGPKeyRing implements KeyRing {
     }
 
     private PGPSecretKeyRingCollection getSecretKeyRingCollection(String username, String passphrase) throws IOException, PGPException {
-        // TODO: Decrypt encrypted file
-        return new PGPSecretKeyRingCollection(new FileInputStream(username+".skr"), new BcKeyFingerprintCalculator());
+//        return new PGPSecretKeyRingCollection(new FileInputStream(username+".skr"), new BcKeyFingerprintCalculator());
+        return new PGPSecretKeyRingCollection(new FileInputStream(username+".skr"), new JcaKeyFingerprintCalculator());
     }
 
     private void saveSecretKeyRingCollection(PGPSecretKeyRingCollection secretKeyRingCollection, File skr) {
@@ -415,6 +434,11 @@ public class OpenPGPKeyRing implements KeyRing {
                 return k.getSecretKey();
         }
         return null;
+    }
+
+    private PGPPrivateKey getPrivateKey(PGPSecretKeyRingCollection pgpSec, long keyID, char[] pass) throws PGPException {
+        PGPSecretKey pgpSecKey = pgpSec.getSecretKey(keyID);
+        return getPrivateKey(pgpSecKey, pass);
     }
 
     private void storePublicKeys(StorePublicKeysRequest r) throws PGPException {

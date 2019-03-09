@@ -25,6 +25,7 @@ public class GenerateKeyRingCollectionsRequest extends KeyRingsRequest {
     public int hashStrength = KeyRingService.PASSWORD_HASH_STRENGTH_64; // default
 
     // Response is publicKey associated with key ring username (default)
-    public PublicKey publicKey;
+    public PublicKey identityPublicKey;
+    public PublicKey encryptionPublicKey;
 
 }

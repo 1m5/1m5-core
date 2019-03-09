@@ -106,8 +106,6 @@ public class KeyRingService extends BaseService {
                         return;
                     }
                     keyRing.generateKeyRingCollections(r);
-                    if(r.publicKey!=null)
-                        LOG.info("KeyRing loaded; encoded pk: "+r.publicKey.getAddress());
                 } catch (Exception ex) {
                     r.exception = ex;
                 }
@@ -158,23 +156,30 @@ public class KeyRingService extends BaseService {
                             gkr.keyRingUsername = r.keyRingUsername;
                             gkr.keyRingPassphrase = r.keyRingPassphrase;
                             keyRing.generateKeyRingCollections(gkr);
-                            if(gkr.publicKey!=null) {
-                                r.publicKey = gkr.publicKey;
-                            }
+                            if(gkr.identityPublicKey!=null) r.identityPublicKey = gkr.identityPublicKey;
+                            if(gkr.encryptionPublicKey!=null) r.encryptionPublicKey = gkr.encryptionPublicKey;
                         } else {
                             r.errorCode = AuthNRequest.ALIAS_UNKNOWN;
                             return;
                         }
                     } else {
-                        PGPPublicKey pgpPublicKey = keyRing.getPublicKey(c, r.alias, true);
-                        r.publicKey = new PublicKey();
-                        r.publicKey.setAlias(r.alias);
-                        r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
-                        r.publicKey.setAddress(Base64.encode(pgpPublicKey.getEncoded()));
-                        r.publicKey.isEncryptionKey(pgpPublicKey.isEncryptionKey());
-                        r.publicKey.isIdentityKey(pgpPublicKey.isMasterKey());
+                        PGPPublicKey identityPublicKey = keyRing.getPublicKey(c, r.alias, true);
+                        r.identityPublicKey = new PublicKey();
+                        r.identityPublicKey.setAlias(r.alias);
+                        r.identityPublicKey.setFingerprint(Base64.encode(identityPublicKey.getFingerprint()));
+                        r.identityPublicKey.setAddress(Base64.encode(identityPublicKey.getEncoded()));
+                        r.identityPublicKey.isEncryptionKey(identityPublicKey.isEncryptionKey());
+                        r.identityPublicKey.isIdentityKey(identityPublicKey.isMasterKey());
+                        LOG.info("Identity Public Key loaded\n\tfingerprint: " + r.identityPublicKey.getFingerprint() + "\n\taddress: " + r.identityPublicKey.getAddress());
 
-                        LOG.info("KeyRing loaded\n\tpk: " + r.publicKey.getAddress() + "\n\tfingerprint: " + r.publicKey.getFingerprint());
+                        PGPPublicKey encryptionPublicKey = keyRing.getPublicKey(c, r.alias, false);
+                        r.encryptionPublicKey = new PublicKey();
+                        r.encryptionPublicKey.setAlias(r.alias);
+                        r.encryptionPublicKey.setFingerprint(Base64.encode(encryptionPublicKey.getFingerprint()));
+                        r.encryptionPublicKey.setAddress(Base64.encode(encryptionPublicKey.getEncoded()));
+                        r.encryptionPublicKey.isEncryptionKey(encryptionPublicKey.isEncryptionKey());
+                        r.encryptionPublicKey.isIdentityKey(encryptionPublicKey.isMasterKey());
+                        LOG.info("Encryption Public Key loaded\n\tfingerprint: " + r.encryptionPublicKey.getFingerprint() + "\n\taddress: " + r.encryptionPublicKey.getAddress());
                     }
                 } catch (Exception ex) {
                     r.exception = ex;

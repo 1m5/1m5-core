@@ -23,5 +23,6 @@ public class AuthNRequest extends KeyRingsRequest {
     public boolean autoGenerate = false;
 
     // Response
-    public PublicKey publicKey;
+    public PublicKey identityPublicKey;
+    public PublicKey encryptionPublicKey;
 }
