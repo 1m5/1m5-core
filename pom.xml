@@ -18,14 +18,10 @@
 	<url>https://1m5.io</url>
 	<description>Invisible Matrix Services - Core Library</description>
 	<inceptionYear>2017</inceptionYear>
-	<organization>
-		<name>1M5</name>
-		<url>https://1m5.io</url>
-	</organization>
 	<licenses>
 		<license>
-			<name>GPLv3</name>
-			<url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+			<name>Unlicense</name>
+			<url>https://unlicense.org/</url>
 		</license>
 	</licenses>
 	<developers>
