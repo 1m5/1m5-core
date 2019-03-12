@@ -164,8 +164,8 @@ public class OpenPGPKeyRing implements KeyRing {
         PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(PGPCompressedData.ZIP);
 
         PGPLiteralDataGenerator lData = new PGPLiteralDataGenerator();
-        OutputStream pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY, "sec", r.contentToEncrypt.length, new Date());
-        pOut.write(r.contentToEncrypt);
+        OutputStream pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY, "sec", r.content.getBody().length, new Date());
+        pOut.write(r.content.getBody());
 
         lData.close();
         comData.close();
@@ -198,7 +198,7 @@ public class OpenPGPKeyRing implements KeyRing {
 
         out.close();
 
-        r.encryptedContent = content.toByteArray();
+        r.content.setBody(content.toByteArray(), false, false);
     }
 
     /**
@@ -209,7 +209,7 @@ public class OpenPGPKeyRing implements KeyRing {
      */
     @Override
     public void decrypt(DecryptRequest r) throws IOException, PGPException {
-        InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(r.encryptedContent));
+        InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(r.content.getBody()));
 //        PGPObjectFactory pgpF = new PGPObjectFactory(in, new BcKeyFingerprintCalculator());
         JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(in);
         PGPEncryptedDataList enc;
@@ -231,7 +231,7 @@ public class OpenPGPKeyRing implements KeyRing {
         PGPSecretKeyRingCollection pgpSec = getSecretKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase);
         while (privKey == null && it.hasNext()) {
             pbe = it.next();
-            privKey = getPrivateKey(pgpSec, pbe.getKeyID(), r.passphrase.toCharArray());
+            privKey = getPrivateKey(pgpSec, pbe.getKeyID(), r.content.getEncryptionPassphrase().toCharArray());
         }
 
         PublicKeyDataDecryptorFactory b = new JcePublicKeyDataDecryptorFactoryBuilder()
@@ -269,7 +269,7 @@ public class OpenPGPKeyRing implements KeyRing {
                 throw new PGPException("Message failed integrity check");
             }
         }
-        r.plaintextContent = baos.toByteArray();
+        r.content.setBody(baos.toByteArray(), false, false);
     }
 
     @Override

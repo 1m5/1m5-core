@@ -1,17 +1,22 @@
 package io.onemfive.core.keyring;
 
+import io.onemfive.data.content.Content;
+
 /**
- * TODO: Add Description
+ * Request:
+ * @see Content#body
+ * @see Content#encryptionPassphrase
  *
+ * Response
+ * @see Content#body
+ * @see Content#base64EncodedIV
+ *
+ * @since 0.6.1
  * @author objectorange
  */
 public class EncryptSymmetricRequest extends KeyRingsRequest {
     public static int CONTENT_TO_ENCRYPT_REQUIRED = 2;
     public static int PASSPHRASE_REQUIRED = 3;
-    // Request
-    public String passphrase;
-    public byte[] contentToEncrypt;
-    // Response
-    public byte[] encryptedContent;
-    public String iv;
+
+    public Content content;
 }

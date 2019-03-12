@@ -235,12 +235,12 @@ public class KeyRingService extends BaseService {
                     DLC.addData(EncryptRequest.class, r, e);
                     break;
                 }
-                if(r.publicKeyAlias == null) {
-                    r.errorCode = EncryptRequest.PUBLIC_KEY_ALIAS_REQUIRED;
+                if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
+                    r.errorCode = EncryptRequest.CONTENT_TO_ENCRYPT_REQUIRED;
                     break;
                 }
-                if(r.contentToEncrypt == null || r.contentToEncrypt.length == 0) {
-                    r.errorCode = EncryptRequest.CONTENT_TO_ENCRYPT_REQUIRED;
+                if(r.publicKeyAlias == null) {
+                    r.errorCode = EncryptRequest.PUBLIC_KEY_ALIAS_REQUIRED;
                     break;
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
@@ -250,6 +250,7 @@ public class KeyRingService extends BaseService {
                 }
                 try {
                     keyRing.encrypt(r);
+                    r.content.setEncrypted(true);
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
@@ -272,6 +273,7 @@ public class KeyRingService extends BaseService {
                 }
                 try {
                     keyRing.decrypt(r);
+                    r.content.setEncrypted(false);
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
@@ -331,16 +333,16 @@ public class KeyRingService extends BaseService {
                     DLC.addData(EncryptSymmetricRequest.class, r, e);
                     break;
                 }
-                if(r.passphrase == null || r.passphrase.isEmpty()) {
-                    r.errorCode = EncryptSymmetricRequest.PASSPHRASE_REQUIRED;
-                    break;
-                }
-                if(r.contentToEncrypt == null || r.contentToEncrypt.length == 0) {
+                if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
                     r.errorCode = EncryptSymmetricRequest.CONTENT_TO_ENCRYPT_REQUIRED;
                     break;
                 }
+                if(r.content.getEncryptionPassphrase() == null || r.content.getEncryptionPassphrase().isEmpty()) {
+                    r.errorCode = EncryptSymmetricRequest.PASSPHRASE_REQUIRED;
+                    break;
+                }
                 try {
-                    byte[] key = r.passphrase.getBytes("UTF-8");
+                    byte[] key = r.content.getEncryptionPassphrase().getBytes("UTF-8");
                     MessageDigest sha = MessageDigest.getInstance("SHA-1");
                     key = sha.digest(key);
                     key = Arrays.copyOf(key,16);
@@ -350,10 +352,11 @@ public class KeyRingService extends BaseService {
                     byte[] iv = new byte[16];
                     SecureRandom random = new SecureRandom();
                     random.nextBytes(iv);
-                    r.iv = java.util.Base64.getEncoder().encodeToString(iv);
                     IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
                     aesCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-                    r.encryptedContent = aesCipher.doFinal(r.contentToEncrypt);
+                    r.content.setBody(aesCipher.doFinal(r.content.getBody()), false, false);
+                    r.content.setBase64EncodedIV(java.util.Base64.getEncoder().encodeToString(iv));
+                    r.content.setEncrypted(true);
                 } catch (UnsupportedEncodingException e1) {
                     LOG.warning(e1.getLocalizedMessage());
                 } catch (NoSuchAlgorithmException e1) {
@@ -374,30 +377,38 @@ public class KeyRingService extends BaseService {
             }
             case OPERATION_DECRYPT_SYMMETRIC: {
                 DecryptSymmetricRequest r = (DecryptSymmetricRequest)DLC.getData(DecryptSymmetricRequest.class,e);
-                if(r.encryptedContent==null || r.encryptedContent.length == 0) {
+                if(r==null) {
+                    r = new DecryptSymmetricRequest();
+                    DLC.addData(DecryptSymmetricRequest.class, r, e);
+                    r.errorCode = DecryptSymmetricRequest.REQUEST_REQUIRED;
+                    break;
+                }
+                if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
                     r.errorCode = DecryptSymmetricRequest.ENCRYPTED_CONTENT_REQUIRED;
                     break;
                 }
-                if(r.passphrase==null || r.passphrase.isEmpty()) {
+                if(r.content.getEncryptionPassphrase()==null || r.content.getEncryptionPassphrase().isEmpty()) {
                     r.errorCode = DecryptSymmetricRequest.PASSPHRASE_REQUIRED;
                     break;
                 }
-                if(r.iv==null || r.iv.isEmpty()) {
+                if(r.content.getBase64EncodedIV()==null || r.content.getBase64EncodedIV().isEmpty()) {
                     r.errorCode = DecryptSymmetricRequest.IV_REQUIRED;
                     break;
                 }
                 try {
-                    byte[] key = r.passphrase.getBytes("UTF-8");
+                    byte[] key = r.content.getEncryptionPassphrase().getBytes("UTF-8");
                     MessageDigest sha = MessageDigest.getInstance("SHA-1");
                     key = sha.digest(key);
                     key = Arrays.copyOf(key,16);
                     // Encrypt
                     SecretKey secretKey = new SecretKeySpec(key, "AES");
                     Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                    byte[] iv = java.util.Base64.getDecoder().decode(r.iv);
+                    byte[] iv = java.util.Base64.getDecoder().decode(r.content.getBase64EncodedIV());
                     IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
                     aesCipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
-                    r.decryptedContent = aesCipher.doFinal(r.encryptedContent);
+                    r.content.setBody(aesCipher.doFinal(r.content.getBody()), false, false);
+                    r.content.setEncrypted(false);
+                    r.content.setBase64EncodedIV(null);
                 } catch (UnsupportedEncodingException e1) {
                     LOG.warning(e1.getLocalizedMessage());
                 } catch (NoSuchAlgorithmException e1) {

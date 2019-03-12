@@ -1,25 +1,15 @@
 package io.onemfive.core.keyring;
 
-import io.onemfive.core.Service;
 import io.onemfive.core.ServiceRequest;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.content.Text;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.FileUtil;
-import org.bouncycastle.openpgp.PGPPublicKey;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -32,8 +22,8 @@ public class KeyRingServiceTest {
     KeyRingService service;
 
     String passphrase = "1234";
-    String aliasBob = "Bob";
-    String aliasCharlie = "Charlie";
+    String aliasOne = "Bob";
+    String aliasTwo = "Charlie";
 
     @Before
     public void init() {
@@ -42,10 +32,10 @@ public class KeyRingServiceTest {
         service.start(null);
 
         // Generate Key Ring Collections
-        if(!FileUtil.fileExists(aliasBob+".pkr")) {
-            FileUtil.rmFile(aliasBob+".skr");
+        if(!FileUtil.fileExists(aliasOne +".pkr")) {
+            FileUtil.rmFile(aliasOne +".skr");
             GenerateKeyRingCollectionsRequest lr = new GenerateKeyRingCollectionsRequest();
-            lr.keyRingUsername = aliasBob;
+            lr.keyRingUsername = aliasOne;
             lr.keyRingPassphrase = passphrase;
             Envelope e = Envelope.documentFactory();
             DLC.addData(GenerateKeyRingCollectionsRequest.class, lr, e);
@@ -53,10 +43,10 @@ public class KeyRingServiceTest {
             e.setRoute(e.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
             service.handleDocument(e);
         }
-        if(!FileUtil.fileExists(aliasCharlie+".pkr")) {
-            FileUtil.rmFile(aliasCharlie + ".skr");
+        if(!FileUtil.fileExists(aliasTwo +".pkr")) {
+            FileUtil.rmFile(aliasTwo + ".skr");
             GenerateKeyRingCollectionsRequest lr2 = new GenerateKeyRingCollectionsRequest();
-            lr2.keyRingUsername = aliasCharlie;
+            lr2.keyRingUsername = aliasTwo;
             lr2.keyRingPassphrase = passphrase;
             Envelope e2 = Envelope.documentFactory();
             DLC.addData(GenerateKeyRingCollectionsRequest.class, lr2, e2);
@@ -69,8 +59,8 @@ public class KeyRingServiceTest {
     @After
     public void teardown() {
         service.shutdown();
-        FileUtil.rmFile(aliasBob);
-        FileUtil.rmFile(aliasCharlie);
+        FileUtil.rmFile(aliasOne);
+        FileUtil.rmFile(aliasTwo);
     }
 
     @Test
@@ -104,9 +94,9 @@ public class KeyRingServiceTest {
     public void authN() {
 
         AuthNRequest r = new AuthNRequest();
-        r.keyRingUsername = aliasBob;
+        r.keyRingUsername = aliasOne;
         r.keyRingPassphrase = passphrase;
-        r.alias = aliasBob;
+        r.alias = aliasOne;
         r.aliasPassphrase = passphrase;
         r.autoGenerate = true;
 
@@ -141,22 +131,20 @@ public class KeyRingServiceTest {
         try {
             // Encrypt
             EncryptSymmetricRequest er = new EncryptSymmetricRequest();
-            er.contentToEncrypt = plaintext.getBytes();
-            er.passphrase = passphrase;
+            er.content = new Text(plaintext.getBytes("UTF-8"));
+            er.content.setEncryptionPassphrase(passphrase);
             Envelope ee = Envelope.documentFactory();
             DLC.addData(EncryptSymmetricRequest.class, er, ee);
             DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT_SYMMETRIC, ee);
             ee.setRoute(ee.getDynamicRoutingSlip().nextRoute());
             service.handleDocument(ee);
             if(er.errorCode != ServiceRequest.NO_ERROR) System.out.println("Encryption Error Code: "+er.errorCode);
-            assert er.encryptedContent != null;
-            System.out.println("Encrypted text: \n"+er.encryptedContent);
+            assert er.content.getBody() != null;
+            System.out.println("Encrypted text: \n"+new String(er.content.getBody()));
 
             // Decrypt
             DecryptSymmetricRequest dr = new DecryptSymmetricRequest();
-            dr.encryptedContent = er.encryptedContent;
-            dr.iv = er.iv;
-            dr.passphrase = passphrase;
+            dr.content = er.content;
             Envelope de = Envelope.documentFactory();
             DLC.addData(DecryptSymmetricRequest.class, dr, de);
             DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT_SYMMETRIC, de);
@@ -164,44 +152,46 @@ public class KeyRingServiceTest {
             service.handleDocument(de);
             if(dr.errorCode != ServiceRequest.NO_ERROR) System.out.println("Decryption Error Code: "+dr.errorCode);
             assert dr.errorCode == ServiceRequest.NO_ERROR;
-            assert plaintext.equals(new String(dr.decryptedContent));
-            System.out.println("Decrypted text: \n"+new String(dr.decryptedContent));
+            assert plaintext.equals(new String(dr.content.getBody()));
+            System.out.println("Decrypted text: \n"+new String(dr.content.getBody()));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
     @Test
-    public void assymmetricCryption() {
+    public void asymmetricCryption() {
         String contentKey = "1234:iv-here:content-hash-here"; // secure random as passphrase:iv:content hash
         // Encrypt
         try {
             EncryptRequest er = new EncryptRequest();
-            er.keyRingUsername = aliasBob;
+            er.content = new Text(contentKey.getBytes("UTF-8"));
+            er.keyRingUsername = aliasOne;
             er.keyRingPassphrase = passphrase;
-            er.publicKeyAlias = aliasBob;
-            er.contentToEncrypt = contentKey.getBytes("UTF-8");
+            er.publicKeyAlias = aliasOne;
             Envelope ee = Envelope.documentFactory();
             DLC.addData(EncryptRequest.class, er, ee);
             DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT, ee);
             ee.setRoute(ee.getDynamicRoutingSlip().nextRoute());
             service.handleDocument(ee);
             assert er.errorCode == ServiceRequest.NO_ERROR;
+            assert er.content.getEncrypted();
 
             // Decrypt
             DecryptRequest dr = new DecryptRequest();
-            dr.keyRingUsername = aliasBob;
+            dr.content = er.content;
+            dr.keyRingUsername = aliasOne;
             dr.keyRingPassphrase = passphrase;
-            dr.alias = aliasBob;
-            dr.passphrase = passphrase;
-            dr.encryptedContent = er.encryptedContent;
+            dr.alias = aliasOne;
+            dr.content.setEncryptionPassphrase(passphrase);
             Envelope de = Envelope.documentFactory();
             DLC.addData(DecryptRequest.class, dr, de);
             DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT, de);
             de.setRoute(de.getDynamicRoutingSlip().nextRoute());
             service.handleDocument(de);
             assert dr.errorCode == ServiceRequest.NO_ERROR;
-            System.out.println(new String(dr.plaintextContent));
+            assert contentKey.equals(new String(dr.content.getBody()));
+            System.out.println(new String(dr.content.getBody()));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
