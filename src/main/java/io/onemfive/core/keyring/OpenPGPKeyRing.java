@@ -231,7 +231,7 @@ public class OpenPGPKeyRing implements KeyRing {
         PGPSecretKeyRingCollection pgpSec = getSecretKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase);
         while (privKey == null && it.hasNext()) {
             pbe = it.next();
-            privKey = getPrivateKey(pgpSec, pbe.getKeyID(), r.content.getEncryptionPassphrase().toCharArray());
+            privKey = getPrivateKey(pgpSec, pbe.getKeyID(), r.keyRingPassphrase.toCharArray());
         }
 
         PublicKeyDataDecryptorFactory b = new JcePublicKeyDataDecryptorFactoryBuilder()
