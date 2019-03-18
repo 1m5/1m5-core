@@ -5,9 +5,11 @@ import io.onemfive.core.util.SystemVersion;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.PublicKey;
 import io.onemfive.data.Route;
+import io.onemfive.data.content.JSON;
 import io.onemfive.data.util.Base64;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.HashUtil;
+import io.onemfive.data.util.JSONParser;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -235,6 +237,11 @@ public class KeyRingService extends BaseService {
                     DLC.addData(EncryptRequest.class, r, e);
                     break;
                 }
+                EncryptSymmetricRequest esr = (EncryptSymmetricRequest)DLC.getData(EncryptSymmetricRequest.class, e);
+                if(esr != null && r.content == null) {
+                    // Symmetric encryption happened prior to this request and no content provided; use prior body as input
+                    r.content = new JSON(JSONParser.toString(esr.content.toMap()).getBytes(), esr.content.getName(), true, true);
+                }
                 if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
                     r.errorCode = EncryptRequest.CONTENT_TO_ENCRYPT_REQUIRED;
                     break;
@@ -355,6 +362,8 @@ public class KeyRingService extends BaseService {
                     IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
                     aesCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
                     r.content.setBody(aesCipher.doFinal(r.content.getBody()), false, false);
+                    r.content.setBody(java.util.Base64.getEncoder().encodeToString(r.content.getBody()).getBytes(), false, false);
+                    r.content.setBodyBase64Encoded(true);
                     r.content.setBase64EncodedIV(java.util.Base64.getEncoder().encodeToString(iv));
                     r.content.setEncrypted(true);
                 } catch (UnsupportedEncodingException e1) {
@@ -403,6 +412,10 @@ public class KeyRingService extends BaseService {
                     // Encrypt
                     SecretKey secretKey = new SecretKeySpec(key, "AES");
                     Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                    if(r.content.getBodyBase64Encoded()) {
+                        r.content.setBody(java.util.Base64.getDecoder().decode(r.content.getBody()), false, false);
+                        r.content.setBodyBase64Encoded(false);
+                    }
                     byte[] iv = java.util.Base64.getDecoder().decode(r.content.getBase64EncodedIV());
                     IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
                     aesCipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
