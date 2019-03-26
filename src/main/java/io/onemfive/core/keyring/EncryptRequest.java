@@ -25,4 +25,5 @@ public class EncryptRequest extends KeyRingsRequest {
     public String keyRingPassphrase;
     public String publicKeyAlias;
     public Content content;
+    public Boolean passphraseOnly = false;
 }

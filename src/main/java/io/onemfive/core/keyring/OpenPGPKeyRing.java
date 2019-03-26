@@ -1,7 +1,9 @@
 package io.onemfive.core.keyring;
 
 import io.onemfive.core.util.data.Base64;
+import io.onemfive.data.EncryptionAlgorithm;
 import io.onemfive.data.PublicKey;
+import io.onemfive.data.util.HashUtil;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.bcpg.BCPGOutputStream;
 import org.bouncycastle.bcpg.HashAlgorithmTags;
@@ -164,8 +166,14 @@ public class OpenPGPKeyRing implements KeyRing {
         PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(PGPCompressedData.ZIP);
 
         PGPLiteralDataGenerator lData = new PGPLiteralDataGenerator();
-        OutputStream pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY, "sec", r.content.getBody().length, new Date());
-        pOut.write(r.content.getBody());
+        OutputStream pOut;
+        if(r.passphraseOnly) {
+            pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY, "sec", r.content.getEncryptionPassphrase().length(), new Date());
+            pOut.write(r.content.getEncryptionPassphrase().getBytes());
+        } else {
+            pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY, "sec", r.content.getBody().length, new Date());
+            pOut.write(r.content.getBody());
+        }
 
         lData.close();
         comData.close();
@@ -198,7 +206,15 @@ public class OpenPGPKeyRing implements KeyRing {
 
         out.close();
 
-        r.content.setBody(content.toByteArray(), false, false);
+        if(r.passphraseOnly) {
+            r.content.setEncryptionPassphraseEncrypted(true);
+            r.content.setEncryptionPassphrase(Base64.encode(content.toByteArray()));
+            r.content.setEncryptionPassphraseAlgorithm(EncryptionAlgorithm.CAST5);
+        } else {
+            r.content.setEncrypted(true);
+            r.content.setBody(content.toByteArray(), false, false);
+            r.content.setEncryptionAlgorithm(EncryptionAlgorithm.CAST5);
+        }
     }
 
     /**
@@ -209,7 +225,12 @@ public class OpenPGPKeyRing implements KeyRing {
      */
     @Override
     public void decrypt(DecryptRequest r) throws IOException, PGPException {
-        InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(r.content.getBody()));
+        byte[] c;
+        if(r.passphraseOnly)
+            c = Base64.decode(r.content.getEncryptionPassphrase());
+        else
+            c = r.content.getBody();
+        InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(c));
 //        PGPObjectFactory pgpF = new PGPObjectFactory(in, new BcKeyFingerprintCalculator());
         JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(in);
         PGPEncryptedDataList enc;
@@ -269,7 +290,15 @@ public class OpenPGPKeyRing implements KeyRing {
                 throw new PGPException("Message failed integrity check");
             }
         }
-        r.content.setBody(baos.toByteArray(), false, false);
+        if(r.passphraseOnly) {
+            r.content.setEncryptionPassphraseEncrypted(false);
+            r.content.setEncryptionPassphrase(new String(baos.toByteArray()));
+            r.content.setEncryptionPassphraseAlgorithm(null);
+        } else {
+            r.content.setEncrypted(false);
+            r.content.setBody(baos.toByteArray(), false, false);
+            r.content.setEncryptionAlgorithm(null);
+        }
     }
 
     @Override

@@ -160,40 +160,39 @@ public class KeyRingServiceTest {
     }
 
     @Test
-    public void asymmetricCryption() {
-        String contentKey = "1234:iv-here:content-hash-here"; // secure random as passphrase:iv:content hash
+    public void asymmetricCryptionOfPassphrase() {
         // Encrypt
-        try {
-            EncryptRequest er = new EncryptRequest();
-            er.content = new Text(contentKey.getBytes("UTF-8"));
-            er.keyRingUsername = aliasOne;
-            er.keyRingPassphrase = passphrase;
-            er.publicKeyAlias = aliasOne;
-            Envelope ee = Envelope.documentFactory();
-            DLC.addData(EncryptRequest.class, er, ee);
-            DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT, ee);
-            ee.setRoute(ee.getDynamicRoutingSlip().nextRoute());
-            service.handleDocument(ee);
-            assert er.errorCode == ServiceRequest.NO_ERROR;
-            assert er.content.getEncrypted();
+        System.out.println("Cleartext passphrase: "+passphrase);
+        EncryptRequest er = new EncryptRequest();
+        er.content = new Text("Simple message".getBytes());
+        er.content.setEncryptionPassphrase(passphrase);
+        er.keyRingUsername = aliasOne;
+        er.keyRingPassphrase = passphrase;
+        er.publicKeyAlias = aliasOne;
+        er.passphraseOnly = true;
+        Envelope ee = Envelope.documentFactory();
+        DLC.addData(EncryptRequest.class, er, ee);
+        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT, ee);
+        ee.setRoute(ee.getDynamicRoutingSlip().nextRoute());
+        service.handleDocument(ee);
+        assert er.errorCode == ServiceRequest.NO_ERROR;
+        assert er.content.getEncryptionPassphraseEncrypted();
+        System.out.println("Encrypted passphrase: "+er.content.getEncryptionPassphrase());
 
-            // Decrypt
-            DecryptRequest dr = new DecryptRequest();
-            dr.content = er.content;
-            dr.keyRingUsername = aliasOne;
-            dr.keyRingPassphrase = passphrase;
-            dr.alias = aliasOne;
-            dr.content.setEncryptionPassphrase(passphrase);
-            Envelope de = Envelope.documentFactory();
-            DLC.addData(DecryptRequest.class, dr, de);
-            DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT, de);
-            de.setRoute(de.getDynamicRoutingSlip().nextRoute());
-            service.handleDocument(de);
-            assert dr.errorCode == ServiceRequest.NO_ERROR;
-            assert contentKey.equals(new String(dr.content.getBody()));
-            System.out.println(new String(dr.content.getBody()));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        // Decrypt
+        DecryptRequest dr = new DecryptRequest();
+        dr.content = er.content;
+        dr.keyRingUsername = aliasOne;
+        dr.keyRingPassphrase = passphrase;
+        dr.alias = aliasOne;
+        dr.passphraseOnly = true;
+        Envelope de = Envelope.documentFactory();
+        DLC.addData(DecryptRequest.class, dr, de);
+        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT, de);
+        de.setRoute(de.getDynamicRoutingSlip().nextRoute());
+        service.handleDocument(de);
+        assert dr.errorCode == ServiceRequest.NO_ERROR;
+        assert passphrase.equals(dr.content.getEncryptionPassphrase());
+        System.out.println("Decrypted passphrase: "+dr.content.getEncryptionPassphrase());
     }
 }

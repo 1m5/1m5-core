@@ -20,4 +20,5 @@ public class DecryptRequest extends KeyRingsRequest {
     public String keyRingPassphrase;
     public String alias;
     public Content content;
+    public Boolean passphraseOnly = false;
 }

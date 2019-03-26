@@ -2,6 +2,7 @@ package io.onemfive.core.keyring;
 
 import io.onemfive.core.*;
 import io.onemfive.core.util.SystemVersion;
+import io.onemfive.data.EncryptionAlgorithm;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.PublicKey;
 import io.onemfive.data.Route;
@@ -237,11 +238,6 @@ public class KeyRingService extends BaseService {
                     DLC.addData(EncryptRequest.class, r, e);
                     break;
                 }
-                EncryptSymmetricRequest esr = (EncryptSymmetricRequest)DLC.getData(EncryptSymmetricRequest.class, e);
-                if(esr != null && r.content == null) {
-                    // Symmetric encryption happened prior to this request and no content provided; use prior body as input
-                    r.content = new JSON(JSONParser.toString(esr.content.toMap()).getBytes(), esr.content.getName(), true, true);
-                }
                 if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
                     r.errorCode = EncryptRequest.CONTENT_TO_ENCRYPT_REQUIRED;
                     break;
@@ -257,7 +253,6 @@ public class KeyRingService extends BaseService {
                 }
                 try {
                     keyRing.encrypt(r);
-                    r.content.setEncrypted(true);
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
@@ -280,11 +275,9 @@ public class KeyRingService extends BaseService {
                 }
                 try {
                     keyRing.decrypt(r);
-                    r.content.setEncrypted(false);
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
-                    ex.printStackTrace();
                 }
                 break;
             }
@@ -306,7 +299,6 @@ public class KeyRingService extends BaseService {
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
-                    ex.printStackTrace();
                 }
                 break;
             }
@@ -328,7 +320,6 @@ public class KeyRingService extends BaseService {
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
-                    ex.printStackTrace();
                 }
                 break;
             }
@@ -366,6 +357,7 @@ public class KeyRingService extends BaseService {
                     r.content.setBodyBase64Encoded(true);
                     r.content.setBase64EncodedIV(java.util.Base64.getEncoder().encodeToString(iv));
                     r.content.setEncrypted(true);
+                    r.content.setEncryptionAlgorithm(EncryptionAlgorithm.AES256);
                 } catch (UnsupportedEncodingException e1) {
                     LOG.warning(e1.getLocalizedMessage());
                 } catch (NoSuchAlgorithmException e1) {
@@ -422,6 +414,7 @@ public class KeyRingService extends BaseService {
                     r.content.setBody(aesCipher.doFinal(r.content.getBody()), false, false);
                     r.content.setEncrypted(false);
                     r.content.setBase64EncodedIV(null);
+                    r.content.setEncryptionAlgorithm(null);
                 } catch (UnsupportedEncodingException e1) {
                     LOG.warning(e1.getLocalizedMessage());
                 } catch (NoSuchAlgorithmException e1) {
