@@ -360,6 +360,9 @@ The problem is that they only take donations via card and PayPal which is anythi
 
 * https://freedom.press/crowdfunding/
 
+### [Freedom's Phoenix](https://www.freedomsphoenix.com/)
+Declare your independence with Ernest Hancock.
+
 ### [The Guardian Project](https://guardianproject.info/)
 Creates easy to use secure apps, open-source software libraries, and customized mobile devices that can 
 be used around the world by any person looking to protect their communications and personal data 
