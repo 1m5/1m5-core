@@ -9,9 +9,9 @@ and censorship.
 0.6.0
 
 ## Authors / Developers
-* Founder / Lead Developer: Brian Taylor - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/)
-* Fund Raising: Brad Neiger - [LinkedIn](https://www.linkedin.com/in/bradneiger/)
-* End User Advocate: Theresa Augustin - [LinkedIn](https://www.linkedin.com/in/theresaaaugustin/)
+* objectorange (Brian Taylor) - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/)
+* evok3d (Amin Rafiee) - [Site](https://arafiee.com/)
+* azad (Erbil Kaplan) - [LinkedIn](https://www.linkedin.com/in/erbil-kaplan-b8971b18/)
 
 ## Bounties
 * Paid in Bitcoin
