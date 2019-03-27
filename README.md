@@ -9,12 +9,15 @@ and censorship.
 0.6.0
 
 ## Authors / Developers
-* objectorange (Brian Taylor) - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/)
-* evok3d (Amin Rafiee) - [Site](https://arafiee.com/)
+* objectorange (Brian Taylor) - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/) | PGP: DD08 8658 5380 C7DF 1B4E 04C2 1849 B798 CF36 E2AF
+* evok3d (Amin Rafiee) - [Site](https://arafiee.com/) | PGP: D921 C2EE 60BA C264 EA40 4DC5 B6F8 2589 96AA E505
 * azad (Erbil Kaplan) - [LinkedIn](https://www.linkedin.com/in/erbil-kaplan-b8971b18/)
 
 ## Bounties
 * Paid in Bitcoin
+
+## Donations
+* Bitcoin: [1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i](https://bitaps.com/1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i) ![BTC Image](http://1m5.io/images/donations/1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i.png)
 
 ## Opportunities
 [**Freedom of Speech**](https://en.wikipedia.org/wiki/Freedom_of_speech) - a principle that supports the freedom of 
