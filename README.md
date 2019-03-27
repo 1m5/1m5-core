@@ -65,18 +65,87 @@ In addition:
 - Smartphones, our primary means of global communication and collaboration, are weak in maintaining our anonymity and privacy - critical to ensuring individual freedom.
 
 ## Solution
-1M5 works to solve these issues by providing an intelligent router embedding Tor, I2P, Direct Wireless Mesh, and other
-networks, using them intelligently as one dynamic network, and providing easy to use APIs for developers to embed in their
-applications. In addition, it provides access to commonly desired decentralized services in an anonymous fashion including
-self-sovereign decentralized identities (DID), Bitcoin, and other privacy preserving services in the future making integration a snap.
+1M5 works to solve these issues by providing three primary benefits.
 
-We provide a Maneuver Condition status to signal what level of maneuvering is required to prevent censorship. They are:
+1. Intelligent Censorship-Resistant Anonymous Router embedding Tor, I2P, Direct Wireless Ad-Hoc Networks, and other
+networks, using them intelligently as one dynamic censorship-resistant, end-to-end encrypted, anonymous mesh network.
+2. Offers access to commonly desired decentralized services in an anonymous fashion including
+self-sovereign decentralized identities (DID), Bitcoin, and other privacy preserving services.
+3. Provides easy to use APIs for developers to embed in their applications to facilitate up-take. 
 
-* **MANCON 5**: No Security - open/normal SSL based communications with no expected censorship or privacy intrusion attempts.
-* **MANCON 4**: Low Security - normal censorship attempts by states on reading news (public web sites getting blocked, government shutdown of cloud cdn content): Offer Tor hidden services so that people can still access information
-* **MANCON 3**: Medium Security - Tor hidden services discovered with targeted takedowns. I2P hidden services for those few who know how to access those on all devices.
-* **MANCON 2**: Medium-High Security - I2P hidden services getting attacked/targeted. Use 1M5 mainly with I2P.
-* **MANCON 1**: Highest of Security - whistleblower with deep state top secrets or strong censorship attempts (Tor Nodes blocking / deep packet inspections / I2P timing attacks) in jurisdictions with no freedom of expression protections (North Korea, China, Syria, Iran): 1M5 with I2P Bote/1DM on Purism Libre Mobile and Laptops.
+### Routing
+All requests for services, e.g. Bitcoin, require an Envelope with a sensitivity level set. This sensitivity level decides
+what base level of privacy is desired. Options are None, Low, Medium, High, Very High, Extreme, and Neo.
+All P2P communications use I2P as the default with latency expectations between 200 milliseconds and 2 seconds.
+This is the default setting in the Envelope. When making web requests, remember to set the appropriate
+sensitivity level otherwise all web requests will use the HIGH sensitivity level routing all requests through the I2P layer.
+
+We provide a Maneuvering Condition status to signal what level of maneuvering is likely required to prevent censorship.
+The sensitivity level in the Evelope is where you start while the MANCON is determined by blocks encountered during
+routing and thus how to ratchet up resistance as these blocks occur.
+
+#### NONE - MANCON 5
+This setting means no requirements are desired even including SSL.
+
+* Web: HTTPS will be tried and if fails, will attempt HTTP if the URL is HTTP. If that fails, the request will be forwarded 
+to other peers until a peer can make the request returning the result directly back to the requesting peer.
+
+#### LOW - MANCON 5
+Open/normal SSL based communications with no expected censorship or privacy intrusion attempts.
+
+* Web: will use HTTPS. Failures will not attempt HTTP but will use other peers to assist.
+* Tor for .onion addresses
+* I2P for .i2p addresses
+* I2P is used for peer-to-peer services such as messaging
+
+#### MEDIUM - MANCON 4
+Normal censorship attempts by states on reading news (public web sites getting blocked, government shutdown of cloud cdn content).
+When an HTTPS clearnet site gets blocked that has an associated Tor hidden service, that Tor hidden service will be used.
+All other routing remains unchanged.
+
+* Web: will attempt to use Tor. 
+If fails and an associated Tor hidden service is available, that hidden services will be used.
+If no Tor hidden service is associated with the site, other peers will be used to assist.
+Expect latencies of 500 milliseconds to 2 seconds.
+
+#### HIGH - MANCON 3
+Tor hidden services that have been blocked or taken down but have an associated I2P eep site, 
+that I2P eep site will be accessed.
+
+Default sensitivity in Envelope.
+
+* Web: will use an I2P peer that has access to Tor to make the request. 
+Expect latencies of 1-4 seconds.
+
+#### VERYHIGH - MANCON 2
+I2P eep sites getting attacked/targeted. 
+Use 1M5 mainly with I2P with high delays. 
+Only able to access information directly via I2P using a decentralized content distribution network, e.g. Inkrypt.
+
+* Web: will use an I2P peer with random delays that has access to Tor to make the request. 
+Expect latencies of 2-3 minutes.
+* P2P: direct comms with I2P but with random delays. Expect latencies of 2-90 seconds.
+
+#### EXTREME - MANCON 1
+Local cellular service towers shutdown.
+Use 1M5 with 1DN to route to peers with internet access.
+
+Wide-ranging latencies but strong privacy.
+
+* Web: a 1DN peer will be used to access Tor. 
+Expect latencies of 2-25 minutes when in large cities with many 1M5 nodes.
+* P2P: 1DN peers will be used until a peer with I2P access can route the request.
+
+#### NEO - MANCON 0
+Whistleblower with deep state top secrets or strong censorship attempts 
+(Tor Nodes blocking / deep packet inspections / I2P timing attacks / local cellular tower shutdowns) 
+in jurisdictions with no freedom of expression protections (North Korea, China, Syria, Iran): 
+1M5 with 1DN to I2P with High Delays on Purism Libre Mobile and Laptops.
+
+Wide-ranging latencies but highest privacy.
+
+*Web: 1DN is used to access a peer that will then request another peer using I2P with high delays to make the Tor request. 
+Expect latencies of 2-30 minutes when in large cities with many 1M5 nodes.
 
 ## Threats & Counter Measures
 Censorship attempts can be made in a myriad of ways and are ever changing as technology changes and attackers grow in experience.
