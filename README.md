@@ -17,7 +17,8 @@ and censorship.
 * Paid in Bitcoin
 
 ## Donations
-* Bitcoin: [1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i](https://bitaps.com/1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i) ![BTC Image](http://1m5.io/images/donations/1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i.png)
+Bitcoin: [1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i](https://bitaps.com/1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i) 
+![BTC Image](http://1m5.io/images/donations/1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i.png)
 
 ## Opportunities
 [**Freedom of Speech**](https://en.wikipedia.org/wiki/Freedom_of_speech) - a principle that supports the freedom of 
