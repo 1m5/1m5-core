@@ -369,6 +369,7 @@ be used around the world by any person looking to protect their communications a
 from unjust intrusion, interception and monitoring.
 
 ### [Inkrypt](https://www.inkrypt.io/)
+Censorship-Resistant Decentralized Content Distribution Network with OpenPGP/AES Encryption and Anonymity as a base.
 
 ### [Purism](https://puri.sm/)
 A security and freedom-focused computer manufacturer based in San Francisco, founded in 2014 with the 
