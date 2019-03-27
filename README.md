@@ -14,7 +14,7 @@ and censorship.
 * azad (Erbil Kaplan) - [LinkedIn](https://www.linkedin.com/in/erbil-kaplan-b8971b18/)
 
 ## Bounties
-* Paid in Bitcoin
+Paid in Bitcoin
 
 ## Donations
 ### Bitcoin
