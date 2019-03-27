@@ -152,6 +152,8 @@ Wide-ranging latencies but highest privacy.
 
 *Web: 1DN is used to access a peer that will then request another peer using I2P with high delays to make the Tor request. 
 Expect latencies of 2-30 minutes when in large cities with many 1M5 nodes.
+*P2P: 1DN is used to forward a message through a random number and combination of 1DN/I2P peers at random delays of up to 90 seconds
+at the I2P layer and up to 3 months at the 1M5 layer. A random number of copies (3 min 12 max) of the message are sent out.
 
 ## Threats & Counter Measures
 Censorship attempts can be made in a myriad of ways and are ever changing as technology changes and attackers grow in experience.
