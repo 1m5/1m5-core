@@ -179,8 +179,7 @@ Key add-on services include:
 * Decentralized IDentification (DID) Service for authentication/authorization and reputation building (Web of Trust)
 
 ## [Implementation](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/README.md)
-The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+. 
-Android is a subset of Java's JDK.
+The application is written in Java using JDK 1.8 although some services may support older versions.
 
 Documentation of the Core starts [here](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/README.md).
 
