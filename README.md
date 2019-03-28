@@ -8,6 +8,14 @@ and censorship.
 ## Version
 0.6.0
 
+## Licensing
+In the interests of ensuring the 1M5 mission, all copyright automatically imposed on the 1M5 project by any and all people
+and organizations are removed and thus nullified. We believe this to be encompassed in the [Unlicense](https://unlicense.org/) statement.
+All 1M5 services and sensors are created with the Unlicense statement by default unless otherwise specified,
+e.g. 1m5-pureos is GPLv3 as that is the license preferred by Purism.
+
+Bouncycastle is embedded in 1M5 Core and its MIT-like license is [here](http://www.bouncycastle.org/licence.html).
+
 ## Authors / Developers
 * objectorange (Brian Taylor) - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/) | PGP: DD08 8658 5380 C7DF 1B4E 04C2 1849 B798 CF36 E2AF
 * evok3d (Amin Rafiee) - [Site](https://arafiee.com/) | PGP: D921 C2EE 60BA C264 EA40 4DC5 B6F8 2589 96AA E505
@@ -17,10 +25,10 @@ and censorship.
 Paid in Bitcoin
 
 ## Donations
+
 ### Bitcoin
 1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i<br/>
 ![1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i](http://1m5.io/images/donations/1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i.png)
-
 
 ## Opportunities
 [**Freedom of Speech**](https://en.wikipedia.org/wiki/Freedom_of_speech) - a principle that supports the freedom of 
@@ -155,156 +163,20 @@ Expect latencies of 2-30 minutes when in large cities with many 1M5 nodes.
 * P2P: 1DN is used to forward a message through a random number and combination of 1DN/I2P peers at random delays of up to 90 seconds
 at the I2P layer and up to 3 months at the 1M5 layer. A random number of copies (3 min 12 max) of the message are sent out.
 
-## Threats & Counter Measures
-Censorship attempts can be made in a myriad of ways and are ever changing as technology changes and attackers grow in experience.
-Below are some of these methods and how 1M5 and composite networks mitigate them.
-
-### DNS Blocking
-Inbound and outbound blocking of IP addresses by DNS servers.
-
-Resources
-* [Wiki](https://en.wikipedia.org/wiki/DNS_blocking)
-
-### DNS Poisoning
-Corruption in a DNS server's resolver cache by swapping out valid IP addresses with invalid addresses resulting in traffic divertion.
-
-Resources
-* [Wiki](https://en.wikipedia.org/wiki/DNS_spoofing)
-
-### Brute Force
-
-#### I2P
-
-### Intersection
-
-#### I2P
-
-### Tagging
-
-#### I2P
-
-### Partitioning
-
-#### I2P
-
-### Predecessor
-
-#### I2P
-
-### Harvesting
-
-#### I2P
-
-### Traffic Analysis Identification
-
-#### I2P
-
-### Sybil
-
-#### I2P
-
-### Buddy Exhaustion
-
-#### I2P
-
-### Cryptographic
-
-#### I2P
-
-### Floodfill Anonymity
-
-#### I2P
-
-### Central Resource
-
-#### I2P
-
-### Development
-
-#### I2P
-
-### Implementation (Bugs)
-
-#### I2P
-
-### Blocklists
-
-#### I2P
-
-### Distributed Denial of Service (DDoS)
-A network-attack in which the perpetrator seeks to make a machine or network resource unavailable to its intended users 
-by temporarily or indefinitely disrupting services of a networked host.
-
-Resources
-* [Wiki](https://en.wikipedia.org/wiki/Denial-of-service_attack)
-
-#### Greedy User
-
-##### I2P
-
-#### Starvation
-
-##### I2P
-
-#### Flooding
-
-##### I2P
-
-#### Ping Flood
-
-#### CPU Loading
-
-##### I2P   
-
-#### Floodfill
-
-##### I2P
-
-#### ReDoS
-
-#### Twinge
-
-#### SYN Flood
-DDos attacks by initiating TCP/IP handshakes but either not responding with a final ACK or responding with a different IP address.
-
-Resources
-* [Wiki](https://en.wikipedia.org/wiki/SYN_flood)
-
-#### Layer 7
-DDoS attacks on application-layer processes.
-
-Resources
-
-#### Ping of Death
-
-#### Smurf Attack
-
-Resources
-* [Wiki](https://en.wikipedia.org/wiki/Smurf_attack)
-
-#### Fraggle Attack
-
-Resources
-* [Wiki](https://en.wikipedia.org/wiki/Smurf_attack#Fraggle_Attack)
-
-### Advanced Persistent Threat (APT)
-A stealthy computer network attack in which a person or group gains unauthorized access to a network and remains 
-undetected for an extended period.
-
-Resources
-* [Wiki](https://en.wikipedia.org/wiki/Advanced_persistent_threat)
-
-### Advanced Volatile Threat (AVT)
-A stealthy computer network attack in which a person or group gains unauthorized access to a network and remains 
-undetected in memory never persisting to the hard-drive circumventing investigative techniques.
-
-Resources
-* [Wiki](https://en.wikipedia.org/wiki/Advanced_volatile_threat)
-
 ## Design
 1M5 is composed of a Service-Oriented Architecture (SOA) design using a minimalistic service bus for micro-services, 
 a Staged Event-Driven Architecture (SEDA) design for asynchronous multi-threaded inter-service communications,
 a service registry, internal core services, and a number of Sensors for advanced intelligent interaction with peers.
+
+Key internal services include: 
+
+* Enterprise Applications Integration (EAI) Routing service for providing data-driven inter-service routing patterns
+* Key Chain Service with key management and encryption/decryption features
+
+Key add-on services include:
+
+* Sensors Service for integrating different Sensor Managers for intelligent censorship-resistant routing
+* Decentralized IDentification (DID) Service for authentication/authorization and reputation building (Web of Trust)
 
 ## [Implementation](https://github.com/1m5/core/tree/master/src/main/java/io/onemfive/core/README.md)
 The application is written in Java using Android 23 JDK 1.7 to ensure the core can run in Android 5.0+. 
@@ -317,7 +189,8 @@ Documentation of the Core starts [here](https://github.com/1m5/core/tree/master/
 ### [Inkrypt](https://inkrypt.io)
 
 #### Anonymous Decentralized Cloud 
-An anonymous decentralized Content Delivery Network (DCDN).
+An anonymous decentralized Content Delivery Network (DCDN). Use of OpenPGP keys supported as well as
+AES 256 encryption for content.
 
 #### nLightn
 Inkrypt is building a decentralized censorship resistant network for citizen journalists 
@@ -328,8 +201,42 @@ source for news and to ensure that information is also not censored nor stolen y
 the journalist to release portions of the information as they desire to whom they desire
 to share it with to include no one or everyone (global public).
 
+### [Purism](https://puri.sm)
+
+#### Chatty
+Messaging over a censorship-resistant anonymous peer-to-peer network.
+
+#### PureBrowser
+Upon integrating with Chatty, we will be looking at integration in the Purism PureBrowser to ensure
+anyone world-wide can access any web page anywhere in the world anonymously.
+
+## Support
+Support can be purchased with Bitcoin when availability exists. Please request support
+at: info@1m5.io
+
+Consulting is purchased in 10 hour blocks for 1 BTC (as of 1/2019).
+
+On-demand availability can be purchased in annual packages below.
+* Service Level Agreement (SLA) is maximum response time in hours
+* X is multiplier: Multiply it by the number of 10 hour blocks you wish to purchase to determine price,
+e.g. 30 hours of Live SLA is 2 * 30 hours * 1 BTC/10 hours = 6 BTC
+
+When multiple SLA packages are purchased
+and a support request is made, include the
+SLA package you wish to use.
+
+Note: Unused hours do not accumulate.
+
+| Package  | SLA  |  X   |
+|----------|:----:|:----:|
+| Develop  |   32 |  1   |
+| Testing  |   18 |  1.5 |   
+| Live     |    2 |  2   |
+| Critical | 0.25 |  3   |
+
 ## Fund Raising
-1M5 is funded entirely through donations and volunteers. The following are current and potential donation sources.
+1M5 is funded entirely through donations, support, and volunteers. 
+The following are current and potential donation sources.
 
 ### [Alex Jones](https://en.wikipedia.org/wiki/Alex_Jones)
 An American radio show host pushing the boundaries on free speech in the United States.
@@ -378,3 +285,409 @@ manufacturing process, and to make it easy for individuals and businesses to hav
 they can trust and feel safe using, i.e. making security more convenient than not.
 
 ### [ODD Reality](https://videofull.net/channel?id=UCuftdXePz6z73Wsg8Ao5lTg)
+
+## Threats & Counter Measures
+Censorship attempts can be made in a myriad of ways and are ever changing as technology changes and attackers grow in experience.
+Below are some of these methods and how 1M5 and composite networks mitigate them.
+
+### General Information
+
+#### I2P
+Design of I2P started in 2003 soon after TOR and Freenet came on the scene. It uses many of the features of onion routing
+as in TOR but also adds some enhancements which earned its routing the name of 'garlic routing'. The I2P team has identified
+threats, some specific to I2P, and mitigations. 
+
+Resources
+* [Site](https://geti2p.net/en/docs/how/threat-model)
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### DNS Blocking
+Inbound and outbound blocking of IP addresses by DNS servers.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/DNS_blocking)
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### DNS Poisoning
+Corruption in a DNS server's resolver cache by swapping out valid IP addresses with invalid addresses resulting in traffic divertion.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/DNS_spoofing)
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Brute Force
+This attack is performed by watching all messages passing between all nodes attempting to correlate messages into paths.
+
+#### I2P
+Difficult attack to initiate against I2P as all peers are sending messages frequently across the network (end-to-end and for network maintenance) 
+and each end-to-end message changes in size and data along its path. The attacker also does not have access to the messages
+as inter-router communications are encrypted and in mutiple 'cloves' (garlic) so that two messages each 1kb in size would
+appear as one 2kb message.
+
+A bruce force attacker can induce trends by sending an unusually large payload to an I2P destination while monitoring all
+network connections eliminating all nodes that didn't receive it. The cost to mount this kind of brute force attack on 
+I2P would be very expensive so not a high priority.
+
+Preventing a single router or group of routers from attempting to route all I2P traffic is ensured due to each router
+placing limits on the number of tunnels that can be routed by a single peer.
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+The 1M5 network is slated to provide random delays across its nodes and extended persistent delays (e.g. months), 
+and bandwidth throttling on streams to help combat this attack at the application layer.
+
+### Timing
+Timing attacks seek to correlate messages across the network based on their latencies combined with expected behavioral
+patterns, e.g. HTTP requests receive responses.
+
+#### I2P
+I2P uses unidirectional datagrams so there are no replies although this is not the case with streaming and the guaranteed
+delivery mode. 
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Intersection
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Tagging
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Partitioning
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Predecessor
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Harvesting
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Traffic Analysis Identification
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Sybil
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Buddy Exhaustion
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Cryptographic
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Floodfill Anonymity
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Central Resource
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Development
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Implementation (Bugs)
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Blocklists
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Distributed Denial of Service (DDoS)
+A network-attack in which the perpetrator seeks to make a machine or network resource unavailable to its intended users 
+by temporarily or indefinitely disrupting services of a networked host.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Denial-of-service_attack)
+
+#### Greedy User
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+#### Starvation
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+#### Flooding
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+#### Ping Flood
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### CPU Loading
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### Floodfill
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### ReDoS
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### Twinge
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### SYN Flood
+DDos attacks by initiating TCP/IP handshakes but either not responding with a final ACK or responding with a different IP address.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/SYN_flood)
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### Layer 7
+DDoS attacks on application-layer processes.
+
+Resources
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### Ping of Death
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### Smurf Attack
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Smurf_attack)
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+#### Fraggle Attack
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Smurf_attack#Fraggle_Attack)
+
+##### I2P
+
+##### TOR
+
+##### 1DN
+
+##### 1M5
+
+### Advanced Persistent Threat (APT)
+A stealthy computer network attack in which a person or group gains unauthorized access to a network and remains 
+undetected for an extended period.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Advanced_persistent_threat)
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
+
+### Advanced Volatile Threat (AVT)
+A stealthy computer network attack in which a person or group gains unauthorized access to a network and remains 
+undetected in memory never persisting to the hard-drive circumventing investigative techniques.
+
+Resources
+* [Wiki](https://en.wikipedia.org/wiki/Advanced_volatile_threat)
+
+#### I2P
+
+#### TOR
+
+#### 1DN
+
+#### 1M5
