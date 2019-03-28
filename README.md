@@ -98,7 +98,7 @@ We provide a Maneuvering Condition status to signal what level of maneuvering is
 The sensitivity level in the Evelope is where you start while the MANCON is determined by blocks encountered during
 routing and thus how to ratchet up resistance as these blocks occur.
 
-#### NONE - MANCON 5
+#### NONE
 This setting means no requirements are desired even including SSL.
 
 * Web: HTTPS will be tried and if fails, will attempt HTTP if the URL is HTTP. If that fails, the request will be forwarded 
