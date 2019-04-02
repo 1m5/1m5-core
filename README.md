@@ -285,6 +285,8 @@ they can trust and feel safe using, i.e. making security more convenient than no
 
 ### [ODD Reality](https://videofull.net/channel?id=UCuftdXePz6z73Wsg8Ao5lTg)
 
+### [Russell Brand](https://www.russellbrand.com/)
+
 ## Threats & Counter Measures
 Censorship attempts can be made in a myriad of ways and are ever changing as technology changes and attackers grow in experience.
 Below are some of these methods and how 1M5 and composite networks mitigate them.
