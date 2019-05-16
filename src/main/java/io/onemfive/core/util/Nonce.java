@@ -18,15 +18,15 @@ public class Nonce {
     private int prunePercentSize; // size in percent to prune once maxNonceListSize reached
 
     public Nonce() {
-        this(new ArrayList<Long>(), 1000000, 10); // 1 million (8Mb)
+        this(new ArrayList<>(), 1000000, 10); // 1 million (8Mb)
     }
 
     public Nonce(int maxNonceListSize) {
-        this(new ArrayList<Long>(), maxNonceListSize, 10);
+        this(new ArrayList<>(), maxNonceListSize, 10);
     }
 
     public Nonce(int maxNonceListSize, int prunePercentSize) {
-        this(new ArrayList<Long>(), maxNonceListSize, prunePercentSize);
+        this(new ArrayList<>(), maxNonceListSize, prunePercentSize);
     }
 
     /**
@@ -44,15 +44,16 @@ public class Nonce {
 
     public boolean continueOn(long id) {
         pruneNonceList();
-        if(nonceList.contains(id))
+        if(nonceList.contains(id)) {
             return false;
-        else
+        } else {
             nonceList.add(id);
+        }
         return true;
     }
 
     private void pruneNonceList() {
-//        LOG.info(nonceList.size()+" ids in nonce list. Max size = "+maxNonceListSize);
+        LOG.info(nonceList.size()+" ids in nonce list. Max size = "+maxNonceListSize);
         if(nonceList.size() > maxNonceListSize) {
             LOG.info("Pruning nonce list by "+prunePercentSize+"%...");
             if(prunePercentSize==100) {
