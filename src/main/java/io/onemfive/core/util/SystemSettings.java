@@ -5,17 +5,16 @@ import java.io.File;
 /**
  * Provide standardized settings for cross platform system development.
  *
- * - System Application Base Directory (e.g. /opt): directory for all user installed shared multi-user applications
+ * - System Application Base Directory (e.g. /usr/share): directory for all user installed shared multi-user applications
  *      - Linux: /opt   Mac: /Applications  Windows: C:\\Program Files
- * - System Application Directory (e.g. /opt/1m5):
+ * - System Application Directory (e.g. /usr/share/1m5/core):
  * - User Home Directory (e.g. /home/objectorange):
  * - User Data Directory (e.g. /home/objectorange/.local/share):
  * - User Config Directory (e.g. /home/objectorange/.config):
  * - User Cache Directory (e.g. /home/objectorange/.cache):
- * - User App Directory (e.g. /home/objectorange/.1m5/proxy):
- * - User App Data Directory (e.g. /home/objectorange/.1m5/proxy/data):
- * - User App Config Directory (e.g. /home/objectorange/.1m5/proxy/config):
- * - User App Cache Directory (.e.g /home/objectorange/.1m5/proxy/cache):
+ * - User App Data Directory (e.g. /home/objectorange/.local/share/1m5/proxy):
+ * - User App Config Directory (e.g. /home/objectorange/.config/1m5/proxy):
+ * - User App Cache Directory (.e.g /home/objectorange/.cache/1m5/proxy):
  *
  * @author objectorange
  */
@@ -24,7 +23,7 @@ public class SystemSettings {
     public static File getSystemApplicationBaseDir() {
         File sysAppBaseDir = null;
         if (SystemVersion.isLinux()) {
-            sysAppBaseDir = new File("/opt");
+            sysAppBaseDir = new File("/usr/share");
         } else if (SystemVersion.isMac()) {
             sysAppBaseDir = new File("/Applications");
         } else if (SystemVersion.isWindows()) {
@@ -38,9 +37,12 @@ public class SystemSettings {
             return null;
         }
         File sysAppBaseDir = getSystemApplicationBaseDir();
-        File sysAppDir = new File(sysAppBaseDir.getAbsolutePath()+"/"+groupName);
-        if(sysAppDir.exists() || (create && sysAppDir.mkdir())) {
-            return sysAppDir;
+        File groupDir = new File(sysAppBaseDir.getAbsolutePath()+"/"+groupName);
+        if(groupDir.exists() || (create && groupDir.mkdir())) {
+            File appDir = new File(groupDir.getAbsolutePath()+"/"+appName);
+            if(appDir.exists() || (create && appDir.mkdir())) {
+                return appDir;
+            }
         }
         return null;
     }
@@ -143,73 +145,59 @@ public class SystemSettings {
         return null;
     }
 
-    /**
-     *
-     * @param groupName
-     * @param appName
-     * @param create
-     * @return
-     */
-    public static File getUserAppDir(String groupName, String appName, boolean create) {
-        if(getUserHomeDir()==null) {
+    public static File getUserAppDataDir(String groupName, String appName, boolean create) {
+        if(getUserDataDir(create)==null) {
             return null;
         }
-        File userHome = getUserHomeDir();
-        if(userHome!=null && groupName!=null && appName!=null) {
-            File orgHome = new File(userHome.getAbsolutePath() + "/." + groupName);
-            if(orgHome.exists() || (create && orgHome.mkdir())) {
-                File appHome = new File(orgHome.getAbsolutePath() + "/" + appName);
-                if(appHome.exists() || (create && appHome.mkdir())) {
-                    return appHome;
-                }
+        File userDataDir = getUserDataDir(create);
+        File groupDir = new File(userDataDir.getAbsolutePath()+"/"+groupName);
+        if(groupDir.exists() || (create && groupDir.mkdir())) {
+            File appDir = new File(groupDir.getAbsolutePath()+"/"+appName);
+            if(appDir.exists() || (create && appDir.mkdir())) {
+                return appDir;
             }
         }
         return null;
     }
 
-    public static File getUserAppDataDir(String groupName, String appName, boolean create) {
-        if(getUserAppDir(groupName, appName, create)==null) {
-            return null;
-        }
-        File userAppDir = getUserAppDir(groupName, appName, create);
-        File userAppDataDir = new File(userAppDir.getAbsolutePath()+"/data");
-        if(userAppDataDir.exists() || (create && userAppDataDir.mkdir())) {
-            return userAppDataDir;
-        }
-        return null;
-    }
-
     public static File getUserAppConfigDir(String groupName, String appName, boolean create) {
-        if(getUserAppDir(groupName, appName, create)==null) {
+        if(getUserConfigDir(create)==null) {
             return null;
         }
-        File userAppDir = getUserAppDir(groupName, appName, create);
-        File userAppConfigDir = new File(userAppDir.getAbsolutePath()+"/config");
-        if(userAppConfigDir.exists() || (create && userAppConfigDir.mkdir())) {
-            return userAppConfigDir;
+        File userConfigDir = getUserConfigDir(create);
+        File groupDir = new File(userConfigDir.getAbsolutePath()+"/"+groupName);
+        if(groupDir.exists() || (create && groupDir.mkdir())) {
+            File appDir = new File(groupDir.getAbsolutePath()+"/"+appName);
+            if(appDir.exists() || (create && appDir.mkdir())) {
+                return appDir;
+            }
         }
         return null;
     }
 
     public static File getUserAppCacheDir(String groupName, String appName, boolean create) {
-        if(getUserAppDir(groupName, appName, create)==null) {
+        if(getUserCacheDir(create)==null) {
             return null;
         }
-        File userAppDir = getUserAppDir(groupName, appName, create);
-        File userAppCacheDir = new File(userAppDir.getAbsolutePath()+"/cache");
-        if(userAppCacheDir.exists() || (create && userAppCacheDir.mkdir())) {
-            return userAppCacheDir;
+        File userCacheDir = getUserCacheDir(create);
+        File groupDir = new File(userCacheDir.getAbsolutePath()+"/"+groupName);
+        if(groupDir.exists() || (create && groupDir.mkdir())) {
+            File appDir = new File(groupDir.getAbsolutePath()+"/"+appName);
+            if(appDir.exists() || (create && appDir.mkdir())) {
+                return appDir;
+            }
         }
         return null;
     }
 
     public static void main(String[] args) {
         String groupName = "1m5";
+        String sysAppName = "core";
         String appName = "proxy";
-        // * - System Application Base Directory (e.g. /opt): directory for all user installed shared multi-user applications
+        // * - System Application Base Directory (e.g. /usr/share): directory for all user installed shared multi-user applications
         print("System App Base", getSystemApplicationBaseDir());
-        // * - System Application Directory (e.g. /opt/1m5/proxy):
-        print("System App Dir", getSystemApplicationDir( groupName, appName, true));
+        // * - System Application Directory (e.g. /usr/share/1m5/core):
+        print("System App Dir", getSystemApplicationDir( groupName, sysAppName, true));
         // * - User Home Directory (e.g. /home/objectorange):
         print("User Home", getUserHomeDir());
         // * - User Data Directory (e.g. /home/objectorange/.local/share):
@@ -218,13 +206,11 @@ public class SystemSettings {
         print("User Config", getUserConfigDir(true));
         // * - User Cache Directory (e.g. /home/objectorange/.cache):
         print("User Cache", getUserCacheDir(true));
-        // * - User App Directory (e.g. /home/objectorange/.1m5/proxy):
-        print("User App", getUserAppDir(groupName, appName, true));
-        // * - User App Data Directory (e.g. /home/objectorange/.1m5/proxy/data):
+        // * - User App Data Directory (e.g. /home/objectorange/.local/share/1m5/proxy):
         print("User App Data", getUserAppDataDir(groupName, appName, true));
-        // * - User App Config Directory (e.g. /home/objectorange/.1m5/proxy/config):
+        // * - User App Config Directory (e.g. /home/objectorange/.config/1m5/proxy):
         print("User App Config", getUserAppConfigDir(groupName, appName, true));
-        // * - User App Cache Directory (.e.g /home/objectorange/.1m5/proxy/cache):
+        // * - User App Cache Directory (.e.g /home/objectorange/.cache/1m5/proxy):
         print("User App Cache", getUserAppCacheDir(groupName, appName, true));
     }
 
