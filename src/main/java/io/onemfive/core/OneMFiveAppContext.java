@@ -243,7 +243,6 @@ public class OneMFiveAppContext {
             LOG.warning(e.getLocalizedMessage());
         }
         this.configured = true;
-//        config = new OneMFiveConfig();
     }
 
     public InfoVaultDB getInfoVaultDB() {
