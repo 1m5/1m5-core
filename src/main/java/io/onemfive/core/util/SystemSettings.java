@@ -7,7 +7,7 @@ import java.io.File;
  *
  * - System Application Base Directory (e.g. /usr/share): directory for all user installed shared multi-user applications
  *      - Linux: /opt   Mac: /Applications  Windows: C:\\Program Files
- * - System Application Directory (e.g. /usr/share/1m5/core):
+ * - System Application Directory (e.g. /usr/share/1m5/proxy):
  * - User Home Directory (e.g. /home/objectorange):
  * - User Data Directory (e.g. /home/objectorange/.local/share):
  * - User Config Directory (e.g. /home/objectorange/.config):
