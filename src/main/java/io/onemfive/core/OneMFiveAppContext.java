@@ -169,7 +169,7 @@ public class OneMFiveAppContext {
         LOG.info("1M5 Base Directory: "+baseStr);
 
         configDir = new SecureFile(baseStr + "/config");
-        if(!configDir.exists() || !configDir.mkdir()) {
+        if(!configDir.exists() && !configDir.mkdir()) {
             LOG.severe("Unable to create config directory in 1M5 base directory.");
             return;
         } else {
@@ -177,7 +177,7 @@ public class OneMFiveAppContext {
         }
 
         dataDir = new SecureFile(baseStr + "/data");
-        if(!dataDir.exists() || !dataDir.mkdir()) {
+        if(!dataDir.exists() && !dataDir.mkdir()) {
             LOG.severe("Unable to create data directory in 1M5 base directory.");
             return;
         } else {
@@ -185,7 +185,7 @@ public class OneMFiveAppContext {
         }
 
         cacheDir = new SecureFile(baseStr + "/cache");
-        if(!cacheDir.exists() || !cacheDir.mkdir()) {
+        if(!cacheDir.exists() && !cacheDir.mkdir()) {
             LOG.severe("Unable to create cache directory in 1M5 base directory.");
             return;
         } else {
@@ -193,7 +193,7 @@ public class OneMFiveAppContext {
         }
 
         pidDir = new SecureFile(baseStr + "/pid");
-        if (!pidDir.exists() || !pidDir.mkdir()) {
+        if (!pidDir.exists() && !pidDir.mkdir()) {
             LOG.severe("Unable to create pid directory in 1M5 base directory.");
             return;
         } else {
@@ -201,7 +201,7 @@ public class OneMFiveAppContext {
         }
 
         logDir = new SecureFile(baseStr + "/logs");
-        if (!logDir.exists() || !logDir.mkdir()) {
+        if (!logDir.exists() && !logDir.mkdir()) {
             LOG.severe("Unable to create logs directory in 1M5 base directory.");
             return;
         } else {
@@ -209,7 +209,7 @@ public class OneMFiveAppContext {
         }
 
         tmpDir = new SecureFile(baseStr + "/tmp");
-        if (!tmpDir.exists() || !tmpDir.mkdir()) {
+        if (!tmpDir.exists() && !tmpDir.mkdir()) {
             LOG.severe("Unable to create tmp directory in 1M5 base directory.");
             return;
         } else {
