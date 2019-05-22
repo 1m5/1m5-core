@@ -6,6 +6,7 @@ import java.io.File;
  * Provide standardized settings for cross platform system development.
  *
  * - System Application Base Directory (e.g. /opt): directory for all user installed shared multi-user applications
+ *      - Linux: /opt   Mac: /Applications  Windows: C:\\Program Files
  * - System Application Directory (e.g. /opt/1m5):
  * - User Home Directory (e.g. /home/objectorange):
  * - User Data Directory (e.g. /home/objectorange/.local/share):
@@ -27,7 +28,7 @@ public class SystemSettings {
         } else if (SystemVersion.isMac()) {
             sysAppBaseDir = new File("/Applications");
         } else if (SystemVersion.isWindows()) {
-            sysAppBaseDir = new File("C:\\\\Program Files\\");
+            sysAppBaseDir = new File("C:\\\\Program Files");
         }
         return sysAppBaseDir;
     }
