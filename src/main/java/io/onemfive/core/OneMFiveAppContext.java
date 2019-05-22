@@ -200,7 +200,7 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.pid",pidDir.getAbsolutePath());
         }
 
-        logDir = new SecureFile(baseStr + "/log");
+        logDir = new SecureFile(baseStr + "/logs");
         if (!logDir.exists() || !logDir.mkdir()) {
             LOG.severe("Unable to create config directory in 1M5 base directory.");
             return;
