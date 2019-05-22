@@ -19,7 +19,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     protected boolean orchestrator = false;
     protected MessageProducer producer;
     protected InfoVaultDB infoVaultDB;
-    protected File serviceDirectory;
+    private File serviceDirectory;
 
     private ServiceStatus serviceStatus;
     private List<ServiceStatusListener> serviceStatusListeners = new ArrayList<>();
