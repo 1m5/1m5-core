@@ -19,6 +19,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
     protected boolean orchestrator = false;
     protected MessageProducer producer;
     protected InfoVaultDB infoVaultDB;
+    protected File serviceDirectory;
 
     private ServiceStatus serviceStatus;
     private List<ServiceStatusListener> serviceStatusListeners = new ArrayList<>();
@@ -138,6 +139,10 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
         }
     }
 
+    public final File getServiceDirectory() {
+        return serviceDirectory;
+    }
+
     @Override
     public boolean start(Properties p) {
         if(p==null) {
@@ -148,13 +153,13 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
         String baseStr = p.getProperty("1m5.dir.base");
         File servicesFolder = new File(baseStr + "/services");
         if(!servicesFolder.exists() && !servicesFolder.mkdir()) {
-            LOG.severe("Unable to create directory: " + baseStr + "/services");
+            LOG.severe("Unable to create services directory: " + baseStr + "/services");
             return false;
         }
-        String serviceFolderPath = baseStr + "/services" + "/"+this.getClass().getSimpleName();
-        File serviceFolder = new File(serviceFolderPath);
-        if(!serviceFolder.exists() && !serviceFolder.mkdir()) {
-            LOG.severe("Unable to create directory: " + serviceFolderPath);
+        String serviceDirectoryPath = baseStr + "/services" + "/"+this.getClass().getSimpleName();
+        File serviceDirectory = new File(serviceDirectoryPath);
+        if(!serviceDirectory.exists() && !serviceDirectory.mkdir()) {
+            LOG.severe("Unable to create service directory: " + serviceDirectoryPath);
             return false;
         }
         return true;
