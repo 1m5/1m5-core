@@ -13,6 +13,8 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
     private File dbDir;
     private Status status = Status.Shutdown;
 
+    public LocalFSInfoVaultDB() {}
+
     @Override
     public void execute(DAO dao) throws Exception {
 

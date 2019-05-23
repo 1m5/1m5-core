@@ -231,14 +231,14 @@ public class OneMFiveAppContext {
 
         // InfoVaultDB
         try {
-            if(envProps.getProperty(InfoVaultDB.class.getName()) != null) {
-                LOG.info("Instantiating InfoVaultDB of type: "+envProps.getProperty(InfoVaultDB.class.getName()));
-                infoVaultDB = InfoVaultService.getInfoVaultDBInstance(envProps.getProperty(InfoVaultDB.class.getName()));
+            if(overrideProps.getProperty(InfoVaultDB.class.getName()) != null) {
+                LOG.info("Instantiating InfoVaultDB of type: "+overrideProps.getProperty(InfoVaultDB.class.getName()));
+                infoVaultDB = InfoVaultService.getInfoVaultDBInstance(overrideProps.getProperty(InfoVaultDB.class.getName()));
             } else {
                 LOG.info("No InfoVaultDB type provided. Instantiating InfoVaultDB of default type: "+LocalFSInfoVaultDB.class.getName());
                 infoVaultDB = InfoVaultService.getInfoVaultDBInstance(LocalFSInfoVaultDB.class.getName());
             }
-            infoVaultDB.init(envProps);
+            infoVaultDB.init(overrideProps);
         } catch (Exception e) {
             LOG.warning(e.getLocalizedMessage());
         }
