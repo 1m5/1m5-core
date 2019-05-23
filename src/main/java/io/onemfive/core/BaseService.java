@@ -4,6 +4,7 @@ import io.onemfive.core.infovault.InfoVaultDB;
 import io.onemfive.data.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -156,8 +157,14 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
             LOG.severe("Unable to create services directory: " + baseStr + "/services");
             return false;
         }
-        String serviceDirectoryPath = baseStr + "/services" + "/"+this.getClass().getSimpleName();
-        File serviceDirectory = new File(serviceDirectoryPath);
+        String serviceDirectoryPath = null;
+        try {
+            serviceDirectoryPath = servicesFolder.getCanonicalPath()+this.getClass().getSimpleName();
+        } catch (IOException e) {
+            LOG.warning(e.getLocalizedMessage());
+            return false;
+        }
+        serviceDirectory = new File(serviceDirectoryPath);
         if(!serviceDirectory.exists() && !serviceDirectory.mkdir()) {
             LOG.severe("Unable to create service directory: " + serviceDirectoryPath);
             return false;
