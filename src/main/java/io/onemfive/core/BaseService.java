@@ -164,7 +164,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
         }
         String serviceDirectoryPath = null;
         try {
-            serviceDirectoryPath = servicesFolder.getCanonicalPath()+"/"+this.getClass().getSimpleName();
+            serviceDirectoryPath = servicesFolder.getCanonicalPath()+"/"+this.getClass().getName();
         } catch (IOException e) {
             LOG.warning(e.getLocalizedMessage());
             return false;
@@ -174,7 +174,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
             LOG.severe("Unable to create service directory: " + serviceDirectoryPath);
             return false;
         } else {
-            p.setProperty("1m5.dir.services."+this.getClass().getSimpleName(), serviceDirectoryPath);
+            p.setProperty("1m5.dir.services."+this.getClass().getName(), serviceDirectoryPath);
         }
         return true;
     }
