@@ -159,7 +159,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
         }
         String serviceDirectoryPath = null;
         try {
-            serviceDirectoryPath = servicesFolder.getCanonicalPath()+this.getClass().getSimpleName();
+            serviceDirectoryPath = servicesFolder.getCanonicalPath()+"/"+this.getClass().getSimpleName();
         } catch (IOException e) {
             LOG.warning(e.getLocalizedMessage());
             return false;
