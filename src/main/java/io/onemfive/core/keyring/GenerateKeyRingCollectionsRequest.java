@@ -6,7 +6,11 @@ public class GenerateKeyRingCollectionsRequest extends KeyRingsRequest {
     public static int KEY_RING_USERNAME_REQUIRED = 2;
     public static int KEY_RING_PASSPHRASE_REQUIRED = 3;
     public static int KEY_RING_USERNAME_TAKEN = 4;
+    public static int KEY_RING_LOCATION_REQUIRED = 5;
+    public static int KEY_RING_LOCATION_INACCESSIBLE = 6;
 
+    // Required
+    public String location;
     // Required
     public String keyRingUsername;
     // Required

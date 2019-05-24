@@ -19,6 +19,7 @@ import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.*;
@@ -85,6 +86,15 @@ public class KeyRingService extends BaseService {
                     DLC.addData(GenerateKeyRingCollectionsRequest.class, r, e);
                     break;
                 }
+                if(r.location == null) {
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_LOCATION_INACCESSIBLE;
+                    break;
+                }
                 if(r.keyRingUsername == null) {
                     LOG.warning("KeyRing username required.");
                     r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_USERNAME_REQUIRED;
@@ -116,6 +126,15 @@ public class KeyRingService extends BaseService {
             }
             case OPERATION_AUTHN: {
                 AuthNRequest r = (AuthNRequest)DLC.getData(AuthNRequest.class,e);
+                if(r.location == null) {
+                    r.errorCode = AuthNRequest.KEYRING_LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = AuthNRequest.KEYRING_LOCATION_INACCESSIBLE;
+                    break;
+                }
                 if(r.keyRingUsername == null) {
                     LOG.warning("KeyRing username required.");
                     r.errorCode = AuthNRequest.KEY_RING_USERNAME_REQUIRED;
@@ -146,7 +165,7 @@ public class KeyRingService extends BaseService {
                     }
                     PGPPublicKeyRingCollection c = null;
                     try {
-                        c = keyRing.getPublicKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase);
+                        c = keyRing.getPublicKeyRingCollection(r.location, r.keyRingUsername, r.keyRingPassphrase);
                     } catch (IOException e1) {
                         LOG.info("No key ring collection found.");
                     } catch (PGPException e1) {
@@ -156,6 +175,7 @@ public class KeyRingService extends BaseService {
                         // No collection found
                         if(r.autoGenerate) {
                             GenerateKeyRingCollectionsRequest gkr = new GenerateKeyRingCollectionsRequest();
+                            gkr.location = r.location;
                             gkr.keyRingUsername = r.keyRingUsername;
                             gkr.keyRingPassphrase = r.keyRingPassphrase;
                             keyRing.generateKeyRingCollections(gkr);
@@ -198,6 +218,15 @@ public class KeyRingService extends BaseService {
                     r.errorCode = GenerateKeyRingsRequest.REQUEST_REQUIRED;
                     break;
                 }
+                if(r.location == null) {
+                    r.errorCode = GenerateKeyRingsRequest.KEYRING_LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = GenerateKeyRingsRequest.KEYRING_LOCATION_INACCESSIBLE;
+                    break;
+                }
                 if(r.keyRingUsername == null || r.keyRingUsername.isEmpty()) {
                     r.errorCode = GenerateKeyRingsRequest.KEYRING_USERNAME_REQUIRED;
                     break;
@@ -222,7 +251,7 @@ public class KeyRingService extends BaseService {
                     return;
                 }
                 try {
-                    keyRing.createKeyRings(r.keyRingUsername, r.keyRingPassphrase, r.alias, r.aliasPassphrase, r.hashStrength);
+                    keyRing.createKeyRings(r.location, r.keyRingUsername, r.keyRingPassphrase, r.alias, r.aliasPassphrase, r.hashStrength);
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
@@ -236,6 +265,15 @@ public class KeyRingService extends BaseService {
                     r = new EncryptRequest();
                     r.errorCode = EncryptRequest.REQUEST_REQUIRED;
                     DLC.addData(EncryptRequest.class, r, e);
+                    break;
+                }
+                if(r.location == null) {
+                    r.errorCode = EncryptRequest.LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = EncryptRequest.LOCATION_INACCESSIBLE;
                     break;
                 }
                 if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
@@ -268,6 +306,15 @@ public class KeyRingService extends BaseService {
                     DLC.addData(DecryptRequest.class, r, e);
                     break;
                 }
+                if(r.location == null) {
+                    r.errorCode = DecryptRequest.LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = DecryptRequest.LOCATION_INACCESSIBLE;
+                    break;
+                }
                 keyRing = keyRings.get(r.keyRingImplementation);
                 if(keyRing == null) {
                     r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
@@ -289,6 +336,15 @@ public class KeyRingService extends BaseService {
                     DLC.addData(SignRequest.class, r, e);
                     break;
                 }
+                if(r.location == null) {
+                    r.errorCode = SignRequest.LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = SignRequest.LOCATION_INACCESSIBLE;
+                    break;
+                }
                 keyRing = keyRings.get(r.keyRingImplementation);
                 if(keyRing == null) {
                     r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
@@ -308,6 +364,15 @@ public class KeyRingService extends BaseService {
                     r = new VerifySignatureRequest();
                     r.errorCode = VerifySignatureRequest.REQUEST_REQUIRED;
                     DLC.addData(VerifySignatureRequest.class, r, e);
+                    break;
+                }
+                if(r.location == null) {
+                    r.errorCode = VerifySignatureRequest.LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = VerifySignatureRequest.LOCATION_INACCESSIBLE;
                     break;
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
@@ -459,7 +524,7 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean start(Properties p) {
-//        super.start(p);
+        super.start(p);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
 

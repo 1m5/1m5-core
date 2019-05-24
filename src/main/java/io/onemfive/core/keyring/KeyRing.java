@@ -21,11 +21,11 @@ public interface KeyRing {
 
     void generateKeyRingCollections(GenerateKeyRingCollectionsRequest r) throws IOException, PGPException;
 
-    PGPPublicKeyRingCollection getPublicKeyRingCollection(String username, String passphrase) throws IOException, PGPException;
+    PGPPublicKeyRingCollection getPublicKeyRingCollection(String location, String username, String passphrase) throws IOException, PGPException;
 
     PGPPublicKey getPublicKey(PGPPublicKeyRingCollection c, String keyAlias, boolean master) throws PGPException;
 
-    void createKeyRings(String keyRingUsername, String keyRingPassphrase, String alias, String aliasPassphrase, int hashStrength) throws IOException, PGPException;
+    void createKeyRings(String location, String keyRingUsername, String keyRingPassphrase, String alias, String aliasPassphrase, int hashStrength) throws IOException, PGPException;
 
     void encrypt(EncryptRequest r) throws IOException, PGPException;
 

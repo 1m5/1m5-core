@@ -14,8 +14,11 @@ public class AuthNRequest extends KeyRingsRequest {
     public static int ALIAS_REQUIRED = 4;
     public static int ALIAS_PASSPHRASE_REQUIRED = 5;
     public static int ALIAS_UNKNOWN = 6;
+    public static int KEYRING_LOCATION_REQUIRED = 7;
+    public static int KEYRING_LOCATION_INACCESSIBLE = 8;
 
     // Request
+    public String location;
     public String keyRingUsername;
     public String keyRingPassphrase;
     public String alias;

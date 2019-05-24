@@ -35,6 +35,7 @@ public class KeyRingServiceTest {
         if(!FileUtil.fileExists(aliasOne +".pkr")) {
             FileUtil.rmFile(aliasOne +".skr");
             GenerateKeyRingCollectionsRequest lr = new GenerateKeyRingCollectionsRequest();
+            lr.location = ".";
             lr.keyRingUsername = aliasOne;
             lr.keyRingPassphrase = passphrase;
             Envelope e = Envelope.documentFactory();
@@ -46,6 +47,7 @@ public class KeyRingServiceTest {
         if(!FileUtil.fileExists(aliasTwo +".pkr")) {
             FileUtil.rmFile(aliasTwo + ".skr");
             GenerateKeyRingCollectionsRequest lr2 = new GenerateKeyRingCollectionsRequest();
+            lr2.location = ".";
             lr2.keyRingUsername = aliasTwo;
             lr2.keyRingPassphrase = passphrase;
             Envelope e2 = Envelope.documentFactory();
@@ -71,6 +73,7 @@ public class KeyRingServiceTest {
 
         // Generate Key Ring Collections
         GenerateKeyRingCollectionsRequest lr = new GenerateKeyRingCollectionsRequest();
+        lr.location = ".";
         lr.keyRingUsername = aliasAlice;
         lr.keyRingPassphrase = passphrase;
         Envelope e = Envelope.documentFactory();
@@ -94,6 +97,7 @@ public class KeyRingServiceTest {
     public void authN() {
 
         AuthNRequest r = new AuthNRequest();
+        r.location = ".";
         r.keyRingUsername = aliasOne;
         r.keyRingPassphrase = passphrase;
         r.alias = aliasOne;
@@ -164,6 +168,7 @@ public class KeyRingServiceTest {
         // Encrypt
         System.out.println("Cleartext passphrase: "+passphrase);
         EncryptRequest er = new EncryptRequest();
+        er.location = ".";
         er.content = new Text("Simple message".getBytes());
         er.content.setEncryptionPassphrase(passphrase);
         er.keyRingUsername = aliasOne;
@@ -181,6 +186,7 @@ public class KeyRingServiceTest {
 
         // Decrypt
         DecryptRequest dr = new DecryptRequest();
+        dr.location = ".";
         dr.content = er.content;
         dr.keyRingUsername = aliasOne;
         dr.keyRingPassphrase = passphrase;
