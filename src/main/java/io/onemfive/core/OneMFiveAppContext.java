@@ -233,6 +233,16 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.services",servicesDir.getAbsolutePath());
         }
 
+        LOG.info("1M5 Directories: " +
+                "\n\tBase: "+baseStr+
+                "\n\tConfig: "+configDir.getAbsolutePath()+
+                "\n\tData: "+dataDir.getAbsolutePath()+
+                "\n\tCache: "+cacheDir.getAbsolutePath()+
+                "\n\tPID: "+pidDir.getAbsolutePath()+
+                "\n\tLogs: "+logDir.getAbsolutePath()+
+                "\n\tTemp: "+tmpDir.getAbsolutePath()+
+                "\n\tServices: "+servicesDir.getAbsolutePath());
+
         clientAppManager = new ClientAppManager(false);
         // Instantiate Service Bus
         serviceBus = new ServiceBus(overrideProps, clientAppManager);
