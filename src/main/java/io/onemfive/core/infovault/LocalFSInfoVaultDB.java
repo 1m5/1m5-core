@@ -150,15 +150,15 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
 
     @Override
     public boolean init(Properties properties) {
-        File baseDir = new File(properties.getProperty("1m5.dir.base"));
+        File baseDir = new File(properties.getProperty("1m5.dir.services.InfoVaultService"));
         if(!baseDir.exists()) {
-            LOG.warning("Base directory for 1M5 does not exist.");
+            LOG.warning("InfoVaultService directory does not exist.");
             return false;
         }
-        dbDir = new File(baseDir, "/infovault");
+        dbDir = new File(baseDir, this.getClass().getSimpleName());
         if(!dbDir.exists()) {
             if(!dbDir.mkdir()) {
-                LOG.warning("Unable to create directory /infovault in 1M5 base directory.");
+                LOG.warning("Unable to create directory for LocalFSInfoVaultDB.");
                 return false;
             } else {
                 dbDir.setWritable(true);
