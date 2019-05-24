@@ -157,6 +157,11 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
             LOG.severe("Unable to create services directory: " + baseStr + "/services");
             return false;
         }
+        try {
+            p.setProperty("1m5.dir.services",servicesFolder.getCanonicalPath());
+        } catch (IOException e) {
+            LOG.warning(e.getLocalizedMessage());
+        }
         String serviceDirectoryPath = null;
         try {
             serviceDirectoryPath = servicesFolder.getCanonicalPath()+"/"+this.getClass().getSimpleName();
