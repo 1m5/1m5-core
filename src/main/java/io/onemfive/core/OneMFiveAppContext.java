@@ -71,6 +71,7 @@ public class OneMFiveAppContext {
     private File dataDir;
     private File cacheDir;
     private volatile File tmpDir;
+    private File servicesDir;
     private final Random tmpDirRand = new Random();
     private static ClientAppManager clientAppManager;
     private final static Object lockA = new Object();
@@ -224,6 +225,14 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.temp",tmpDir.getAbsolutePath());
         }
 
+        servicesDir = new SecureFile(baseStr + "/services");
+        if (!servicesDir.exists() && !servicesDir.mkdir()) {
+            LOG.severe("Unable to create services directory in 1M5 base directory.");
+            return;
+        } else {
+            overrideProps.put("1m5.dir.services",servicesDir.getAbsolutePath());
+        }
+
         clientAppManager = new ClientAppManager(false);
         // Instantiate Service Bus
         serviceBus = new ServiceBus(overrideProps, clientAppManager);
@@ -238,6 +247,7 @@ public class OneMFiveAppContext {
         }
 
         // InfoVaultDB
+        overrideProps.setProperty("1m5.dir.services.io.onemfive.core.infovault.InfoVaultService", servicesDir.getAbsolutePath() + "/io.onemfive.core.infovault.InfoVaultService");
         try {
             if(overrideProps.getProperty(InfoVaultDB.class.getName()) != null) {
                 LOG.info("Instantiating InfoVaultDB of type: "+overrideProps.getProperty(InfoVaultDB.class.getName()));
