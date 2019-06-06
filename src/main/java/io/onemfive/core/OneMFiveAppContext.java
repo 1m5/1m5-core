@@ -161,18 +161,26 @@ public class OneMFiveAppContext {
         String baseStr = getProperty("1m5.dir.base");
         if(baseStr!=null) {
             baseDir = new File(baseStr);
-            if(!baseDir.exists() && !baseDir.mkdir()) {
-                LOG.warning("Unable to create 1m5.dir.base: "+baseStr);
+            if (!baseDir.exists() && !baseDir.mkdir()) {
+                LOG.warning("Unable to create 1m5.dir.base: " + baseStr);
                 return;
             }
         }  else {
-            baseDir = SystemSettings.getSystemApplicationDir("1m5", "core", true);
-            if (baseDir == null) {
-                LOG.severe("Unable to create base system directory for 1M5 core.");
+            try {
+                baseDir = SystemSettings.getUserAppHomeDir();
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
                 return;
-            } else {
-                baseStr = baseDir.getAbsolutePath();
-                overrideProps.put("1m5.dir.base", baseStr);
+            }
+            if(baseDir==null) {
+                baseDir = SystemSettings.getSystemApplicationDir("1m5", "core", true);
+                if (baseDir == null) {
+                    LOG.severe("Unable to create base system directory for 1M5 core.");
+                    return;
+                } else {
+                    baseStr = baseDir.getAbsolutePath();
+                    overrideProps.put("1m5.dir.base", baseStr);
+                }
             }
         }
         LOG.info("1M5 Base Directory: "+baseStr);
