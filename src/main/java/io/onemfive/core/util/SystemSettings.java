@@ -1,6 +1,8 @@
 package io.onemfive.core.util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * Provide standardized settings for cross platform system development.
@@ -143,6 +145,31 @@ public class SystemSettings {
             return userConfigHome;
         }
         return null;
+    }
+
+    public static File getUserAppHomeDir() throws IOException {
+        if(getUserHomeDir()==null) {
+            return null;
+        }
+        File userHomeDir = getUserHomeDir();
+        File userAppHomeDir = null;
+        if(SystemVersion.isLinux()) {
+            userAppHomeDir = userHomeDir;
+            if(!userAppHomeDir.exists()) {
+                throw new FileNotFoundException("User App Home Directory for Linux not found: "+userHomeDir.getAbsolutePath());
+            }
+        } else if(SystemVersion.isMac()) {
+            userAppHomeDir = new File(userHomeDir, "Applications");
+            if(!userAppHomeDir.exists()) {
+                throw new FileNotFoundException("User App Home Directory for Mac not found: "+userHomeDir.getAbsolutePath()+"/Applications");
+            }
+        } else if(SystemVersion.isWindows()) {
+            userAppHomeDir = new File(userHomeDir.getAbsolutePath()+"\\AppData\\Local\\Programs");
+            if(!userAppHomeDir.exists()) {
+                throw new FileNotFoundException("User App Home Directory for Windows not found: "+userHomeDir.getAbsolutePath()+"\\AppData\\Local\\Programs");
+            }
+        }
+        return userAppHomeDir;
     }
 
     public static File getUserAppDataDir(String groupName, String appName, boolean create) {
