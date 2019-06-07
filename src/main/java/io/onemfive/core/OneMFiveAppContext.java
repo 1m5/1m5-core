@@ -167,7 +167,7 @@ public class OneMFiveAppContext {
             }
         }  else {
             try {
-                baseDir = SystemSettings.getUserAppHomeDir();
+                baseDir = SystemSettings.getUserAppHomeDir("1m5","core",true);
             } catch (IOException e) {
                 LOG.warning(e.getLocalizedMessage());
                 return;
