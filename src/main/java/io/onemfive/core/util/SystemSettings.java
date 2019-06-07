@@ -172,14 +172,29 @@ public class SystemSettings {
         return userAppHomeDir;
     }
 
-    public static File getUserAppDataDir(String groupName, String appName, boolean create) {
-        if(getUserDataDir(create)==null) {
+    public static File getUserAppHomeDir(String groupName, String appName, boolean create) throws IOException {
+        if (getUserAppHomeDir() == null) {
             return null;
         }
-        File userDataDir = getUserDataDir(create);
-        File groupDir = new File(userDataDir.getAbsolutePath()+"/"+groupName);
+        File userAppHomeDir = getUserAppHomeDir();
+        File groupDir = new File(userAppHomeDir, groupName);
+        if (groupDir.exists() || (create && groupDir.mkdir())) {
+            File appDir = new File(groupDir, appName);
+            if (appDir.exists() || (create && appDir.mkdir())) {
+                return appDir;
+            }
+        }
+        return null;
+    }
+
+    public static File getUserAppDataDir(String groupName, String appName, boolean create) throws IOException {
+        if(getUserAppHomeDir()==null) {
+            return null;
+        }
+        File userAppHomeDir = getUserAppHomeDir();
+        File groupDir = new File(userAppHomeDir, groupName);
         if(groupDir.exists() || (create && groupDir.mkdir())) {
-            File appDir = new File(groupDir.getAbsolutePath()+"/"+appName);
+            File appDir = new File(groupDir, appName);
             if(appDir.exists() || (create && appDir.mkdir())) {
                 return appDir;
             }
@@ -187,14 +202,14 @@ public class SystemSettings {
         return null;
     }
 
-    public static File getUserAppConfigDir(String groupName, String appName, boolean create) {
-        if(getUserConfigDir(create)==null) {
+    public static File getUserAppConfigDir(String groupName, String appName, boolean create) throws IOException {
+        if(getUserAppHomeDir()==null) {
             return null;
         }
-        File userConfigDir = getUserConfigDir(create);
-        File groupDir = new File(userConfigDir.getAbsolutePath()+"/"+groupName);
+        File userAppHomeDir = getUserAppHomeDir();
+        File groupDir = new File(userAppHomeDir, groupName);
         if(groupDir.exists() || (create && groupDir.mkdir())) {
-            File appDir = new File(groupDir.getAbsolutePath()+"/"+appName);
+            File appDir = new File(groupDir, appName);
             if(appDir.exists() || (create && appDir.mkdir())) {
                 return appDir;
             }
@@ -202,14 +217,14 @@ public class SystemSettings {
         return null;
     }
 
-    public static File getUserAppCacheDir(String groupName, String appName, boolean create) {
-        if(getUserCacheDir(create)==null) {
+    public static File getUserAppCacheDir(String groupName, String appName, boolean create) throws IOException {
+        if(getUserAppHomeDir()==null) {
             return null;
         }
-        File userCacheDir = getUserCacheDir(create);
-        File groupDir = new File(userCacheDir.getAbsolutePath()+"/"+groupName);
+        File userAppHomeDir = getUserAppHomeDir();
+        File groupDir = new File(userAppHomeDir, groupName);
         if(groupDir.exists() || (create && groupDir.mkdir())) {
-            File appDir = new File(groupDir.getAbsolutePath()+"/"+appName);
+            File appDir = new File(groupDir, appName);
             if(appDir.exists() || (create && appDir.mkdir())) {
                 return appDir;
             }
@@ -233,12 +248,18 @@ public class SystemSettings {
         print("User Config", getUserConfigDir(true));
         // * - User Cache Directory (e.g. /home/objectorange/.cache):
         print("User Cache", getUserCacheDir(true));
-        // * - User App Data Directory (e.g. /home/objectorange/.local/share/1m5/proxy):
-        print("User App Data", getUserAppDataDir(groupName, appName, true));
-        // * - User App Config Directory (e.g. /home/objectorange/.config/1m5/proxy):
-        print("User App Config", getUserAppConfigDir(groupName, appName, true));
-        // * - User App Cache Directory (.e.g /home/objectorange/.cache/1m5/proxy):
-        print("User App Cache", getUserAppCacheDir(groupName, appName, true));
+        // * - User App Home Directory
+        try {
+            print("User App Home", getUserAppHomeDir());
+            // * - User App Data Directory (e.g. /home/objectorange/.local/share/1m5/proxy):
+            print("User App Data", getUserAppDataDir(groupName, appName, true));
+            // * - User App Config Directory (e.g. /home/objectorange/.config/1m5/proxy):
+            print("User App Config", getUserAppConfigDir(groupName, appName, true));
+            // * - User App Cache Directory (.e.g /home/objectorange/.cache/1m5/proxy):
+            print("User App Cache", getUserAppCacheDir(groupName, appName, true));
+        } catch (IOException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
     }
 
     private static void print(String message, File path) {
