@@ -172,7 +172,9 @@ public class OneMFiveAppContext {
                 LOG.warning(e.getLocalizedMessage());
                 return;
             }
-            if(baseDir==null) {
+            if(baseDir!=null) {
+                overrideProps.put("1m5.dir.base", baseDir.getAbsolutePath());
+            } else {
                 baseDir = SystemSettings.getSystemApplicationDir("1m5", "core", true);
                 if (baseDir == null) {
                     LOG.severe("Unable to create base system directory for 1M5 core.");
@@ -185,7 +187,7 @@ public class OneMFiveAppContext {
         }
         LOG.info("1M5 Base Directory: "+baseStr);
 
-        configDir = new SecureFile(baseStr + "/config");
+        configDir = new SecureFile(baseDir, "config");
         if(!configDir.exists() && !configDir.mkdir()) {
             LOG.severe("Unable to create config directory in 1M5 base directory.");
             return;
@@ -193,7 +195,7 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.config",configDir.getAbsolutePath());
         }
 
-        dataDir = new SecureFile(baseStr + "/data");
+        dataDir = new SecureFile(baseDir, "data");
         if(!dataDir.exists() && !dataDir.mkdir()) {
             LOG.severe("Unable to create data directory in 1M5 base directory.");
             return;
@@ -201,7 +203,7 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.data",dataDir.getAbsolutePath());
         }
 
-        cacheDir = new SecureFile(baseStr + "/cache");
+        cacheDir = new SecureFile(baseDir, "cache");
         if(!cacheDir.exists() && !cacheDir.mkdir()) {
             LOG.severe("Unable to create cache directory in 1M5 base directory.");
             return;
@@ -209,7 +211,7 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.cache",cacheDir.getAbsolutePath());
         }
 
-        pidDir = new SecureFile(baseStr + "/pid");
+        pidDir = new SecureFile(baseDir, "pid");
         if (!pidDir.exists() && !pidDir.mkdir()) {
             LOG.severe("Unable to create pid directory in 1M5 base directory.");
             return;
@@ -217,7 +219,7 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.pid",pidDir.getAbsolutePath());
         }
 
-        logDir = new SecureFile(baseStr + "/logs");
+        logDir = new SecureFile(baseDir, "logs");
         if (!logDir.exists() && !logDir.mkdir()) {
             LOG.severe("Unable to create logs directory in 1M5 base directory.");
             return;
@@ -225,7 +227,7 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.log",logDir.getAbsolutePath());
         }
 
-        tmpDir = new SecureFile(baseStr + "/tmp");
+        tmpDir = new SecureFile(baseDir, "tmp");
         if (!tmpDir.exists() && !tmpDir.mkdir()) {
             LOG.severe("Unable to create tmp directory in 1M5 base directory.");
             return;
@@ -233,7 +235,7 @@ public class OneMFiveAppContext {
             overrideProps.put("1m5.dir.temp",tmpDir.getAbsolutePath());
         }
 
-        servicesDir = new SecureFile(baseStr + "/services");
+        servicesDir = new SecureFile(baseDir, "services");
         if (!servicesDir.exists() && !servicesDir.mkdir()) {
             LOG.severe("Unable to create services directory in 1M5 base directory.");
             return;
@@ -242,7 +244,7 @@ public class OneMFiveAppContext {
         }
 
         LOG.info("1M5 Directories: " +
-                "\n\tBase: "+baseStr+
+                "\n\tBase: "+baseDir.getAbsolutePath()+
                 "\n\tConfig: "+configDir.getAbsolutePath()+
                 "\n\tData: "+dataDir.getAbsolutePath()+
                 "\n\tCache: "+cacheDir.getAbsolutePath()+
