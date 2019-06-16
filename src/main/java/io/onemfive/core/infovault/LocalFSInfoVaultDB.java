@@ -13,6 +13,8 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
     private File dbDir;
     private Status status = Status.Shutdown;
 
+    public LocalFSInfoVaultDB() {}
+
     @Override
     public void execute(DAO dao) throws Exception {
 
@@ -148,19 +150,19 @@ public class LocalFSInfoVaultDB implements InfoVaultDB {
 
     @Override
     public boolean init(Properties properties) {
-        File baseDir = new File(properties.getProperty("1m5.dir.base"));
-        if(!baseDir.exists()) {
-            LOG.warning("Base directory for 1M5 does not exist.");
+        File baseDir = new File(properties.getProperty("1m5.dir.services.io.onemfive.core.infovault.InfoVaultService"));
+        if(!baseDir.exists() && !baseDir.mkdir()) {
+            LOG.warning("Unable to build InfoVaultService directory at: "+baseDir.getAbsolutePath());
             return false;
+        } else {
+            baseDir.setWritable(true);
         }
-        dbDir = new File(baseDir, "/infovault");
-        if(!dbDir.exists()) {
-            if(!dbDir.mkdir()) {
-                LOG.warning("Unable to create directory /infovault in 1M5 base directory.");
-                return false;
-            } else {
-                dbDir.setWritable(true);
-            }
+        dbDir = new File(baseDir, this.getClass().getSimpleName());
+        if(!dbDir.exists() && !dbDir.mkdir()) {
+            LOG.warning("Unable to create directory for LocalFSInfoVaultDB.");
+            return false;
+        } else {
+            dbDir.setWritable(true);
         }
         return true;
     }

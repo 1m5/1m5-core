@@ -5,33 +5,29 @@
 
 	<groupId>io.onemfive</groupId>
 	<artifactId>core</artifactId>
-	<version>0.6.0</version>
+	<version>0.6.1</version>
 
 	<packaging>jar</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.7</java.version>
+		<java.version>1.8</java.version>
 	</properties>
 
 	<name>1m5-core</name>
 	<url>https://1m5.io</url>
 	<description>Invisible Matrix Services - Core Library</description>
 	<inceptionYear>2017</inceptionYear>
-	<organization>
-		<name>1M5</name>
-		<url>https://1m5.io</url>
-	</organization>
 	<licenses>
 		<license>
-			<name>GPLv3</name>
-			<url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+			<name>Unlicense</name>
+			<url>https://unlicense.org/</url>
 		</license>
 	</licenses>
 	<developers>
 		<developer>
 			<name>objectorange</name>
-			<email>objectorange@1m5.io</email>
+			<email>objectorange@1m5.i2p</email>
 		</developer>
 	</developers>
 	<scm>
@@ -39,27 +35,6 @@
 		<developerConnection>scm:git@github.com/1m5/1m5-core</developerConnection>
 		<url>git@github.com/1m5/1m5-core</url>
 	</scm>
-
-	<profiles>
-		<profile>
-			<id>Development</id>
-			<properties>
-
-			</properties>
-		</profile>
-		<profile>
-			<id>QA</id>
-			<properties>
-
-			</properties>
-		</profile>
-		<profile>
-			<id>Production</id>
-			<properties>
-
-			</properties>
-		</profile>
-	</profiles>
 
 	<repositories>
 		<repository>

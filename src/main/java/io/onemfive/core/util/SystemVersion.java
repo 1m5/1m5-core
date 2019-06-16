@@ -12,7 +12,7 @@ import java.util.TimeZone;
  */
 public class SystemVersion {
 
-    public static final String DAEMON_USER = "1m5svc";
+    public static final String DAEMON_USER = "1m5";
     public static final String GENTOO_USER = "1m5";
 
     private static final boolean isLinux = System.getProperty("os.name").startsWith("Linux");

@@ -2,17 +2,26 @@ package io.onemfive.core.keyring;
 
 import io.onemfive.core.*;
 import io.onemfive.core.util.SystemVersion;
+import io.onemfive.data.EncryptionAlgorithm;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.PublicKey;
 import io.onemfive.data.Route;
+import io.onemfive.data.content.JSON;
 import io.onemfive.data.util.Base64;
 import io.onemfive.data.util.DLC;
+import io.onemfive.data.util.HashUtil;
+import io.onemfive.data.util.JSONParser;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.util.*;
 import java.util.logging.Logger;
@@ -29,6 +38,8 @@ public class KeyRingService extends BaseService {
     public static final String OPERATION_AUTHN = "AUTHN";
     public static final String OPERATION_ENCRYPT = "ENCRYPT";
     public static final String OPERATION_DECRYPT = "DECRYPT";
+    public static final String OPERATION_ENCRYPT_SYMMETRIC = "ENCRYPT_SYMMETRIC";
+    public static final String OPERATION_DECRYPT_SYMMETRIC = "DECRYPT_SYMMETRIC";
     public static final String OPERATION_SIGN = "SIGN";
     public static final String OPERATION_VERIFY_SIGNATURE = "VERIFY_SIGNATURE";
     public static final String OPERATION_RELOAD = "RELOAD";
@@ -75,6 +86,15 @@ public class KeyRingService extends BaseService {
                     DLC.addData(GenerateKeyRingCollectionsRequest.class, r, e);
                     break;
                 }
+                if(r.location == null) {
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_LOCATION_INACCESSIBLE;
+                    break;
+                }
                 if(r.keyRingUsername == null) {
                     LOG.warning("KeyRing username required.");
                     r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_USERNAME_REQUIRED;
@@ -99,8 +119,6 @@ public class KeyRingService extends BaseService {
                         return;
                     }
                     keyRing.generateKeyRingCollections(r);
-                    if(r.publicKey!=null)
-                        LOG.info("KeyRing loaded; encoded pk: "+r.publicKey.getAddress());
                 } catch (Exception ex) {
                     r.exception = ex;
                 }
@@ -108,6 +126,15 @@ public class KeyRingService extends BaseService {
             }
             case OPERATION_AUTHN: {
                 AuthNRequest r = (AuthNRequest)DLC.getData(AuthNRequest.class,e);
+                if(r.location == null) {
+                    r.errorCode = AuthNRequest.KEYRING_LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = AuthNRequest.KEYRING_LOCATION_INACCESSIBLE;
+                    break;
+                }
                 if(r.keyRingUsername == null) {
                     LOG.warning("KeyRing username required.");
                     r.errorCode = AuthNRequest.KEY_RING_USERNAME_REQUIRED;
@@ -138,7 +165,7 @@ public class KeyRingService extends BaseService {
                     }
                     PGPPublicKeyRingCollection c = null;
                     try {
-                        c = keyRing.getPublicKeyRingCollection(r.keyRingUsername, r.keyRingPassphrase);
+                        c = keyRing.getPublicKeyRingCollection(r.location, r.keyRingUsername, r.keyRingPassphrase);
                     } catch (IOException e1) {
                         LOG.info("No key ring collection found.");
                     } catch (PGPException e1) {
@@ -148,23 +175,34 @@ public class KeyRingService extends BaseService {
                         // No collection found
                         if(r.autoGenerate) {
                             GenerateKeyRingCollectionsRequest gkr = new GenerateKeyRingCollectionsRequest();
+                            gkr.location = r.location;
                             gkr.keyRingUsername = r.keyRingUsername;
                             gkr.keyRingPassphrase = r.keyRingPassphrase;
                             keyRing.generateKeyRingCollections(gkr);
-                            if(gkr.publicKey!=null) {
-                                r.publicKey = gkr.publicKey;
-                            }
+                            if(gkr.identityPublicKey!=null) r.identityPublicKey = gkr.identityPublicKey;
+                            if(gkr.encryptionPublicKey!=null) r.encryptionPublicKey = gkr.encryptionPublicKey;
                         } else {
                             r.errorCode = AuthNRequest.ALIAS_UNKNOWN;
                             return;
                         }
                     } else {
-                        PGPPublicKey pgpPublicKey = keyRing.getPublicKey(c, r.alias, true);
-                        r.publicKey = new PublicKey();
-                        r.publicKey.setAlias(r.alias);
-                        r.publicKey.setFingerprint(Base64.encode(pgpPublicKey.getFingerprint()));
-                        r.publicKey.setAddress(Base64.encode(pgpPublicKey.getEncoded()));
-                        LOG.info("KeyRing loaded\n    encoded pk: " + r.publicKey.getAddress() + "\n    encoded fingerprint: " + r.publicKey.getFingerprint());
+                        PGPPublicKey identityPublicKey = keyRing.getPublicKey(c, r.alias, true);
+                        r.identityPublicKey = new PublicKey();
+                        r.identityPublicKey.setAlias(r.alias);
+                        r.identityPublicKey.setFingerprint(Base64.encode(identityPublicKey.getFingerprint()));
+                        r.identityPublicKey.setAddress(Base64.encode(identityPublicKey.getEncoded()));
+                        r.identityPublicKey.isEncryptionKey(identityPublicKey.isEncryptionKey());
+                        r.identityPublicKey.isIdentityKey(identityPublicKey.isMasterKey());
+                        LOG.info("Identity Public Key loaded\n\tfingerprint: " + r.identityPublicKey.getFingerprint() + "\n\taddress: " + r.identityPublicKey.getAddress());
+
+                        PGPPublicKey encryptionPublicKey = keyRing.getPublicKey(c, r.alias, false);
+                        r.encryptionPublicKey = new PublicKey();
+                        r.encryptionPublicKey.setAlias(r.alias);
+                        r.encryptionPublicKey.setFingerprint(Base64.encode(encryptionPublicKey.getFingerprint()));
+                        r.encryptionPublicKey.setAddress(Base64.encode(encryptionPublicKey.getEncoded()));
+                        r.encryptionPublicKey.isEncryptionKey(encryptionPublicKey.isEncryptionKey());
+                        r.encryptionPublicKey.isIdentityKey(encryptionPublicKey.isMasterKey());
+                        LOG.info("Encryption Public Key loaded\n\tfingerprint: " + r.encryptionPublicKey.getFingerprint() + "\n\taddress: " + r.encryptionPublicKey.getAddress());
                     }
                 } catch (Exception ex) {
                     r.exception = ex;
@@ -178,6 +216,15 @@ public class KeyRingService extends BaseService {
                 if(r == null) {
                     r = new GenerateKeyRingsRequest();
                     r.errorCode = GenerateKeyRingsRequest.REQUEST_REQUIRED;
+                    break;
+                }
+                if(r.location == null) {
+                    r.errorCode = GenerateKeyRingsRequest.KEYRING_LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = GenerateKeyRingsRequest.KEYRING_LOCATION_INACCESSIBLE;
                     break;
                 }
                 if(r.keyRingUsername == null || r.keyRingUsername.isEmpty()) {
@@ -204,7 +251,7 @@ public class KeyRingService extends BaseService {
                     return;
                 }
                 try {
-                    keyRing.createKeyRings(r.keyRingUsername, r.keyRingPassphrase, r.alias, r.aliasPassphrase, r.hashStrength);
+                    keyRing.createKeyRings(r.location, r.keyRingUsername, r.keyRingPassphrase, r.alias, r.aliasPassphrase, r.hashStrength);
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
@@ -220,12 +267,21 @@ public class KeyRingService extends BaseService {
                     DLC.addData(EncryptRequest.class, r, e);
                     break;
                 }
-                if(r.fingerprint == null || r.fingerprint.length == 0) {
-                    r.errorCode = EncryptRequest.FINGERPRINT_REQUIRED;
+                if(r.location == null) {
+                    r.errorCode = EncryptRequest.LOCATION_REQUIRED;
                     break;
                 }
-                if(r.contentToEncrypt == null || r.contentToEncrypt.length == 0) {
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = EncryptRequest.LOCATION_INACCESSIBLE;
+                    break;
+                }
+                if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
                     r.errorCode = EncryptRequest.CONTENT_TO_ENCRYPT_REQUIRED;
+                    break;
+                }
+                if(r.publicKeyAlias == null) {
+                    r.errorCode = EncryptRequest.PUBLIC_KEY_ALIAS_REQUIRED;
                     break;
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
@@ -250,6 +306,15 @@ public class KeyRingService extends BaseService {
                     DLC.addData(DecryptRequest.class, r, e);
                     break;
                 }
+                if(r.location == null) {
+                    r.errorCode = DecryptRequest.LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = DecryptRequest.LOCATION_INACCESSIBLE;
+                    break;
+                }
                 keyRing = keyRings.get(r.keyRingImplementation);
                 if(keyRing == null) {
                     r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_IMPLEMENTATION_UNKNOWN;
@@ -260,7 +325,6 @@ public class KeyRingService extends BaseService {
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
-                    ex.printStackTrace();
                 }
                 break;
             }
@@ -270,6 +334,15 @@ public class KeyRingService extends BaseService {
                     r = new SignRequest();
                     r.errorCode = SignRequest.REQUEST_REQUIRED;
                     DLC.addData(SignRequest.class, r, e);
+                    break;
+                }
+                if(r.location == null) {
+                    r.errorCode = SignRequest.LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = SignRequest.LOCATION_INACCESSIBLE;
                     break;
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
@@ -282,7 +355,6 @@ public class KeyRingService extends BaseService {
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
-                    ex.printStackTrace();
                 }
                 break;
             }
@@ -292,6 +364,15 @@ public class KeyRingService extends BaseService {
                     r = new VerifySignatureRequest();
                     r.errorCode = VerifySignatureRequest.REQUEST_REQUIRED;
                     DLC.addData(VerifySignatureRequest.class, r, e);
+                    break;
+                }
+                if(r.location == null) {
+                    r.errorCode = VerifySignatureRequest.LOCATION_REQUIRED;
+                    break;
+                }
+                File f = new File(r.location);
+                if(!f.exists() && !f.mkdir()) {
+                    r.errorCode = VerifySignatureRequest.LOCATION_INACCESSIBLE;
                     break;
                 }
                 keyRing = keyRings.get(r.keyRingImplementation);
@@ -304,7 +385,116 @@ public class KeyRingService extends BaseService {
                 } catch (Exception ex) {
                     r.exception = ex;
                     LOG.warning(ex.getLocalizedMessage());
-                    ex.printStackTrace();
+                }
+                break;
+            }
+            case OPERATION_ENCRYPT_SYMMETRIC: {
+                EncryptSymmetricRequest r = (EncryptSymmetricRequest)DLC.getData(EncryptSymmetricRequest.class,e);
+                if(r==null) {
+                    r = new EncryptSymmetricRequest();
+                    r.errorCode = EncryptSymmetricRequest.REQUEST_REQUIRED;
+                    DLC.addData(EncryptSymmetricRequest.class, r, e);
+                    break;
+                }
+                if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
+                    r.errorCode = EncryptSymmetricRequest.CONTENT_TO_ENCRYPT_REQUIRED;
+                    break;
+                }
+                if(r.content.getEncryptionPassphrase() == null || r.content.getEncryptionPassphrase().isEmpty()) {
+                    r.errorCode = EncryptSymmetricRequest.PASSPHRASE_REQUIRED;
+                    break;
+                }
+                try {
+                    byte[] key = r.content.getEncryptionPassphrase().getBytes("UTF-8");
+                    MessageDigest sha = MessageDigest.getInstance("SHA-1");
+                    key = sha.digest(key);
+                    key = Arrays.copyOf(key,16);
+                    // Encrypt
+                    SecretKey secretKey = new SecretKeySpec(key, "AES");
+                    Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                    byte[] iv = new byte[16];
+                    SecureRandom random = new SecureRandom();
+                    random.nextBytes(iv);
+                    IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+                    aesCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+                    r.content.setBody(aesCipher.doFinal(r.content.getBody()), false, false);
+                    r.content.setBody(java.util.Base64.getEncoder().encodeToString(r.content.getBody()).getBytes(), false, false);
+                    r.content.setBodyBase64Encoded(true);
+                    r.content.setBase64EncodedIV(java.util.Base64.getEncoder().encodeToString(iv));
+                    r.content.setEncrypted(true);
+                    r.content.setEncryptionAlgorithm(EncryptionAlgorithm.AES256);
+                } catch (UnsupportedEncodingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (NoSuchAlgorithmException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (NoSuchPaddingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (InvalidKeyException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (InvalidAlgorithmParameterException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (IllegalBlockSizeException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (BadPaddingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                }
+
+                break;
+            }
+            case OPERATION_DECRYPT_SYMMETRIC: {
+                DecryptSymmetricRequest r = (DecryptSymmetricRequest)DLC.getData(DecryptSymmetricRequest.class,e);
+                if(r==null) {
+                    r = new DecryptSymmetricRequest();
+                    DLC.addData(DecryptSymmetricRequest.class, r, e);
+                    r.errorCode = DecryptSymmetricRequest.REQUEST_REQUIRED;
+                    break;
+                }
+                if(r.content == null || r.content.getBody() == null || r.content.getBody().length == 0) {
+                    r.errorCode = DecryptSymmetricRequest.ENCRYPTED_CONTENT_REQUIRED;
+                    break;
+                }
+                if(r.content.getEncryptionPassphrase()==null || r.content.getEncryptionPassphrase().isEmpty()) {
+                    r.errorCode = DecryptSymmetricRequest.PASSPHRASE_REQUIRED;
+                    break;
+                }
+                if(r.content.getBase64EncodedIV()==null || r.content.getBase64EncodedIV().isEmpty()) {
+                    r.errorCode = DecryptSymmetricRequest.IV_REQUIRED;
+                    break;
+                }
+                try {
+                    byte[] key = r.content.getEncryptionPassphrase().getBytes("UTF-8");
+                    MessageDigest sha = MessageDigest.getInstance("SHA-1");
+                    key = sha.digest(key);
+                    key = Arrays.copyOf(key,16);
+                    // Encrypt
+                    SecretKey secretKey = new SecretKeySpec(key, "AES");
+                    Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                    if(r.content.getBodyBase64Encoded()) {
+                        r.content.setBody(java.util.Base64.getDecoder().decode(r.content.getBody()), false, false);
+                        r.content.setBodyBase64Encoded(false);
+                    }
+                    byte[] iv = java.util.Base64.getDecoder().decode(r.content.getBase64EncodedIV());
+                    IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+                    aesCipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+                    r.content.setBody(aesCipher.doFinal(r.content.getBody()), false, false);
+                    r.content.setEncrypted(false);
+                    r.content.setBase64EncodedIV(null);
+                    r.content.setEncryptionAlgorithm(null);
+                } catch (UnsupportedEncodingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (NoSuchAlgorithmException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (NoSuchPaddingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (InvalidKeyException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (InvalidAlgorithmParameterException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (IllegalBlockSizeException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                } catch (BadPaddingException e1) {
+                    r.errorCode = DecryptSymmetricRequest.BAD_PASSPHRASE;
+                    LOG.warning(e1.getLocalizedMessage());
                 }
                 break;
             }
@@ -334,7 +524,7 @@ public class KeyRingService extends BaseService {
 
     @Override
     public boolean start(Properties p) {
-//        super.start(p);
+        super.start(p);
         LOG.info("Starting...");
         updateStatus(ServiceStatus.STARTING);
 
@@ -376,169 +566,6 @@ public class KeyRingService extends BaseService {
         updateStatus(ServiceStatus.GRACEFULLY_SHUTDOWN);
         LOG.info("Gracefully Shutdown");
         return true;
-    }
-
-    public static void main(String[] args) {
-        boolean isArmored = false;
-        String passphrase = "1234";
-        boolean integrityCheck = true;
-        int s3kCount = 12;
-
-        // Alice
-        KeyRingService service = new KeyRingService(null, null);
-        service.start(null);
-
-        String aliasAlice = "Alice";
-
-        // Charlie
-//        String aliasCharlie = "Charlie";
-
-        // Generate Key Ring Collections
-//        GenerateKeyRingCollectionsRequest lr = new GenerateKeyRingCollectionsRequest();
-//        lr.keyRingUsername = aliasAlice;
-//        lr.keyRingPassphrase = passphrase;
-//        Envelope e1 = Envelope.documentFactory();
-//        DLC.addData(GenerateKeyRingCollectionsRequest.class, lr, e1);
-//        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_GENERATE_KEY_RINGS_COLLECTIONS, e1);
-//        e1.setRoute(e1.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
-
-//        GenerateKeyRingCollectionsRequest charlieRequest = new GenerateKeyRingCollectionsRequest();
-//        charlieRequest.keyRingAlias = aliasCharlie;
-//        charlieRequest.keyRingPassphrase = passphrase;
-//        charlieRequest.secretKeyRingCollectionFileLocation = "charlie.skr";
-//        charlieRequest.publicKeyRingCollectionFileLocation = "charlie.pkr";
-//        Envelope e2 = Envelope.documentFactory();
-//        DLC.addData(GenerateKeyRingCollectionsRequest.class, charlieRequest, e2);
-//        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_LOAD_KEY_RINGS, e2);
-
-//        long start = new Date().getTime();
-//        service.handleDocument(e1);
-//        long end = new Date().getTime();
-//        long duration = end - start;
-//
-//        System.out.println("Generate KeyRing Collections Duration: "+duration);
-
-        // Generate New Alias Key Ring
-//        init = new Date().getTime();
-//        try {
-//            sAlice.generateKeyRings("Barbara",passphrase, PASSWORD_HASH_STRENGTH_64);
-//            sCharlie.generateKeyRings("Dan",passphrase, PASSWORD_HASH_STRENGTH_64);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (PGPException e) {
-//            e.printStackTrace();
-//        }
-//        end = new Date().getTime();
-//        duration = end - init;
-//        System.out.println("Generate New Alias Key Ring Duration: "+duration);
-
-        // Verify we have master and encryption public keys
-//        start = new Date().getTime();
-//        try {
-//            // Alice
-//            PGPPublicKey kAliceM = sAlice.keyRing.getPublicKey("Alice", true);
-//            assert(kAliceM != null && kAliceM.isMasterKey());
-//
-//            PGPPublicKey kAliceE = sAlice.keyRing.getPublicKey("Alice", false);
-//            assert(kAliceE != null && kAliceE.isEncryptionKey());
-//
-//            // Charlie
-//            PGPPublicKey kCharlieM = sCharlie.keyRing.getPublicKey("Charlie", true);
-//            assert(kCharlieM != null && kCharlieM.isMasterKey());
-//
-//            PGPPublicKey kCharlieE = sCharlie.keyRing.getPublicKey("Charlie", false);
-//            assert(kCharlieE != null && kCharlieE.isEncryptionKey());
-//
-//            // Alice - Barbara
-//            PGPPublicKey kBarbaraM = sAlice.keyRing.getPublicKey("Barbara", true);
-//            assert(kBarbaraM != null && kBarbaraM.isMasterKey());
-//
-//            PGPPublicKey kBarbaraE = sAlice.keyRing.getPublicKey("Barbara", false);
-//            assert(kBarbaraE != null && kBarbaraE.isEncryptionKey());
-//
-//            // Charlie - Dan
-//            PGPPublicKey kDanM = sCharlie.keyRing.getPublicKey("Dan", true);
-//            assert(kDanM != null && kDanM.isMasterKey());
-//
-//            PGPPublicKey kDanE = sCharlie.keyRing.getPublicKey("Dan", false);
-//            assert(kDanE != null && kDanE.isEncryptionKey());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        end = new Date().getTime();
-//        duration = end - start;
-//        System.out.println("Get Public Key Duration: "+duration);
-
-        // Add each other's public keys
-//        start = new Date().getTime();
-//        try {
-//            StorePublicKeysRequest r = new StorePublicKeysRequest();
-//
-//            PGPPublicKey cK = sCharlie.keyRing.getPublicKey("Charlie", false);
-//            PGPPublicKey aK = sAlice.keyRing.getPublicKey("Alice", false);
-//
-//            List<PGPPublicKey> cPublicKeys = new ArrayList<>();
-//            cPublicKeys.add(cK);
-//            r.keyId = cK.getKeyID();
-//            r.publicKeys = cPublicKeys;
-//            sAlice.keyRing.storePublicKeys(r);
-//
-//            List<PGPPublicKey> aPublicKeys = new ArrayList<>();
-//            aPublicKeys.add(aK);
-//            r.keyId = aK.getKeyID();
-//            r.publicKeys = aPublicKeys;
-//            sCharlie.keyRing.storePublicKeys(r);
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        end = new Date().getTime();
-//        duration = end - start;
-//        System.out.println("Add Public Key Duration: "+duration);
-        OpenPGPKeyRing kr = new OpenPGPKeyRing();
-        // Encrypt
-        try {
-            PGPPublicKey publicKey = kr.getPublicKey(kr.getPublicKeyRingCollection(aliasAlice, passphrase), aliasAlice, false);
-            if(publicKey.getFingerprint() != null) {
-                EncryptRequest er = new EncryptRequest();
-                er.keyRingUsername = aliasAlice;
-                er.keyRingPassphrase = passphrase;
-                er.fingerprint = publicKey.getFingerprint();
-                String contentStringToEncrypt = "Hello Charlie!";
-                er.contentToEncrypt = contentStringToEncrypt.getBytes();
-                Envelope ee = Envelope.documentFactory();
-                DLC.addData(EncryptRequest.class, er, ee);
-                DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT, ee);
-                ee.setRoute(ee.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
-                long start = new Date().getTime();
-                service.handleDocument(ee);
-                long end = new Date().getTime();
-                long duration = end - start;
-                LOG.info("Encrypt Duration: "+duration);
-                LOG.info("Encrypted content: "+new String(er.encryptedContent));
-                assert (er.errorCode == EncryptRequest.NO_ERROR && er.encryptedContent != null && er.encryptedContent.length > 0);
-
-                DecryptRequest dr = new DecryptRequest();
-                dr.keyRingUsername = aliasAlice;
-                dr.keyRingPassphrase = passphrase;
-                dr.encryptedContent = er.encryptedContent;
-                dr.alias = aliasAlice;
-                dr.passphrase = passphrase;
-                Envelope de = Envelope.documentFactory();
-                DLC.addData(DecryptRequest.class, dr, de);
-                DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT, de);
-                de.setRoute(de.getDynamicRoutingSlip().nextRoute()); // ratchet ahead as we're not using internal router
-                start = new Date().getTime();
-                service.handleDocument(de);
-                duration = end - start;
-                LOG.info("Decrypt Duration: "+duration);
-                String contentStringDecrypted = new String(dr.plaintextContent);
-                LOG.info("Decrypted content: "+contentStringDecrypted);
-                assert (contentStringToEncrypt.equals(contentStringDecrypted));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 }

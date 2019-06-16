@@ -11,10 +11,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarOutputStream;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -42,8 +46,12 @@ import io.onemfive.core.util.data.DataHelper;
  * Callers should ALWAYS provide absolute paths as arguments,
  * and should NEVER assume files are in the current working directory.
  *
+ * Most borrowed from I2P.
+ *
  */
 public class FileUtil {
+
+    private static Logger LOG = Logger.getLogger(FileUtil.class.getName());
     /**
      * Delete the path as well as any files or directories underneath it.
      *
@@ -94,7 +102,7 @@ public class FileUtil {
     }
 
     /**
-     *  As of release 0.7.12, any files inside the zip that have a .jar.pack or .war.pack suffix
+     *  Any files inside the zip that have a .jar.pack or .war.pack suffix
      *  are transparently unpacked to a .jar or .war file using unpack200.
      *  Logs at WARN level to wrapper.log
      */
@@ -108,7 +116,6 @@ public class FileUtil {
      *
      * @param logLevel Log.WARN, etc.
      * @return true if it was copied successfully
-     * @since 0.9.7
      */
     public static boolean extractZip(File zipfile, File targetDir, int logLevel) {
         int files = 0;
@@ -277,10 +284,6 @@ public class FileUtil {
         }
     }
 
-    /**
-     * Public since 0.8.3
-     * @since 0.8.1
-     */
     public static boolean isPack200Supported() {
         try {
             Class.forName("java.util.jar.Pack200", false, ClassLoader.getSystemClassLoader());
@@ -303,9 +306,7 @@ public class FileUtil {
      * Caller must close streams
      * @throws IOException on unpack error or if neither library is available.
      *         Will not throw ClassNotFoundException.
-     * @throws org.apache.harmony.pack200.Pack200Exception which is not an IOException
      * @throws java.lang.reflect.InvocationTargetException on duplicate zip entries in the packed jar
-     * @since 0.8.1
      */
     private static void unpack(InputStream in, JarOutputStream out) throws Exception {
         // For Sun, OpenJDK, IcedTea, etc, use this
@@ -430,6 +431,15 @@ public class FileUtil {
     }
 
     /**
+     * Load the contents of the given path to a byte array.
+     * @since 0.6.1 1M5
+     */
+    public static byte[] readFile(String path) throws IOException {
+        Path fileLocation = Paths.get(path);
+        return Files.readAllBytes(fileLocation);
+    }
+
+    /**
      * @return true if it was copied successfully
      */
     public static boolean copy(String source, String dest, boolean overwriteExisting) {
@@ -449,7 +459,6 @@ public class FileUtil {
     /**
      * @param quiet don't log fails to wrapper log if true
      * @return true if it was copied successfully
-     * @since 0.8.8
      */
     public static boolean copy(File src, File dst, boolean overwriteExisting, boolean quiet) {
         if (dst.exists() && dst.isDirectory())
@@ -488,7 +497,6 @@ public class FileUtil {
      * Method moved from SingleFileNamingService.
      *
      * @return true if it was renamed / copied successfully
-     * @since 0.8.8
      */
     public static boolean rename(File from, File to) {
         if (!from.exists())
@@ -513,41 +521,59 @@ public class FileUtil {
     }
 
     /**
-     * Usage: FileUtil (delete path | copy source dest | rename from to | unzip path.zip)
-     *
+     * Write bytes to file
+     * @since 0.6.1 1M5
      */
-    public static void main(String args[]) {
-        if ( (args == null) || (args.length < 2) ) {
-            System.err.println("Usage: delete path | copy source dest | rename from to | unzip path.zip");
-            //testRmdir();
-        } else if ("delete".equals(args[0])) {
-            boolean deleted = FileUtil.rmdir(args[1], false);
-            if (!deleted)
-                System.err.println("Error deleting [" + args[1] + "]");
-        } else if ("copy".equals(args[0])) {
-            boolean copied = FileUtil.copy(args[1], args[2], false);
-            if (!copied)
-                System.err.println("Error copying [" + args[1] + "] to [" + args[2] + "]");
-        } else if ("unzip".equals(args[0])) {
-            File f = new File(args[1]);
-            File to = new File("tmp");
-            to.mkdir();
-            boolean copied = verifyZip(f);
-            if (!copied)
-                System.err.println("Error verifying " + args[1]);
-            copied = extractZip(f,  to);
-            if (copied)
-                System.err.println("Unzipped [" + args[1] + "] to [" + to + "]");
-            else
-                System.err.println("Error unzipping [" + args[1] + "] to [" + to + "]");
-        } else if ("rename".equals(args[0])) {
-            boolean success = rename(new File(args[1]), new File(args[2]));
-            if (!success)
-                System.err.println("Error renaming [" + args[1] + "] to [" + args[2] + "]");
-        } else {
-            System.err.println("Usage: delete path | copy source dest | rename from to | unzip path.zip");
+    public static boolean writeFile(byte[] data, String path) {
+        try (FileOutputStream stream = new FileOutputStream(path)) {
+            stream.write(data);
+        } catch (Exception e) {
+            LOG.warning(e.getLocalizedMessage());
+            return false;
         }
+        return true;
     }
+
+//    public static void main(String args[]) {
+//        writeFile("Hello World!".getBytes(),"hw.txt");
+//    }
+
+//    /**
+//     * Usage: FileUtil (delete path | copy source dest | rename from to | unzip path.zip)
+//     *
+//     */
+//    public static void main(String args[]) {
+//        if ( (args == null) || (args.length < 2) ) {
+//            System.err.println("Usage: delete path | copy source dest | rename from to | unzip path.zip");
+//            //testRmdir();
+//        } else if ("delete".equals(args[0])) {
+//            boolean deleted = FileUtil.rmdir(args[1], false);
+//            if (!deleted)
+//                System.err.println("Error deleting [" + args[1] + "]");
+//        } else if ("copy".equals(args[0])) {
+//            boolean copied = FileUtil.copy(args[1], args[2], false);
+//            if (!copied)
+//                System.err.println("Error copying [" + args[1] + "] to [" + args[2] + "]");
+//        } else if ("unzip".equals(args[0])) {
+//            File f = new File(args[1]);
+//            File to = new File("tmp");
+//            to.mkdir();
+//            boolean copied = verifyZip(f);
+//            if (!copied)
+//                System.err.println("Error verifying " + args[1]);
+//            copied = extractZip(f,  to);
+//            if (copied)
+//                System.err.println("Unzipped [" + args[1] + "] to [" + to + "]");
+//            else
+//                System.err.println("Error unzipping [" + args[1] + "] to [" + to + "]");
+//        } else if ("rename".equals(args[0])) {
+//            boolean success = rename(new File(args[1]), new File(args[2]));
+//            if (!success)
+//                System.err.println("Error renaming [" + args[1] + "] to [" + args[2] + "]");
+//        } else {
+//            System.err.println("Usage: delete path | copy source dest | rename from to | unzip path.zip");
+//        }
+//    }
 
     /*****
      private static void testRmdir() {

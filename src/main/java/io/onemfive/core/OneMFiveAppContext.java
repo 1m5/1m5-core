@@ -68,8 +68,10 @@ public class OneMFiveAppContext {
     private File configDir;
     private File pidDir;
     private File logDir;
-    private File appDir;
+    private File dataDir;
+    private File cacheDir;
     private volatile File tmpDir;
+    private File servicesDir;
     private final Random tmpDirRand = new Random();
     private static ClientAppManager clientAppManager;
     private final static Object lockA = new Object();
@@ -99,7 +101,10 @@ public class OneMFiveAppContext {
         if(!globalAppContext.configured) {
             globalAppContext.configure();
         }
-        return globalAppContext;
+        if(globalAppContext.configured)
+            return globalAppContext;
+        else
+            return null;
     }
 
     public static OneMFiveAppContext getInstance(Properties properties) {
@@ -114,7 +119,10 @@ public class OneMFiveAppContext {
         if(!globalAppContext.configured) {
             globalAppContext.configure();
         }
-        return globalAppContext;
+        if(globalAppContext.configured)
+            return globalAppContext;
+        else
+            return null;
     }
 
     public static void clearGlobalContext() {
@@ -151,36 +159,99 @@ public class OneMFiveAppContext {
         TimeZone.setDefault(TimeZone.getTimeZone(systemTimeZone));
 
         String baseStr = getProperty("1m5.dir.base");
-        LOG.info("Base Directory: "+baseStr);
-        baseDir = new File(baseStr);
-        if(!baseDir.exists()) {
-            baseDir.mkdir();
+        if(baseStr!=null) {
+            baseDir = new File(baseStr);
+            if (!baseDir.exists() && !baseDir.mkdir()) {
+                LOG.warning("Unable to create 1m5.dir.base: " + baseStr);
+                return;
+            }
+        }  else {
+            try {
+                baseDir = SystemSettings.getUserAppHomeDir("1m5","core",true);
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
+                return;
+            }
+            if(baseDir!=null) {
+                overrideProps.put("1m5.dir.base", baseDir.getAbsolutePath());
+            } else {
+                baseDir = SystemSettings.getSystemApplicationDir("1m5", "core", true);
+                if (baseDir == null) {
+                    LOG.severe("Unable to create base system directory for 1M5 core.");
+                    return;
+                } else {
+                    baseStr = baseDir.getAbsolutePath();
+                    overrideProps.put("1m5.dir.base", baseStr);
+                }
+            }
+        }
+        LOG.info("1M5 Base Directory: "+baseStr);
+
+        configDir = new SecureFile(baseDir, "config");
+        if(!configDir.exists() && !configDir.mkdir()) {
+            LOG.severe("Unable to create config directory in 1M5 base directory.");
+            return;
+        } else {
+            overrideProps.put("1m5.dir.config",configDir.getAbsolutePath());
         }
 
-        String configStr = baseStr + "/config";
-        configDir = new SecureFile(configStr);
-        if(!configDir.exists())
-            configDir.mkdir();
+        dataDir = new SecureFile(baseDir, "data");
+        if(!dataDir.exists() && !dataDir.mkdir()) {
+            LOG.severe("Unable to create data directory in 1M5 base directory.");
+            return;
+        } else {
+            overrideProps.put("1m5.dir.data",dataDir.getAbsolutePath());
+        }
 
-        String pidStr = baseStr + "/pid";
-        pidDir = new SecureFile(pidStr);
-        if (!pidDir.exists())
-            pidDir.mkdir();
+        cacheDir = new SecureFile(baseDir, "cache");
+        if(!cacheDir.exists() && !cacheDir.mkdir()) {
+            LOG.severe("Unable to create cache directory in 1M5 base directory.");
+            return;
+        } else {
+            overrideProps.put("1m5.dir.cache",cacheDir.getAbsolutePath());
+        }
 
-        String logStr = baseStr + "/log";
-        logDir = new SecureFile(logStr);
-        if (!logDir.exists())
-            logDir.mkdir();
+        pidDir = new SecureFile(baseDir, "pid");
+        if (!pidDir.exists() && !pidDir.mkdir()) {
+            LOG.severe("Unable to create pid directory in 1M5 base directory.");
+            return;
+        } else {
+            overrideProps.put("1m5.dir.pid",pidDir.getAbsolutePath());
+        }
 
-        String appStr = baseStr + "/app";
-        appDir = new SecureFile(appStr);
-        if (!appDir.exists())
-            appDir.mkdir();
+        logDir = new SecureFile(baseDir, "logs");
+        if (!logDir.exists() && !logDir.mkdir()) {
+            LOG.severe("Unable to create logs directory in 1M5 base directory.");
+            return;
+        } else {
+            overrideProps.put("1m5.dir.log",logDir.getAbsolutePath());
+        }
 
-        String tmpStr = baseStr + "/tmp";
-        tmpDir = new SecureFile(tmpStr);
-        if (!tmpDir.exists())
-            tmpDir.mkdir();
+        tmpDir = new SecureFile(baseDir, "tmp");
+        if (!tmpDir.exists() && !tmpDir.mkdir()) {
+            LOG.severe("Unable to create tmp directory in 1M5 base directory.");
+            return;
+        } else {
+            overrideProps.put("1m5.dir.temp",tmpDir.getAbsolutePath());
+        }
+
+        servicesDir = new SecureFile(baseDir, "services");
+        if (!servicesDir.exists() && !servicesDir.mkdir()) {
+            LOG.severe("Unable to create services directory in 1M5 base directory.");
+            return;
+        } else {
+            overrideProps.put("1m5.dir.services",servicesDir.getAbsolutePath());
+        }
+
+        LOG.info("1M5 Directories: " +
+                "\n\tBase: "+baseDir.getAbsolutePath()+
+                "\n\tConfig: "+configDir.getAbsolutePath()+
+                "\n\tData: "+dataDir.getAbsolutePath()+
+                "\n\tCache: "+cacheDir.getAbsolutePath()+
+                "\n\tPID: "+pidDir.getAbsolutePath()+
+                "\n\tLogs: "+logDir.getAbsolutePath()+
+                "\n\tTemp: "+tmpDir.getAbsolutePath()+
+                "\n\tServices: "+servicesDir.getAbsolutePath());
 
         clientAppManager = new ClientAppManager(false);
         // Instantiate Service Bus
@@ -196,20 +267,20 @@ public class OneMFiveAppContext {
         }
 
         // InfoVaultDB
+        overrideProps.setProperty("1m5.dir.services.io.onemfive.core.infovault.InfoVaultService", servicesDir.getAbsolutePath() + "/io.onemfive.core.infovault.InfoVaultService");
         try {
-            if(envProps.getProperty(InfoVaultDB.class.getName()) != null) {
-                LOG.info("Instantiating InfoVaultDB of type: "+envProps.getProperty(InfoVaultDB.class.getName()));
-                infoVaultDB = InfoVaultService.getInfoVaultDBInstance(envProps.getProperty(InfoVaultDB.class.getName()));
+            if(overrideProps.getProperty(InfoVaultDB.class.getName()) != null) {
+                LOG.info("Instantiating InfoVaultDB of type: "+overrideProps.getProperty(InfoVaultDB.class.getName()));
+                infoVaultDB = InfoVaultService.getInfoVaultDBInstance(overrideProps.getProperty(InfoVaultDB.class.getName()));
             } else {
                 LOG.info("No InfoVaultDB type provided. Instantiating InfoVaultDB of default type: "+LocalFSInfoVaultDB.class.getName());
                 infoVaultDB = InfoVaultService.getInfoVaultDBInstance(LocalFSInfoVaultDB.class.getName());
             }
-            infoVaultDB.init(envProps);
+            infoVaultDB.init(overrideProps);
         } catch (Exception e) {
             LOG.warning(e.getLocalizedMessage());
         }
         this.configured = true;
-//        config = new OneMFiveConfig();
     }
 
     public InfoVaultDB getInfoVaultDB() {
@@ -231,58 +302,75 @@ public class OneMFiveAppContext {
      *  Applications should consider this directory read-only and never
      *  attempt to write to it.
      *  It may actually be read-only on a multi-user installation.
-     *  The config files in this directory are templates for user
-     *  installations and should not be accessed by applications.
      *
-     *  @return dir constant for the life of the context
+     *  In Linux, the path is: /usr/share/1m5/core
+     *  In Mac, the path is: /Applications/1m5/core
+     *  in Windows, the path is: C:\\\\Program Files\\1m5\\core
+     *
+     *  @return File constant for the life of the context
      */
     public File getBaseDir() { return baseDir; }
 
     /**
-     *  The base dir for config files.
-     *  Applications may use this to access router configuration files if necessary.
-     *  Usually ~/.1m5/config on Linux and %APPDIR%\.1m5/config on Windows.
+     *  The direcory for core config files.
+     *  Dapps may use this to read router configuration files if necessary.
+     *  There may also be config files in this directory as templates for user
+     *  installations that should not be altered by dapps.
      *
-     *  @return dir constant for the life of the context
+     *  1m5/core/config
+     *
+     *  @return File constant for the life of the context
      */
     public File getConfigDir() { return configDir; }
 
     /**
-     *  Where ping goes.
-     *  Applications should not use this.
+     *  The OS process id of the currently running instance.
+     *  Dapps should not use this.
      *
-     *  @return dir constant for the life of the context
+     *  1m5/core/pid
+     *
+     *  @return File constant for the life of the context
      */
     public File getPIDDir() { return pidDir; }
 
     /**
      *  Where the log directory is.
-     *  Applications should not use this.
-     *  (i.e. ~/.1m5/log, NOT ~/.1m5/log)
+     *  Dapps should not use this.
      *
-     *  @return dir constant for the life of the context
+     *  1m5/core/log
+     *
+     *  @return File constant for the life of the context
      */
     public File getLogDir() { return logDir; }
 
     /**
-     *  Where applications may store data.
-     *  Applications should create their own directory inside this directory
-     *  to avoid collisions with other apps.
-     *  (i.e. ~/.1m5/app, NOT ~/.1m5/app)
+     *  Where the core stores core-specific data.
+     *  Applications should create their own data directory within their base directory.
      *
-     *  @return dir constant for the life of the context
+     *  1m5/core/data
+     *
+     *  @return File constant for the life of the context
      */
-    public File getAppDir() { return appDir; }
+    public File getDataDir() { return dataDir; }
 
     /**
-     *  Where anybody may store temporary data.
-     *  This is a directory created in the system temp dir on the
-     *  first call in this context, and is deleted on JVM exit.
-     *  Applications should create their own directory inside this directory
-     *  to avoid collisions with other apps.
-     *  (i.e. ~/.1m5/tmp, NOT ~/.1m5/tmp)
+     *  Where the core may store cache.
+     *  Applications should create their own cache directory within their base directory.
      *
-     *  @return dir constant for the life of the context
+     *  1m5/core/cache
+     *
+     *  @return File constant for the life of the context
+     */
+    public File getCacheDir() { return cacheDir; }
+
+    /**
+     *  Where the core stores temporary data.
+     *  This directory is created on the first call in this context and is deleted on JVM exit.
+     *  Applications should create their own temp directory within their base directory.
+     *
+     *  1m5/core/tmp
+     *
+     *  @return File constant for the life of the context
      */
     public File getTempDir() {
         // fixme don't synchronize every time
