@@ -18,6 +18,7 @@ public class TasksTest {
         @Override
         public Boolean execute() {
             System.out.println(getTaskName()+ i++);
+            taskRunner.shutdown();
             return true;
         }
     }
