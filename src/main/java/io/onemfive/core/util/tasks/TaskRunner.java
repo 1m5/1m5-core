@@ -22,9 +22,10 @@ public class TaskRunner implements Runnable {
     private ThreadPoolExecutor fixedExecutor;
     private ScheduledThreadPoolExecutor scheduledExecutor;
 
-    private long periodicity = 2 * 1000; // every two seconds check to see if a task needs running
+    private long periodicity = 1000; // every two seconds check to see if a task needs running
     private List<Task> tasks = new ArrayList<>();
     private Status status = Status.Shutdown;
+    private long runUntil = 0L;
 
     public TaskRunner() {
         // Default to two new thread pools with 4 threads each
@@ -58,30 +59,27 @@ public class TaskRunner implements Runnable {
         return status;
     }
 
+    public void setRunUntil(Long runUntil) {
+        this.runUntil = runUntil;
+    }
+
     public void addTask(final Task t) {
         tasks.add(t);
     }
 
     public void removeTask(Task t, boolean forceStop) {
         if(t.getStatus() == Task.Status.Running) {
+            LOG.info("Task asked to remove yet still running...");
             if(forceStop) {
+                LOG.info("Attempting to force stop task...");
                 t.forceStop();
             } else {
+                LOG.info("Attempting to stop task...");
                 t.stop();
             }
-        } else {
-            tasks.remove(t);
         }
-        long def = 2 * 1000;
-        for(Task task : tasks) {
-            if(task.getPeriodicity() < def) {
-                def = task.getPeriodicity();
-            }
-        }
-        if(periodicity != def) {
-            periodicity = def;
-            LOG.info("Changed TaskRunner.timeBetweenRuns in ms to: "+periodicity);
-        }
+        LOG.info("Removing task...");
+        tasks.remove(t);
     }
 
     @Override
@@ -98,8 +96,18 @@ public class TaskRunner implements Runnable {
             }
             LOG.info("Awoke, begin running tasks...");
             for (final Task t : tasks) {
-                if (t.getPeriodicity() == -1) {
+                if(t.getPeriodicity() == -1) {
+                    LOG.info("Flagged to not run, skp...");
                     continue; // Flag to not run
+                }
+                if(t.getStatus() == Task.Status.Completed) {
+                    LOG.info("Completed, remove and skip...");
+                    removeTask(t, false);
+                    continue;
+                }
+                if(t.getScheduled()) {
+                    LOG.info("Scheduled, skip...");
+                    continue;
                 }
                 if(t.getDelayed()) {
                     if (scheduledExecutor == null) {
@@ -137,11 +145,11 @@ public class TaskRunner implements Runnable {
                         t.execute();
                     }
                 }
-                if(t.getStatus() == Task.Status.Completed) {
-                    removeTask(t, true);
-                }
             }
             LOG.info("Tasks ran.");
+            if(runUntil > 0 && runUntil < System.currentTimeMillis()) {
+                status = Status.Stopping;
+            }
         }
         LOG.info("Task Runner Stopped.");
         status = Status.Shutdown;
