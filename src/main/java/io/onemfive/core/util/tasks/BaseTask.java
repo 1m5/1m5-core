@@ -1,8 +1,11 @@
 package io.onemfive.core.util.tasks;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 public abstract class BaseTask implements Task {
+
+    private static final Logger LOG = Logger.getLogger(BaseTask.class.getName());
 
     protected final String taskName;
     protected TaskRunner taskRunner;
@@ -119,6 +122,7 @@ public abstract class BaseTask implements Task {
 
     @Override
     public void run() {
+
         status = Status.Running;
         startTime = System.currentTimeMillis();
         successful = execute();
