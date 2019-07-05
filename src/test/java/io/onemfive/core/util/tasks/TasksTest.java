@@ -7,18 +7,19 @@ import org.junit.Test;
 public class TasksTest {
 
     private TaskRunner taskRunner;
-    private int i = 1;
 
     private class PrintTask extends BaseTask {
 
-        public PrintTask(TaskRunner taskRunner) {
+        private int id;
+
+        public PrintTask(TaskRunner taskRunner, int id) {
             super("PrintTask", taskRunner);
+            this.id = id;
         }
 
         @Override
         public Boolean execute() {
-            System.out.println(getTaskName()+ i++);
-            taskRunner.shutdown();
+            System.out.println(getTaskName()+ id);
             return true;
         }
     }
@@ -26,11 +27,17 @@ public class TasksTest {
     @Before
     public void init() {
         taskRunner = new TaskRunner();
+        taskRunner.setRunUntil(System.currentTimeMillis() + (10 * 1000));
     }
 
     @Test
     public void taskExecutor() {
-        taskRunner.addTask(new PrintTask(taskRunner));
+        PrintTask one = new PrintTask(taskRunner, 1);
+        taskRunner.addTask(one);
+        one.setDelayed(true);
+        one.setDelayTimeMS(3 * 1000L);
+        PrintTask two = new PrintTask(taskRunner, 2);
+        taskRunner.addTask(two);
         taskRunner.run();
     }
 
