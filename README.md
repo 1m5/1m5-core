@@ -6,7 +6,7 @@ to protect their communications and personal data from unethical monitoring, int
 and censorship.
 
 ## Version
-0.6.0
+0.6.2-SNAPSHOT
 
 ## Licensing
 In the interests of ensuring the 1M5 mission, all copyright automatically imposed on the 1M5 project by any and all people
@@ -19,7 +19,7 @@ Bouncycastle is embedded in 1M5 Core and its MIT-like license is [here](http://w
 ## Authors / Developers
 * objectorange (Brian Taylor) - [GitHub](https://github.com/objectorange) | [LinkedIn](https://www.linkedin.com/in/decentralizationarchitect/) | PGP: DD08 8658 5380 C7DF 1B4E 04C2 1849 B798 CF36 E2AF
 * evok3d (Amin Rafiee) - [Site](https://arafiee.com/) | PGP: D921 C2EE 60BA C264 EA40 4DC5 B6F8 2589 96AA E505
-* azad (Erbil Kaplan) - [LinkedIn](https://www.linkedin.com/in/erbil-kaplan-b8971b18/)
+* azad (Erbil Kaplan) - [LinkedIn](https://www.linkedin.com/in/erbil-kaplan-b8971b18/) | PGP: 2EBC 2239 E9B8 2BCA 7176 77FE FD80 A0C2 95FD EBAC
 
 ## Bounties
 Paid in Bitcoin
@@ -27,8 +27,7 @@ Paid in Bitcoin
 ## Donations
 
 ### Bitcoin
-1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i<br/>
-![1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i](http://1m5.io/images/donations/1Pz9x1c4URUVuwTL62vJZdB8QZzvrLJF4i.png)
+Please contact us at 1m5@protonmail.com for a BTC address.
 
 ## Opportunities
 [**Freedom of Speech**](https://en.wikipedia.org/wiki/Freedom_of_speech) - a principle that supports the freedom of 
