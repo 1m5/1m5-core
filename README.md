@@ -252,9 +252,6 @@ A decentralized international hacktivist group.
 Broadly speaking, Anons oppose Internet censorship and control and the majority of their actions target governments, 
 organizations, and corporations that they accuse of censorship. 
 
-### [Antifa](https://en.wikipedia.org/wiki/Antifa_(United_States))
-Movement against fascism.
-
 ### [Electronic Frontier Foundation](https://www.eff.org/)
 
 * https://www.eff.org/issues/privacy
