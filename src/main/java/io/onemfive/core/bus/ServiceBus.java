@@ -132,6 +132,20 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         }
     }
 
+    public List<ServiceReport> listServices(){
+        List<ServiceReport> serviceReports = new ArrayList<>(registeredServices.size());
+        ServiceReport r;
+        for(BaseService s : registeredServices.values()) {
+            r = new ServiceReport();
+            r.registered = true;
+            r.running = runningServices.containsKey(s.getClass().getName());
+            r.serviceClassName = s.getClass().getName();
+            r.serviceStatus = s.getServiceStatus();
+            serviceReports.add(r);
+        }
+        return serviceReports;
+    }
+
     private void updateStatus(Status status) {
         this.status = status;
         switch(status) {

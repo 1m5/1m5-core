@@ -31,6 +31,7 @@ public class AdminService extends BaseService {
     private static final Logger LOG = Logger.getLogger(AdminService.class.getName());
 
     public static final String OPERATION_REGISTER_SERVICES = "REGISTER_SERVICES";
+    public static final String OPERATION_LIST_SERVICES = "LIST_SERVICES";
 
     private ServiceBus serviceBus;
 
@@ -44,6 +45,7 @@ public class AdminService extends BaseService {
         Route route = e.getRoute();
         switch(route.getOperation()) {
             case OPERATION_REGISTER_SERVICES:{registerServices(e);break;}
+            case OPERATION_LIST_SERVICES:{listServices(e);break;}
             default: deadLetter(e);
         }
     }
@@ -62,6 +64,10 @@ public class AdminService extends BaseService {
                 DLC.addException(e1, e);
             }
         }
+    }
+
+    private void listServices(Envelope e) {
+        DLC.addEntity(serviceBus.listServices(), e);
     }
 
     @Override
