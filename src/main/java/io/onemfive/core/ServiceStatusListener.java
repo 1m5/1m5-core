@@ -1,7 +1,7 @@
 package io.onemfive.core;
 
 /**
- * TODO: Add Description
+ * Used for updating the ServiceBus.
  *
  * @author objectorange
  */
