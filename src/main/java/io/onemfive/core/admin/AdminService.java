@@ -1,20 +1,16 @@
 package io.onemfive.core.admin;
 
-import io.onemfive.core.BaseService;
-import io.onemfive.core.MessageProducer;
-import io.onemfive.core.ServiceStatus;
-import io.onemfive.core.ServiceStatusListener;
+import io.onemfive.core.*;
 import io.onemfive.core.bus.ServiceBus;
 import io.onemfive.core.bus.ServiceNotAccessibleException;
 import io.onemfive.core.bus.ServiceNotSupportedException;
 import io.onemfive.core.bus.ServiceRegisteredException;
 import io.onemfive.data.util.DLC;
-import io.onemfive.data.DocumentMessage;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.Route;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -53,9 +49,18 @@ public class AdminService extends BaseService {
     private void registerServices(Envelope e) {
         List<Class> servicesToRegister = (List<Class>)DLC.getEntity(e);
         Properties p = (Properties)DLC.getData(Properties.class, e);
+        Map<String,List<ServiceStatusObserver>> serviceStatusObservers = (Map<String,List<ServiceStatusObserver>>)DLC.getData(ServiceStatusObserver.class, e);
+        List<ServiceStatusObserver> observers;
         for(Class c : servicesToRegister) {
             try {
-                serviceBus.register(c, p);
+                // Look for observers
+                if(serviceStatusObservers!=null && serviceStatusObservers.get(c.getName())!=null) {
+                    observers = serviceStatusObservers.get(c.getName());
+                } else {
+                    observers = null;
+                }
+                // Register the Service
+                serviceBus.register(c, p, observers);
             } catch (ServiceNotAccessibleException e1) {
                 DLC.addException(e1, e);
             } catch (ServiceNotSupportedException e1) {

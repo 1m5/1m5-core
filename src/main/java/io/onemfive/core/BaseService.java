@@ -24,6 +24,7 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
 
     private ServiceStatus serviceStatus;
     private List<ServiceStatusListener> serviceStatusListeners = new ArrayList<>();
+    private List<ServiceStatusObserver> serviceStatusObservers = new ArrayList<>();
 
     public BaseService() {
 
@@ -47,11 +48,25 @@ public abstract class BaseService implements MessageConsumer, Service, LifeCycle
         serviceStatusListeners.remove(listener);
     }
 
+    public void registerServiceStatusObservers(List<ServiceStatusObserver> observers) {
+        serviceStatusObservers.addAll(observers);
+    }
+
+    public void unregisterServiceStatusObserver(ServiceStatusObserver observer) {
+        serviceStatusObservers.remove(observer);
+    }
+
     protected void updateStatus(ServiceStatus serviceStatus) {
         this.serviceStatus = serviceStatus;
         if(serviceStatusListeners != null) {
             for(ServiceStatusListener l : serviceStatusListeners) {
                 l.serviceStatusChanged(this.getClass().getName(), serviceStatus);
+            }
+        }
+        if(serviceStatusObservers != null) {
+            for(ServiceStatusObserver o : serviceStatusObservers) {
+                LOG.info("ServiceStatusObserver updating service: "+this.getClass().getName()+" with status: "+serviceStatus.name());
+                o.statusUpdated(serviceStatus);
             }
         }
     }
