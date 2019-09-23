@@ -90,21 +90,7 @@ public class OneMFiveAppContext {
      * e.g. on Android.
      */
     public static synchronized OneMFiveAppContext getInstance() {
-        synchronized (lockA) {
-            if (globalAppContext == null) {
-                globalAppContext = new OneMFiveAppContext(false, null);
-                LOG.info("Created and returning new instance: " + globalAppContext);
-            } else{
-                LOG.info("Returning cached instance: " + globalAppContext);
-            }
-        }
-        if(!globalAppContext.configured) {
-            globalAppContext.configure();
-        }
-        if(globalAppContext.configured)
-            return globalAppContext;
-        else
-            return null;
+        return getInstance(null);
     }
 
     public static OneMFiveAppContext getInstance(Properties properties) {
@@ -119,10 +105,7 @@ public class OneMFiveAppContext {
         if(!globalAppContext.configured) {
             globalAppContext.configure();
         }
-        if(globalAppContext.configured)
-            return globalAppContext;
-        else
-            return null;
+        return globalAppContext;
     }
 
     public static void clearGlobalContext() {
@@ -287,9 +270,9 @@ public class OneMFiveAppContext {
         return infoVaultDB;
     }
 
-    public ClientAppManager getClientAppManager() {
+    public ClientAppManager getClientAppManager(Properties props) {
         if(clientAppManager.getStatus() == ClientAppManager.Status.STOPPED)
-            clientAppManager.initialize();
+            clientAppManager.initialize(props);
         return clientAppManager;
     }
 

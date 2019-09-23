@@ -27,7 +27,7 @@ public class CoreTest {
     @BeforeClass
     public static void startUp() {
         oneMFiveAppContext = OneMFiveAppContext.getInstance();
-        clientAppManager = oneMFiveAppContext.getClientAppManager();
+        clientAppManager = oneMFiveAppContext.getClientAppManager(null);
         client = clientAppManager.getClient(true);
         // NOTE: Don't forget to increase latch number for each asynchronous assertion
         lock = new CountDownLatch(1);

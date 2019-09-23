@@ -6,10 +6,7 @@ import io.onemfive.core.bus.BusStatusListener;
 import io.onemfive.core.bus.ServiceBus;
 import io.onemfive.data.Envelope;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -85,7 +82,7 @@ public final class ClientAppManager implements BusStatusListener {
      * Once started, its is ready for building a Client.
      * @return non-null
      */
-    public boolean initialize() {
+    public boolean initialize(Properties props) {
         LOG.finer("Requesting instance...");
         if(status == Status.STOPPED) {
             LOG.finer("initializing...");
@@ -95,8 +92,7 @@ public final class ClientAppManager implements BusStatusListener {
             serviceBus.registerBusStatusListener(this);
             if (serviceBus.getStatus() == ServiceBus.Status.Stopped) {
                 LOG.info("Starting 1M5 Service Bus...");
-                // TODO: Add properties to ServiceBus init
-                serviceBus.start(null);
+                serviceBus.start(props);
             }
             // Assign service bus to producer for sending messages to service bus
             producer = serviceBus;
