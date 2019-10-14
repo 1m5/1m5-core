@@ -84,7 +84,7 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
     }
 
     public void register(Class serviceClass, Properties p, List<ServiceStatusObserver> observers) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
-        LOG.finer("Registering service class: "+serviceClass.getName());
+        LOG.info("Registering service class: "+serviceClass.getName());
         if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
@@ -101,14 +101,16 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
                 LOG.info("Registering ServiceStatusObservers with service: "+service.getClass().getName());
                 service.registerServiceStatusObservers(observers);
             }
-            LOG.finer("Service registered successfully: "+serviceName);
+            LOG.info("Service registered successfully: "+serviceName);
             // init registered service
             new AppThread(new Runnable() {
                 @Override
                 public void run() {
                     if(service.start(properties)) {
                         runningServices.put(serviceName, service);
-                        LOG.finer("Service registered successfully as running: "+serviceName);
+                        LOG.info("Service registered successfully as running: "+serviceName);
+                    } else {
+                        LOG.warning("Registered service failed to start: "+serviceName);
                     }
                 }
             }, serviceName+"-StartupThread").start();
