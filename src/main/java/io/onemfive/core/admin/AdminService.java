@@ -48,6 +48,7 @@ public class AdminService extends BaseService {
 
     private void registerServices(Envelope e) {
         List<Class> servicesToRegister = (List<Class>)DLC.getEntity(e);
+        LOG.info("Services to register: "+servicesToRegister);
         Properties p = (Properties)DLC.getData(Properties.class, e);
         Map<String,List<ServiceStatusObserver>> serviceStatusObservers = (Map<String,List<ServiceStatusObserver>>)DLC.getData(ServiceStatusObserver.class, e);
         List<ServiceStatusObserver> observers;
