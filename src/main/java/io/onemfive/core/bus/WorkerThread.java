@@ -33,12 +33,12 @@ final class WorkerThread extends AppThread {
 
     @Override
     public void run() {
-        LOG.finest(Thread.currentThread().getName() + "Waiting for channel to return message...");
+        LOG.finer(Thread.currentThread().getName() + ": Channel waiting to receive next message...");
         Envelope e = channel.receive();
-        LOG.finest(Thread.currentThread().getName() + "Envelope received from channel");
+        LOG.finer(Thread.currentThread().getName() + ": Channel received message; processing...");
         if (e.replyToClient()) {
             // Service Reply to client
-            LOG.finer(Thread.currentThread().getName() + "Requesting client notify...");
+            LOG.finer(Thread.currentThread().getName() + ": Requesting client notify...");
             clientAppManager.notify(e);
         } else {
             MessageConsumer consumer = null;
@@ -49,7 +49,7 @@ final class WorkerThread extends AppThread {
                 consumer = services.get(route.getService());
                 if (consumer == null) {
                     // Service name provided is not registered.
-                    LOG.warning(Thread.currentThread().getName() + "Route found in header; Service not registered; Please register service: "+route.getService());
+                    LOG.warning(Thread.currentThread().getName() + ": Route found in header; Service not registered; Please register service: "+route.getService()+"\n\tCurrent Registered Services: "+services);
                     return;
                 }
             }
@@ -59,9 +59,9 @@ final class WorkerThread extends AppThread {
             int waitBetweenMillis = 1000;
             while (!received && sendAttempts < maxSendAttempts) {
                 if (consumer.receive(e)) {
-                    LOG.finest(Thread.currentThread().getName() + "Envelope received by service, acknowledging with channel...");
+                    LOG.finer(Thread.currentThread().getName() + ": Envelope received by service, acknowledging with channel...");
                     channel.ack(e);
-                    LOG.finest(Thread.currentThread().getName() + "Channel Acknowledged.");
+                    LOG.finer(Thread.currentThread().getName() + ": Channel Acknowledged.");
                     received = true;
                 } else {
                     synchronized (this) {

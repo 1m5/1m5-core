@@ -83,8 +83,8 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
         busStatusListeners.remove(busStatusListener);
     }
 
-    public void register(Class serviceClass, Properties p) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
-        LOG.finer("Registering service class: "+serviceClass.getName());
+    public void register(Class serviceClass, Properties p, List<ServiceStatusObserver> observers) throws ServiceNotAccessibleException, ServiceNotSupportedException, ServiceRegisteredException {
+        LOG.info("Registering service class: "+serviceClass.getName());
         if(registeredServices.containsKey(serviceClass.getName())) {
             throw new ServiceRegisteredException();
         }
@@ -97,14 +97,20 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
             // register service
             registeredServices.put(serviceClass.getName(), service);
             service.registerServiceStatusListener(this);
-            LOG.finer("Service registered successfully: "+serviceName);
+            if(observers != null) {
+                LOG.info("Registering ServiceStatusObservers with service: "+service.getClass().getName());
+                service.registerServiceStatusObservers(observers);
+            }
+            LOG.info("Service registered successfully: "+serviceName);
             // init registered service
             new AppThread(new Runnable() {
                 @Override
                 public void run() {
                     if(service.start(properties)) {
                         runningServices.put(serviceName, service);
-                        LOG.finer("Service registered successfully as running: "+serviceName);
+                        LOG.info("Service registered successfully as running: "+serviceName);
+                    } else {
+                        LOG.warning("Registered service failed to start: "+serviceName);
                     }
                 }
             }, serviceName+"-StartupThread").start();
@@ -130,6 +136,20 @@ public final class ServiceBus implements MessageProducer, LifeCycle, ServiceRegi
                 }
             }, serviceName+"-ShutdownThread").start();
         }
+    }
+
+    public List<ServiceReport> listServices(){
+        List<ServiceReport> serviceReports = new ArrayList<>(registeredServices.size());
+        ServiceReport r;
+        for(BaseService s : registeredServices.values()) {
+            r = new ServiceReport();
+            r.registered = true;
+            r.running = runningServices.containsKey(s.getClass().getName());
+            r.serviceClassName = s.getClass().getName();
+            r.serviceStatus = s.getServiceStatus();
+            serviceReports.add(r);
+        }
+        return serviceReports;
     }
 
     private void updateStatus(Status status) {

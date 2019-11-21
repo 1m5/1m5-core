@@ -12,6 +12,7 @@ public enum ServiceStatus {
     WAITING, // Waiting on a dependent Service status to go to RUNNING
     STARTING, // Starting Service
     RUNNING, // Service is running normally
+    VERIFIED, // Service has been verified operating normally by receiving a message from it
     PARTIALLY_RUNNING, // Service is running normally although not everything is running but it's expected to be normal
     DEGRADED_RUNNING, // Service is running but in a degraded manner; likely no need for action, will hopefully come back to Running
     UNSTABLE, // Service is running but there could be issues; likely need to restart
