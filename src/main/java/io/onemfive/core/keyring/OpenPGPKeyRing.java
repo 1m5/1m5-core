@@ -3,7 +3,6 @@ package io.onemfive.core.keyring;
 import io.onemfive.core.util.data.Base64;
 import io.onemfive.data.EncryptionAlgorithm;
 import io.onemfive.data.PublicKey;
-import io.onemfive.data.util.HashUtil;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.bcpg.BCPGOutputStream;
 import org.bouncycastle.bcpg.HashAlgorithmTags;
@@ -14,7 +13,6 @@ import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.openpgp.*;
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
-import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
 import org.bouncycastle.openpgp.operator.PublicKeyDataDecryptorFactory;
@@ -63,7 +61,7 @@ public class OpenPGPKeyRing implements KeyRing {
         // Check to see if key rings collections already exist.
         if(skr.exists()) {
             LOG.warning("KeyRing username taken: "+r.keyRingUsername);
-            r.errorCode = GenerateKeyRingCollectionsRequest.KEY_RING_USERNAME_TAKEN;
+            r.statusCode = GenerateKeyRingCollectionsRequest.KEY_RING_USERNAME_TAKEN;
             return;
         }
 
@@ -154,7 +152,7 @@ public class OpenPGPKeyRing implements KeyRing {
     public void encrypt(EncryptRequest r) throws IOException, PGPException {
         PGPPublicKey publicKey = getPublicKey(getPublicKeyRingCollection(r.location, r.keyRingUsername, r.keyRingPassphrase), r.publicKeyAlias, false);
         if(publicKey == null) {
-            r.errorCode = EncryptRequest.PUBLIC_KEY_NOT_FOUND;
+            r.statusCode = EncryptRequest.PUBLIC_KEY_NOT_FOUND;
             return;
         }
 
@@ -305,7 +303,7 @@ public class OpenPGPKeyRing implements KeyRing {
     public void sign(SignRequest r) throws IOException, PGPException {
         PGPSecretKey secretKey = getSecretKey(getSecretKeyRingCollection(r.location, r.keyRingUsername, r.keyRingPassphrase), r.alias);
         if(secretKey == null) {
-            r.errorCode = SignRequest.SECRET_KEY_NOT_FOUND;
+            r.statusCode = SignRequest.SECRET_KEY_NOT_FOUND;
             return;
         }
 

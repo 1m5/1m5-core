@@ -9,7 +9,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 /**
@@ -142,7 +141,7 @@ public class KeyRingServiceTest {
             DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_ENCRYPT_SYMMETRIC, ee);
             ee.setRoute(ee.getDynamicRoutingSlip().nextRoute());
             service.handleDocument(ee);
-            if(er.errorCode != ServiceRequest.NO_ERROR) System.out.println("Encryption Error Code: "+er.errorCode);
+            if(er.statusCode != ServiceRequest.NO_ERROR) System.out.println("Encryption Error Code: "+er.statusCode);
             assert er.content.getBody() != null;
             System.out.println("Encrypted text: \n"+new String(er.content.getBody()));
 
@@ -154,8 +153,8 @@ public class KeyRingServiceTest {
             DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_DECRYPT_SYMMETRIC, de);
             de.setRoute(de.getDynamicRoutingSlip().nextRoute());
             service.handleDocument(de);
-            if(dr.errorCode != ServiceRequest.NO_ERROR) System.out.println("Decryption Error Code: "+dr.errorCode);
-            assert dr.errorCode == ServiceRequest.NO_ERROR;
+            if(dr.statusCode != ServiceRequest.NO_ERROR) System.out.println("Decryption Error Code: "+dr.statusCode);
+            assert dr.statusCode == ServiceRequest.NO_ERROR;
             assert plaintext.equals(new String(dr.content.getBody()));
             System.out.println("Decrypted text: \n"+new String(dr.content.getBody()));
         } catch (Exception ex) {
